@@ -25,13 +25,10 @@
 // ----------------------------------------------------------------------------
 
 // TODO: Migrate FreeCNC to use these instead of any libs (currently SDL)
-typedef unsigned char      byte;
-typedef signed short       int16;
-typedef signed long        int32;
-typedef signed long long   int64;
-typedef unsigned short     uint16;
-typedef unsigned long      uint32;
-typedef unsigned long long uint64;
+typedef unsigned char  uchar;
+typedef unsigned short ushort;
+typedef unsigned int   uint;
+typedef unsigned long  ulong;
 
 using std::map;
 using std::string;
