@@ -1,0 +1,98 @@
+#!/usr/bin/scons
+# This might not even work
+from os import environ, popen, getenv
+from glob import glob
+from sys import platform
+
+# Source files
+source = ["src/freecnc.cpp"]
+source += glob("src/*/*.cpp")
+source += glob("src/*/*/*.cpp")
+source += glob("src/lua/*.c")
+# This is blatent overkill
+exclude = ["src/misc/fibheap.cpp"]
+source = filter(lambda x: x not in exclude, source)
+
+# Import PATH and optional MINGW environment variables to allow zx64 to cross compile
+# See http://zx64.uwcs.co.uk/freecnc/crossdev/
+if platform == "linux2":
+    env = Environment(ENV = {"PATH" : environ["PATH"], "MINGW" : getenv("MINGW")})
+else:
+    env = Environment()
+# Don't clutter the source tree with multiple .sconsign files
+env.SConsignFile()
+
+# TODO: What about native mingw32?
+if platform == "win32":
+    print "ERROR: Use the project files instead."
+    Exit(1)
+if platform not in ["linux2", "darwin", "freebsd"]:
+    print "%s is not supported at this time." % platform
+    Exit(1)
+
+if platform == "freebsd":
+    print "NOTE: FreeBSD isn't frequently tested"
+    sdlconfname = "sdl11-config"
+else:
+    sdlconfname = "sdl-config"
+
+# I want sdl-config to have pkg-config's --libs-only-l etc. (or for SDL to
+# use pkg-config)
+def extractconfig(s, flag):
+    # Given the string from sdl-config --(cflags|libs) and a single char
+    # from ["I", "l", "L"], we extract all parmeters that start with -<char>
+    # and convert them into the format required by SCons
+    return [x[2:] for x in s if x[1] == flag]
+
+def extractconfig2(s, flags):
+    return [x for x in s if x[1] not in flags]
+
+sdlconf = popen(sdlconfname + " --cflags")
+cflags = sdlconf.readline().split()
+sdlconf.close()
+env["CPPPATH"] = extractconfig(cflags, "I")
+# We shouldn't use -I flags in CXXFLAGS
+env["CXXFLAGS"] = extractconfig2(cflags, ["I"])
+env["CPPPATH"] += ["#/src/include", "#/src/include/lua"]
+env["CCFLAGS"] = ["-ansi", "-pedantic"]
+try:
+    if env["ENV"]["MINGW"] != "1":
+        env["CXXFLAGS"] += ["-std=c++98", "-Wconversion", "-Wno-unused-parameter"]
+except: # No mingw env variable
+    env["CXXFLAGS"] += ["-std=c++98", "-Wconversion", "-Wno-unused-parameter"]
+sdlconf = popen(sdlconfname + " --libs")
+libflags = sdlconf.readline().split()
+sdlconf.close()
+env["LIBS"] = extractconfig(libflags, "l")
+env["LIBS"] += ["SDL_mixer"]
+env["LIBPATH"] = extractconfig(libflags, "L")
+env["LINKFLAGS"] = extractconfig2(libflags, ["l", "L"])
+
+release = env.Copy()
+release["CXXFLAGS"] += ["-Os"]
+release["CCFLAGS"] += ["-Os"]
+release["LINKFLAGS"] += ["-s"]
+debug = env.Copy()
+debug["CXXFLAGS"] += ["-g"]
+
+if ARGUMENTS.get("RELEASE", 0):
+    env = release
+else:
+    env = debug
+
+env.Program(target = "freecnc", source = source)
+
+# Only build tools if specified
+if ARGUMENTS.get("TOOLS", 0):
+    commonobjects = glob("src/vfs/*.cpp") + glob("src/vfs/*/*.cpp")
+    commonobjects += ["#/src/misc/inifile.o", "#/src/misc/common.o", "#/src/ui/logger.o", "#/src/misc/compression.o"]
+    commonobjects += ["#/src/video/shpimage.o", "#/src/ui/font.o", "#/src/video/imageproc.o", "#/src/video/message.o"]
+
+    mixshell_source = glob("tools/mixshell/*.cpp") + ["#/src/vfs/mix/ws-key.o"]
+    mixshell_incs = env["CPPPATH"] + ["#/tools/mixshell", "#/src/vfs/mix"]
+    env.Program(target = "#/tools/mixshell/mixshell", source = mixshell_source, CPPPATH = mixshell_incs)
+
+    for tool in ["shpview", "tmpinied"]:
+        tool_source = glob("tools/"+tool+"/*.cpp") + commonobjects
+        env.Program(target = tool, source = tool_source)
+

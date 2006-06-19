@@ -1,0 +1,160 @@
+# Additional valgrind suppressions that blat things not caught by building with
+# -DDEBUG and setting GLIBCPP_FORCE_NEW in the environment.
+
+# SDL (1.2.6)
+{
+   "SDL Events"
+   Memcheck:Cond
+   fun:X11_SetKeyboardState
+   obj:/usr/lib/libSDL-1.2.so.0.0.6
+   fun:X11_PumpEvents
+   fun:SDL_PumpEvents
+}
+
+{
+   "SDL Threads"
+   Memcheck:Leak
+   fun:calloc
+   fun:SDL_CreateMutex
+   fun:SDL_ThreadsInit
+   obj:/usr/lib/libSDL-1.2.so.0.0.6
+}
+
+# LD (2.3.2)
+{
+   "LD0"
+   Memcheck:Leak
+   fun:malloc
+   fun:decompose_rpath
+   fun:cache_rpath
+   fun:_dl_map_object_internal
+}
+
+{
+   "LD1"
+   Memcheck:Leak
+   fun:malloc
+   fun:_dl_map_object_internal
+   fun:dl_open_worker
+   fun:_dl_catch_error_internal
+}
+
+{
+   "LD2"
+   Memcheck:Leak
+   fun:malloc
+   fun:_dl_map_object_internal
+   fun:openaux
+   fun:_dl_catch_error_internal
+}
+
+{
+   "LD3"
+   Memcheck:Leak
+   fun:malloc
+   fun:_dl_map_object_deps_internal
+   fun:dl_open_worker
+   fun:_dl_catch_error_internal
+}
+
+{
+   "LD4"
+   Memcheck:Leak
+   fun:malloc
+   fun:_dl_new_object
+   fun:_dl_map_object_from_fd
+   fun:_dl_map_object_internal
+}
+
+{
+   "LD5"
+   Memcheck:Leak
+   fun:calloc
+   fun:_dl_check_map_versions_internal
+   fun:dl_open_worker
+   fun:_dl_catch_error_internal
+}
+
+{
+   "LD6"
+   Memcheck:Leak
+   fun:calloc
+   fun:_dl_new_object
+   fun:_dl_map_object_from_fd
+   fun:_dl_map_object_internal
+}
+
+# X11 (I run a DRI trunk snapshot)
+{
+    "libX11 malloc bugs"
+    Memcheck:Leak
+    fun:malloc
+    obj:/usr/X11R6/lib/libX11.so.6.2
+    obj:/usr/X11R6/lib/libX11.so.6.2
+    obj:/usr/X11R6/lib/libX11.so.6.2
+}
+
+{
+    "libX11 realloc bugs"
+    Memcheck:Leak
+    fun:realloc
+    obj:/usr/X11R6/lib/libX11.so.6.2
+    obj:/usr/X11R6/lib/libX11.so.6.2
+    obj:/usr/X11R6/lib/libX11.so.6.2
+}
+
+# It would be nice if I could cut this down using wildcards.
+{
+    "XLC0"
+    Memcheck:Leak
+    fun:malloc
+    fun:_XlcCreateLC
+    fun:_XlcDefaultLoader
+    fun:_XlcDynamicLoad
+}
+
+{
+   "XLC1"
+   Memcheck:Leak
+   fun:malloc
+   fun:__GI___strdup
+   obj:/usr/X11R6/lib/libX11.so.6.2
+   fun:_XlcDynamicLoad
+}
+
+{
+   "XLC2"
+   Memcheck:Leak
+   fun:malloc
+   obj:/usr/X11R6/lib/libX11.so.6.2
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+}
+
+{
+   "XLC3"
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcSetConverter
+   fun:_XlcAddUtf8Converters
+   fun:_XlcDefaultLoader
+}
+
+{
+   "XLC4"
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcSetConverter
+   fun:_XlcAddUtf8Converters
+   fun:_XlcDefaultLoader
+}
+
+{
+   "XLC5"
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcSetConverter
+   fun:_XlcDefaultLoader
+   fun:_XlcDynamicLoad
+}
+

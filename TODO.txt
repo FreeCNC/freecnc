@@ -1,0 +1,157 @@
+Final stage for each version: Liase with distributors to ensure we will have
+packages.
+
+0.3
+***
+Target release date: 2005-03-01 (maybe..hopefully)
+
+RA will not be "officially" supported by this release as there are still too
+many things that are broken and fixing them would delay the release even
+further.
+
+All that's left is for zx64 to fix sound for VQAs and fix any showstoppers that
+show up during testing.
+
+Candidates for 0.3.x (i.e. might get fixed for 0.3, but don't expect it)
+********************
+- Music playlists
+- Money tick looping speed.
+- Moneycounter/buildqueue doesn't stop when mission is completed.
+- #define to disable ws-key and dependent functionality for building on AMD64.
+This means no form of RA for AMD64 (unless the mixfiles are unpacked or use a
+32bit build) for 0.3, but a line has to be drawn.
+
+0.3.x
+*****
+These releases should be mostly bug fix releases, although any features due for
+0.4 that get finished and are stable will also be included for better testing.
+(If doing this works well, it should also happen after 0.4 whilst working on
+0.5, etc.)
+
+0.4
+***
+Target release date: Ummmm......
+
+- Win32: Display gets corrupted if you alt-tab out.
+
+Weapons:
+- make grenades work properly
+- damage spreading beyond one tile
+
+Sound: Money change feedback sounds aren't looping fast enough.
+
+AI: capable of skirmishing and simple single player maps.
+
+Map loading: When reading in walls, attempt to locate any nearby
+  buildings and use the owner of that building for the owner of the wall
+  instead of always using the civilian side.
+  Also work around maps that don't explicitly have the civilian
+  side allied with the good guys.
+
+VFS:
+- Better game detection (see below)
+- Replace ExternalFiles with zzlib
+
+Red Alert: Several things:
+- detect which version(s) of C&C you have, with a rudimentary way of
+  selecting if a choice is available.
+  This will remove the need to edit data/settings/freecnc.ini to run RA
+- MIX: Blowfish(?) code is broken on big endian systems.
+- PlayerPool: non TD-specific types of player side.
+- Prequisites, build queue: Very borken, will investigate later.
+- other stuff of course.
+- Further abstraction of TD/RA differences (e.g. filenames)
+
+Provided the RA fixes get done, RA should be "officially" supported by this
+release.
+
+0.5
+***
+Target release date: Early 2005
+
+- Introduction of boost to tree, will be using at least the smart pointers and
+  the filesystem libraries.  Another candidate is the parsing libraries.
+- Re-evaluate event code (at the very least make the resource managment part of
+  it not suck)
+- Passenger/cargo code.  To be used for APCs et al, unit production (newly
+  produced unit becomes the constructing building's cargo which is then
+  ejected), harvesting, C4 demolitions, etc.
+
+Any unfinished RA bugs should be considerred blockers for this release, although
+the release master (currently zx64) reserves the right to waive this if he feels
+it appropriate to do so.
+
+0.6
+***
+Target release date: Mid 2005
+
+- Reassess the design and implementation of the dispatcher with regard
+  to making network play work.
+- Client / server split.
+
+Not yet assigned to a version
+*****************************
+(in no particular order)
+Graphics:
+- Optimise rendering code
+- GUI
+- Supporting more formats (e.g. png, ogg).
+
+General:
+- Cleaning up bit rot, e.g. removing C-isms.
+- Split common.h into several headers.
+- Support for other WW games that used a similar engine (e.g. Dune2 and
+  Dune2000).
+
+Design notes
+
+Game detection (0.4)
+--------------------
+- Move existing code from VFS_Init into a new function that produces a
+  list of available games (DetectGames)
+- If more than one game is available, prompt user for selection.
+  - Initial version will try TD then fallback to RA.  -ra will invert
+    this behaviour.
+  - One idea for the ui for this is to use the unscaled menu backdrop
+    from available games for the menu.
+- After selection is made, load appropriate unit and structure inifiles.
+  (LoadGame).
+- config.gamenum will become a property of the game loaded rather than
+  an explicit option in freecnc.ini.
+- RA demo lacks SCG01EA :/
+
+Config updates (0.3 - 0.5)
+--------------------------
+* The goal is to remove the need for the config files to be edited in
+  order to just run the game.
+- The first step is moving game-specific config files to their own
+  subdirectory in data/setttings.                                       (0.3)
+- Once the moving is done, we proceed to game detection.
+- Whilst there is an overlap between a few inifiles, those files be
+  fully seperated initially.                                            (0.3)
+- The code to find mixfiles will also be revamped to recurse
+  subdirectories automatically.                                  (0.4 or 0.5)
+
+Scripting (>= 0.4)
+------------------
+- There are a two ways of processing concurrently with lua: coroutines
+  and threading.
+- Concurrency might be preferable for certain things (e.g AI) as it
+  should mean that we just pass events in and poll for orders every few
+  ticks.  rather than running all the calculations in one go every few
+  ticks.
+- Currently, I can see at least the following uses for scripting:
+  - AI: Obviously.
+  - UI: Layout (instead of having layout in a conf file and writing a
+    parser.  This part wouldn't have to be concurrent).
+    Might be useful for glueing various parts of the ui together too.
+  - Triggers: would have to "compile" existing map triggers into lua,
+    but gives scope for adding new triggers.
+  - Animation: This might not be as suitable due to
+    - Tighter time requirements.
+    - A well designed native version might work out better.
+- Further investigation:
+  - Benchmark various ways of calling lua (i.e. calling normal
+    functions, resuming co-routines, message passing and threading).
+  - How have other OSS games that use lua done it?
+

@@ -1,0 +1,9 @@
+Quick reference guide for using the imagecache:
+- Access: pc::imgcache.
+- Loading: pc::imgcache->loadImage(filename);  Returns number required for image
+  retrieval.  Throws ImageNotFound on error.
+- Getting images:  pc::imgcache->getImage(num);  Where num is (number returned
+  by loadImage)+(frame offset) | (pallete << 11).  Returns an ImageCacheEntry
+  struct (defined in imagecache.h).
+- ImageCacheEntry: Two data members: image and shadow (both SDL_Surface*).
+  (surfaces are owned by the imagecache, so don't use SDL_FreeSurface)

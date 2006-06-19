@@ -1,0 +1,207 @@
+
+  FreeCNC ChangeLog
+
+-------------------------------------------------------------------------------
+- 2005-10-28
+-------------------------------------------------------------------------------
+
+  Internal
+- Added a check for Boost's headers to the Makefiles.   (zx64)
+
+
+-------------------------------------------------------------------------------
+- 2005-06-17
+-------------------------------------------------------------------------------
+
+  Internal
+- Removed passenger code.  (zx64)
+
+-------------------------------------------------------------------------------
+- 2005-06-16
+-------------------------------------------------------------------------------
+
+  Internal
+- Partial cleanup of talkback code.  (zx64)
+- Partial cleanup of infantry group code.  (zx64)
+
+-------------------------------------------------------------------------------
+- 2005-06-13
+-------------------------------------------------------------------------------
+
+  Internal
+- Fixed up unitorstructure.h a bit, added an assert in the destructor.
+  (prencher)
+
+  Documentation
+- Added a new README.txt, this replaces the old INSTALL.txt and README.txt
+  files.  (prencher)
+
+  Config
+- Added optionalN lines for detecting the use of -gdi and -nod suffixes for
+  movies and general.  (zx64)
+
+-------------------------------------------------------------------------------
+- 2005-05-23
+-------------------------------------------------------------------------------
+
+  Tools
+- Added a shell script to fetch the Tiberian Dawn demo mix files.  (zx64)
+- Added an SConstruct file.  (zx64)
+
+-------------------------------------------------------------------------------
+- 2005-05-22
+-------------------------------------------------------------------------------
+
+  Internal
+- Fixed crash caused by failing to load a sound.  (zx64)
+  (Thanks to "wombat23" for pointing this one out on IRC)
+
+-------------------------------------------------------------------------------
+- 2005-05-21
+-------------------------------------------------------------------------------
+
+  Internal
+- Miscellaneous sidebar code cleanup. (zx64)
+  Some code now using shared_ptr.
+
+-------------------------------------------------------------------------------
+- 2005-05-17
+-------------------------------------------------------------------------------
+
+  Video
+- Fixed shroud border on OSX. (zx64)
+
+-------------------------------------------------------------------------------
+- 2005-05-16
+-------------------------------------------------------------------------------
+
+  Sound
+- Fixed sound on OSX. (zx64)
+
+-------------------------------------------------------------------------------
+- 2005-05-11
+-------------------------------------------------------------------------------
+
+  Build
+- Updated MSVC project files to not include strcase.cpp. (prencher)
+
+  Internal
+- Removed a bunch of MSVC warnings about implicit casts. (prencher)
+- Removed homebrew implementation of strcasecmp. (zx64)
+- Added macro mappings to MSVC's counterparts of strcasecmp (_stricmp),
+  strncasecmp (_strnicmp). (prencher)
+
+  Video
+- Committed a slightly modified version of bramp's patch to add sound to video.
+  Framerate problems on some systems needs investigating. (zx64)
+
+-------------------------------------------------------------------------------
+- 2005-03-25
+-------------------------------------------------------------------------------
+
+  Build
+- FreeCNC now depends on Boost (www.boost.org).
+
+  Internal
+- Switched fcnc_lexical_cast over to the real thing. (zx64)
+- Changed GetConfig to use shared_ptr. (zx64)
+- Minor cleanups in src/game.cpp (zx64)
+
+-------------------------------------------------------------------------------
+- 2005-03-22
+-------------------------------------------------------------------------------
+
+  Build
+- MSVC 7.1 project files update. (prencher)  
+
+  Internal
+- Initial cleanup of shpimage.h|cpp. (prencher)
+
+  Bug Fixes
+- Fixed a memory error in unitandstructurepool.cpp causing a crash when exiting
+  freecnc. (bramp)
+
+-------------------------------------------------------------------------------
+- 2005-03-21
+-------------------------------------------------------------------------------
+
+  Game
+- Added a function to CnCMap to allow map tile's to be reloaded. Also all
+  tiles are now cached. (bramp)
+
+  Video
+- Everything that loads a SHP file now does it via the image cache. (bramp)
+- Implemented the getImageAsAlpha function to allow levels of transparency in
+  the shrouds.  (bramp)
+
+  Input
+- Added a check for loss and gaining of focus. Now when focus is regained, all
+  SDL_Surfaces are reloaded to fix the "Video Loss" bug with DirectX and SDL.
+  (bramp)
+
+  UI
+- Added functions to sidebar, cursor and font to allow a reloading of all
+  SDL_Surfaces. (bramp)
+
+  Bug Fixes
+- Sidebar build clock's special palette shift wasn't being redone after
+  reloading images. (zx64)
+- Fixed some of the logic in the sidebar texturing code. (zx64)
+
+-------------------------------------------------------------------------------
+- 2005-03-20
+-------------------------------------------------------------------------------
+
+  Bug Fixes
+- Applied a slightly modified patch from Andrew Brampton fixing the crash
+  happening when a unit died while selected. Thanks Andrew. (prencher)
+
+-------------------------------------------------------------------------------
+- 2005-03-13
+-------------------------------------------------------------------------------
+
+  Build
+- The usual MSVC 7.1 project files updates. (prencher)
+
+  Internal
+- Removed all of the AI bitrot; This was not used, and the eventual AI will be
+  implemented through the use of lua. (prencher)
+
+-------------------------------------------------------------------------------
+- 2005-01-13
+-------------------------------------------------------------------------------
+
+  Bug Fixes
+- Fixed crash on start up without a splash logo. (zx64)
+
+-------------------------------------------------------------------------------
+- 2005-01-10
+-------------------------------------------------------------------------------
+
+  General
+- Added a couple of .cvsignore files. (prencher)
+
+  Sound
+- Replaced some old 'legacy' leftovers, to make way for the proper music file
+  streaming. This is still not perfect. (prencher)
+- Cleaned up a loop in soundfile.cpp. (prencher)
+
+  Bug Fixes
+- Fixed a small include path bug in mixvfs.cpp. (prencher)
+
+-------------------------------------------------------------------------------
+- 2005-01-08
+-------------------------------------------------------------------------------
+
+  Build
+- The usual MSVC 7.1 project files updates. (prencher)
+
+  Bug Fixes
+- Fixed a small bug in MessagePool::getMessages(), thanks to Vincent Landgraf
+  for reporting it. (prencher)
+
+-------------------------------------------------------------------------------
+- Previous Changes
+-------------------------------------------------------------------------------
+
+  The old ChangeLog can be found in the doc/tech/ directory.

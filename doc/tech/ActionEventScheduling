@@ -1,0 +1,23 @@
+HowTo scedule a event for later execution.
+
+Sceduling events didn't get as easy as I hoped. In order to scedule a 
+event you must create a class which extends "ActionEvent". This is done by 
+writing:
+	class FooEvent : public ActionEvent{
+	  public:
+		FooEvent( Uint32 p, ... ) : ActionEvent(p);
+		virtual void run(){/*function goes here*/}	
+	};
+You may add any public and/or private functions and/or variables to this 
+class. The only requirements for this class is that it extends the 
+"ActuionEvent" class and it thus must call the parents constructor (by the 
+": ActionEvent(p)"). The parameter "p" must be the number of ticks 
+(1tick ~= 30ms) to wait before the run function of this class is executed.
+
+Afer experimenting with this I have concluded that the best way to 
+implement a actionevent is to make this class a friend of the class it 
+manipulates. You can then do all manipulations from the eventclass and 
+call delete this; when the animation is done. The best thing about doing 
+it this way is that you don't bloat the code as much.
+
+For an example see unitanimations.cpp (and .h)

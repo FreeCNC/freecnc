@@ -1,0 +1,13 @@
+- Authors of Lua, for a great scripting language.
+- The creators of SDL for such a great toolkit.
+- Those who reverse engineered the formats.
+- Sourceforge for hosting us, even when things turned a bit ugly.
+- Julian Seward and the rest for the awesomely cool valgrind.
+- and<dot>koop<at>web<dot>de for the following patches:
+    + More complete Red Alert support (contained ratemplates.ini).
+    + Fixing a fullscreen crash bug on win32.
+    + A base for the current buildqueue implementation.
+    + Custom map, repair and sell buttons for the DOS version of the sidebar.
+- Mark Martinec for his portable implementation of snprintf, although we
+  no longer use it.
+- Anybody else who we've forgotten to thank.

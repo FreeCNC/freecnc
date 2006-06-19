@@ -1,0 +1,123 @@
+Structure animation specification
+=================================
+
+Euan MacGregor
+2001-10-06
+
+Abstract:
+This document outlines the current implementation of the structure
+animation code as well as aspects that are yet to be completed.
+
+Contents:
+
+1 - Overview
+2 - BuildingAnimEvent
+3 - LoopAnimEvent
+4 - ProcAnimEvent
+5 - BuildAnimEvent
+6 - BTurnAnimEvent
+7 - DoorAnimEvent
+8 - RefineAnimEvent
+9 - BAttackAnimEvent
+10 - TODO
+
+1 - Overview
+============
+The current system uses derived classes to implement specific
+animations.  Wherever possible, magic numbers should be avoided.
+Instead use the structure configuration file and modify the Structure
+class and the constructor to read in those values.
+
+All animations are derived from the BuildingAnimEvent class.  The
+"virtual void anim_func(anim_nfo* data)" function is called by the
+BuildingAnimEvent class in the run() method, so override this in new
+classes.  Information on the new frame is passed back to the run()
+method inside the anim_nfo structure.
+
+Throughout this document, I have used "structure" to refer to C style
+structure and "building" to refer to buildings in the game.
+
+2 - BuildingAnimEvent
+=====================
+This class is abstract, there is no point in declaring a variable to be
+of this type.  However a pointer to this type /is/ useful (polymorphic
+behaviour).  
+
+The main function is run(), which calls anim_func() to calculate the
+next frame, and then updates the building's frame.  This function also
+checks if the animation has finished and if so, checks if the type of
+animation that has just completed is supposed to lead into another
+animation, and if so, schedules that animation to run.
+
+Any scheduled animation is pushed onto the event queue inside the
+destructor.
+
+3 - LoopAnimEvent
+=================
+The most common animation type.  Frames linearly increase every time it
+is called, and this frame is wrapped at the specified "loopend" value
+from the config file.
+
+4 - ProcAnimEvent
+=================
+Modified version of LoopAnimEvent due to the order in which the frames
+for the Refinery are stored: 
+1) frames for the undamaged idle loop
+2) frames for the undamaged refining loop
+3) frames for the damaged idle loop
+4) frames for the damaged refining loop.
+This is different to the other buildingss (damaged main loop follows
+undamaged main loop).  This class might be removed at a later date
+(would require changes to LoopAnimEvent).
+
+5 - BuildAnimEvent
+==================
+The animation played when a building is constructed.  If a building has
+a loop animation defined in the config file, the code schedules that
+after this animation has finished.  This class is also to be used when
+selling buildings to avoid unnecessary code duplication.
+
+6 - BTurnAnimEvent
+==================
+Although this has been implemented, it is only used internally by
+BAttackAnimEvent.
+
+This class works in a very similar way to TurnAnimEvent (for vehicles),
+as this class is based on that class's code.
+
+7 - DoorAnimEvent
+=================
+Used only by the Weapons factory.  This is different from the other
+animations in that it operates on the second layer, rather than the
+first (hence the frame0 as well as frame).
+
+8 - RefineAnimEvent
+===================
+Another building specific animation.  As the name suggests, this is used
+to animate the refinery refining.
+
+9 - BAttackAnimEvent 
+==================== 
+
+Like the BTurnAnimEvent class, the code for this class is based on the
+corresponding class for units.  The structure class has a pointer
+variable of this type as well as one for the BuildingAnimEvent base
+class as both can happen at the same time.
+
+This class uses its own run() function as the logic is very different to
+the other building anims.  The anim_func() is empty.
+
+10 - TODO
+=========
+* More logic for the DoorAnimEvent to do with waiting for constructed
+  unit to move clear of door before closing.
+
+* Address the friends issue: classes that override updateDamaged need
+  access to anim_data.
+
+11 - CHANGES
+============
+
+2001-10-06 Updated prior to 0.2.0-tp1 release
+
+2001-09-05 Initial version.

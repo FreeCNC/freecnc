@@ -1,0 +1,68 @@
+#ifndef _LIB_ENDIAN_H
+#define _LIB_ENDIAN_H
+//
+// Defines various useful constants for endianness. 
+//
+// TODO: Replace macros with inline functions
+
+#include <cstdio>
+#include "SDL_endian.h"
+#include "../freecnc.h"
+
+#define FCNC_LIL_ENDIAN 1234
+#define FCNC_BIG_ENDIAN 4321
+
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+#define FCNC_BYTEORDER FCNC_LIL_ENDIAN
+#define readbyte(x,y) x[y]
+#define readword(x,y) x[y] + (x[y+1] << 8)
+#define readthree(x,y)  x[y] + (x[y+1] << 8) + (x[y+2] << 16) + (0 << 24)
+#define readlong(x,y) x[y] + (x[y+1] << 8) + (x[y+2] << 16) + (x[y+3] << 24)
+#else
+#define FCNC_BYTEORDER FCNC_BIG_ENDIAN
+#define readbyte(x,y) x[y]
+#define readword(x,y) SDL_Swap16((x[y] << 8) ^ x[y+1])
+#define readthree(x,y) SDL_Swap32((x[y] << 24) ^ (x[y+1] << 16) ^ (x[y+2] << 8))
+#define readlong(x,y) SDL_Swap32((x[y] << 24) ^ (x[y+1] << 16) ^ (x[y+2] << 8) ^ (x[y+3]))
+#endif
+
+inline Uint8 freadbyte(FILE *fptr)
+{
+    Uint8 x;
+    fread(&x,1,1,fptr);
+    return x;
+}
+
+inline Uint16 freadword(FILE *fptr)
+{
+    Uint16 x;
+    fread(&x,2,1,fptr);
+
+    #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
+    return x;
+    #else
+    return SDL_Swap16(x);
+    #endif
+}
+
+inline Uint32 freadthree(FILE *fptr)
+{
+    // Can this be made better?
+    Uint8 x[3];
+    fread(x,3,1,fptr);
+    return readthree(x,0);
+}
+
+inline Uint32 freadlong(FILE *fptr)
+{
+    Uint32 x;
+    fread(&x, 4, 1, fptr);
+
+    #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
+    return x;
+    #else
+    return SDL_Swap32(x);
+    #endif
+}
+
+#endif

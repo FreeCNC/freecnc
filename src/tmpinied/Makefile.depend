@@ -1,0 +1,4 @@
+# DO NOT DELETE
+
+tmpgfx.o: tmpgfx.h templatedata.h
+tmpinied.o: tmpgfx.h templatedata.h
