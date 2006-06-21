@@ -7,6 +7,7 @@
 #include "graphicsengine.h"
 #include "imageproc.h"
 #include "wsa.h"
+#include "endianutils.h"
 
 using std::runtime_error;
 

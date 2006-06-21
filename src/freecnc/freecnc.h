@@ -1,7 +1,7 @@
 #ifndef _FREECNC_H
 #define _FREECNC_H
 //
-// Defines the primitive types, common types and the global variables
+// Defines the common types and the global variables
 //
 // TODO: Get rid of everything below OLD, implement GameEngine
 
@@ -16,7 +16,6 @@
 #include "SDL_keysym.h" // Needs to go
 
 #include "version.h"
-#include "lib/fcncendian.h"
 #include "lib/logger.h"
 
 using std::map;

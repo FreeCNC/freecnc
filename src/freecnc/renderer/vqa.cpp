@@ -9,6 +9,7 @@
 #include "graphicsengine.h"
 #include "imageproc.h"
 #include "vqa.h"
+#include "endianutils.h"
 
 using std::runtime_error;
 

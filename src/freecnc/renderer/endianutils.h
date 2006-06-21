@@ -1,5 +1,5 @@
-#ifndef _LIB_ENDIAN_H
-#define _LIB_ENDIAN_H
+#ifndef _RENDERER_ENDIANUTILS_H
+#define _RENDERER_ENDIANUTILS_H
 //
 // Defines various useful constants for endianness. 
 //
@@ -7,7 +7,6 @@
 
 #include <cstdio>
 #include "SDL_endian.h"
-#include "../freecnc.h"
 
 #define FCNC_LIL_ENDIAN 1234
 #define FCNC_BIG_ENDIAN 4321
