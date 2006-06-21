@@ -11,6 +11,6 @@
 #define SOUND_MAX_UNCOMPRESSED_SIZE (SOUND_MAX_CHUNK_SIZE << 2)
 #define SOUND_MAX_COMPRESSED_SIZE   SOUND_MAX_CHUNK_SIZE
 
-typedef vector<Uint8> SampleBuffer;
+typedef vector<unsigned char> SampleBuffer;
 
 #endif /* SOUNDCOMMON_H */
