@@ -5,13 +5,10 @@ from glob import glob
 from sys import platform
 
 # Source files
-source = ["src/freecnc.cpp"]
-source += glob("src/*/*.cpp")
-source += glob("src/*/*/*.cpp")
-source += glob("src/lua/*.c")
-# This is blatent overkill
-exclude = ["src/misc/fibheap.cpp"]
-source = filter(lambda x: x not in exclude, source)
+source = ["freecnc/freecnc.cpp"]
+source += glob("freecnc/*/*.cpp")
+source += glob("freecnc/*/*/*.cpp")
+#luasource += glob("#/lua/*.c")
 
 # Import PATH and optional MINGW environment variables to allow zx64 to cross compile
 # See http://zx64.uwcs.co.uk/freecnc/crossdev/
@@ -26,7 +23,9 @@ env.SConsignFile()
 if platform == "win32":
     print "ERROR: Use the project files instead."
     Exit(1)
-if platform not in ["linux2", "darwin", "freebsd"]:
+
+#if platform not in ["linux2", "darwin", "freebsd"]:
+if platform not in ["linux2"]:
     print "%s is not supported at this time." % platform
     Exit(1)
 
@@ -36,37 +35,16 @@ if platform == "freebsd":
 else:
     sdlconfname = "sdl-config"
 
-# I want sdl-config to have pkg-config's --libs-only-l etc. (or for SDL to
-# use pkg-config)
-def extractconfig(s, flag):
-    # Given the string from sdl-config --(cflags|libs) and a single char
-    # from ["I", "l", "L"], we extract all parmeters that start with -<char>
-    # and convert them into the format required by SCons
-    return [x[2:] for x in s if x[1] == flag]
+env.ParseConfig(sdlconfname + " --cflags --libs")
 
-def extractconfig2(s, flags):
-    return [x for x in s if x[1] not in flags]
-
-sdlconf = popen(sdlconfname + " --cflags")
-cflags = sdlconf.readline().split()
-sdlconf.close()
-env["CPPPATH"] = extractconfig(cflags, "I")
-# We shouldn't use -I flags in CXXFLAGS
-env["CXXFLAGS"] = extractconfig2(cflags, ["I"])
-env["CPPPATH"] += ["#/src/include", "#/src/include/lua"]
-env["CCFLAGS"] = ["-ansi", "-pedantic"]
+env["CPPPATH"] += ["#/freecnc", "#/freecnc/game", "#/freecnc/lib", "#/freecnc/renderer", "#/freecnc/sound", "#/freecnc/ui", "#/freecnc/vfs"]
 try:
     if env["ENV"]["MINGW"] != "1":
         env["CXXFLAGS"] += ["-std=c++98", "-Wconversion", "-Wno-unused-parameter"]
 except: # No mingw env variable
     env["CXXFLAGS"] += ["-std=c++98", "-Wconversion", "-Wno-unused-parameter"]
-sdlconf = popen(sdlconfname + " --libs")
-libflags = sdlconf.readline().split()
-sdlconf.close()
-env["LIBS"] = extractconfig(libflags, "l")
+
 env["LIBS"] += ["SDL_mixer"]
-env["LIBPATH"] = extractconfig(libflags, "L")
-env["LINKFLAGS"] = extractconfig2(libflags, ["l", "L"])
 
 release = env.Copy()
 release["CXXFLAGS"] += ["-Os"]
@@ -80,7 +58,7 @@ if ARGUMENTS.get("RELEASE", 0):
 else:
     env = debug
 
-env.Program(target = "freecnc", source = source)
+env.Program(target = "bin/freecnc", source = source)
 
 # Only build tools if specified
 if ARGUMENTS.get("TOOLS", 0):

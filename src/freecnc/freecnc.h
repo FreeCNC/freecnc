@@ -17,7 +17,7 @@
 #include "SDL_keysym.h" // Needs to go
 
 #include "version.h"
-#include "lib/endian.h"
+#include "lib/fcncendian.h"
 #include "lib/logger.h"
 
 // ----------------------------------------------------------------------------

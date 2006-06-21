@@ -7,13 +7,13 @@
 #include "../freecnc.h"
 #include "../lib/inifile.h"
 #include "unitorstructure.h"
+#include "talkback.h"
 
 struct L2Overlay;
 class MoveAnimEvent;
 class Structure;
 class StructureType;
 class Talkback;
-enum TalkbackType;
 class TurnAnimEvent;
 class UAttackAnimEvent;
 class WalkAnimEvent;

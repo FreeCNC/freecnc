@@ -1247,7 +1247,7 @@ vector<const char*> UnitAndStructurePool::getBuildableStructures(Player* pl)
 
 shared_ptr<Talkback> UnitAndStructurePool::getTalkback(const char* talkback)
 {
-    map<string, shared_ptr<Talkback>>::iterator typeentry;
+    map<string, shared_ptr<Talkback> >::iterator typeentry;
     string tname(talkback);
     transform(tname.begin(), tname.end(), tname.begin(), toupper);
     typeentry = talkbackpool.find(tname);

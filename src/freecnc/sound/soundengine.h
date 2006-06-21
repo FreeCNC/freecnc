@@ -4,7 +4,7 @@
 #include "../freecnc.h"
 #include "soundcommon.h"
 
-struct Mix_Chunk; // SDL_mixer
+#include "SDL_mixer.h"
 
 namespace Sound
 {
