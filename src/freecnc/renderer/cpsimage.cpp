@@ -6,7 +6,7 @@
 #include "../vfs/vfs_public.h"
 #include "shpimage.h"
 #include "cpsimage.h"
-#include "endianutils.h"
+#include "../lib/fcncendian.h"
 
 CPSImage::CPSImage(const char* fname, int scaleq) : cpsdata(0), image(0) {
     VFile* imgfile;

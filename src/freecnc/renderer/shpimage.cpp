@@ -7,7 +7,7 @@
 #include "../vfs/vfs_public.h"
 #include "imageproc.h"
 #include "shpimage.h"
-#include "endianutils.h"
+#include "../lib/fcncendian.h"
 
 using std::string;
 using std::runtime_error;

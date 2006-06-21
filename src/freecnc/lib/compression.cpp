@@ -9,6 +9,7 @@
 
 #include "../freecnc.h"
 #include "compression.h"
+#include "fcncendian.h"
 
 namespace Compression
 {
@@ -32,7 +33,7 @@ namespace Compression
         unsigned int code;
         unsigned int count;
 
-        #if SDL_BYTEORDER == SDL_BIG_ENDIAN
+        #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
         unsigned short bigend; /* temporary big endian var */
         #endif
 
@@ -62,7 +63,7 @@ namespace Compression
                         //command 2 (11cccccc p p): copy
                         count += 3;
                         
-                        #if SDL_BYTEORDER == SDL_BIG_ENDIAN
+                        #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
                         memcpy(&bigend, readp, 2);
                         copyp = &image_out[SDL_Swap16(bigend)];
                         #else
@@ -74,7 +75,7 @@ namespace Compression
                             *writep++ = *copyp++;
                     } else if (count == 0x3e) {
                         //command 3 (11111110 c c v): fill
-                        #if SDL_BYTEORDER == SDL_BIG_ENDIAN
+                        #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
                         memset(&count, 0, sizeof(unsigned int));
                         memcpy(&count, readp, 2);
                         count = SDL_Swap32(count);
@@ -88,7 +89,7 @@ namespace Compression
                             *writep++ = code;
                     } else {
                         //command 4 (copy 11111111 c c p p): copy
-                        #if SDL_BYTEORDER == SDL_BIG_ENDIAN
+                        #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
                         memset(&count, 0, sizeof(unsigned int));
                         memcpy(&count, readp, 2);
                         count = SDL_Swap32(count);
@@ -98,7 +99,7 @@ namespace Compression
 
                         readp += 2;
 
-                        #if SDL_BYTEORDER == SDL_BIG_ENDIAN
+                        #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
                         memcpy(&bigend, readp, 2);
                         copyp = &image_out[SDL_Swap16(bigend)];
                         #else
@@ -156,7 +157,7 @@ namespace Compression
             } else {
                 //bit 7 = 1
                 if (!(count = code & 0x7f)) {
-                    #if SDL_BYTEORDER == SDL_BIG_ENDIAN
+                    #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
                     memset(&count, 0, sizeof(unsigned int));
                     memcpy(&count, readp, 2);
                     count = SDL_Swap32(count);

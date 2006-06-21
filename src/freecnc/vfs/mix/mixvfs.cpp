@@ -4,6 +4,7 @@
 #include "blowfish.h"
 #include "ws-key.h"
 #include "mixvfs.h"
+#include "../../lib/fcncendian.h"
 
 #ifdef _WIN32
 #define EXPORT __declspec( dllexport )
@@ -79,7 +80,7 @@ unsigned int MIXFiles::calcID(const char *fname) {
     unsigned int calc;
     int i;
     char buffer[13];
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
     unsigned int tmpswap;
 #endif
     for (i=0; *fname!='\0' && i<12; i++)
@@ -89,7 +90,7 @@ unsigned int MIXFiles::calcID(const char *fname) {
 
     calc=0;
     for(i=0;buffer[i]!=0;i+=4) {
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
         tmpswap = SDL_Swap32(*(long *)(buffer+i));
         calc=ROL(calc)+tmpswap;
 #else
@@ -125,7 +126,7 @@ MixRecord *MIXFiles::decodeHeader(VFile* mix, MixHeader* header, tscheck_ tschec
     // Extract the header from Block
     memcpy(&header->c_files, &Block[0], sizeof(unsigned short));
     memcpy(&header->size, &Block[sizeof(unsigned short)], sizeof(unsigned int));
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
     /// @TODO Verify this is still needed.
     header->c_files = SDL_Swap32(header->c_files);
     header->size = SDL_Swap32(header->size);
@@ -143,7 +144,7 @@ MixRecord *MIXFiles::decodeHeader(VFile* mix, MixHeader* header, tscheck_ tschec
     delete[] e;
 
     for (int i = 0; i < header->c_files; i++) {
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
         mindex[i].id = SDL_Swap32(mindex[i].id);
         mindex[i].offset = SDL_Swap32(mindex[i].offset);
         mindex[i].size = SDL_Swap32(mindex[i].size);
@@ -180,7 +181,7 @@ void MIXFiles::readMIXHeader(VFile *mix) {
     mix->readWord(&header.c_files, 1);
     mix->readDWord(&header.size, 1);
 
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
 // Don't know it this is needed.
 //    header.flags = SDL_Swap32(header.flags);
 #endif
@@ -203,7 +204,7 @@ void MIXFiles::readMIXHeader(VFile *mix) {
             m_index = new MixRecord[header.c_files];
             mix->readByte((unsigned char *)m_index, m_size);
             for (i = 0; i < header.c_files; i++) {
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
                 m_index[i].id = SDL_Swap32(m_index[i].id);
                 m_index[i].size = SDL_Swap32(m_index[i].size);
                 m_index[i].offset = SDL_Swap32(m_index[i].offset);
@@ -219,7 +220,7 @@ void MIXFiles::readMIXHeader(VFile *mix) {
                 game = game_ts;
         }
     } else if (game_td == game) {
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
         mix->seekSet(0);
         mix->readWord(&header.c_files, 1);
         mix->readDWord(&header.size, 1);
@@ -230,7 +231,7 @@ void MIXFiles::readMIXHeader(VFile *mix) {
         //fread(reinterpret_cast<unsigned char *>(m_index), m_size, 1, mix);
         mix->readByte((unsigned char *)m_index, m_size);
         for (i = 0; i < header.c_files; i++) {
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
             m_index[i].id = SDL_Swap32(m_index[i].id);
             m_index[i].offset = SDL_Swap32(m_index[i].offset);
             m_index[i].size = SDL_Swap32(m_index[i].size);

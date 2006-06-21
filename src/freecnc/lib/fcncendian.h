@@ -1,5 +1,5 @@
-#ifndef _RENDERER_ENDIANUTILS_H
-#define _RENDERER_ENDIANUTILS_H
+#ifndef _LIB_ENDIANUTILS_H
+#define _LIB_ENDIANUTILS_H
 //
 // Defines various useful constants for endianness. 
 //

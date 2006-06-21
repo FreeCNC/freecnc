@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #endif
 #include "externalvfs.h"
+#include "../../lib/fcncendian.h"
 
 namespace ExtPriv {
 struct OpenFile {
@@ -109,14 +110,14 @@ unsigned int ExternalFiles::readByte(unsigned int file, unsigned char *databuf, 
 unsigned int ExternalFiles::readWord(unsigned int file, unsigned short *databuf, unsigned int numWords)
 {
     unsigned int numRead;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
 
     unsigned int i;
 #endif
 
     numRead = fread(databuf, 2, numWords, openfiles[file].file);
 
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
 
     for( i = 0; i < numRead; i++ ) {
         databuf[i] = SDL_Swap16(databuf[i]);
@@ -129,14 +130,14 @@ unsigned int ExternalFiles::readWord(unsigned int file, unsigned short *databuf,
 unsigned int ExternalFiles::readThree(unsigned int file, unsigned int *databuf, unsigned int numThrees)
 {
     unsigned int numRead;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
 
     unsigned int i;
 #endif
 
     numRead = fread(databuf, 3, numThrees, openfiles[file].file);
 
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
 
     for( i = 0; i < numRead; i++ ) {
         databuf[i] = SDL_Swap32(databuf[i]);
@@ -150,14 +151,14 @@ unsigned int ExternalFiles::readThree(unsigned int file, unsigned int *databuf, 
 unsigned int ExternalFiles::readDWord(unsigned int file, unsigned int *databuf, unsigned int numDWords)
 {
     unsigned int numRead;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
 
     unsigned int i;
 #endif
 
     numRead = fread(databuf, 4, numDWords, openfiles[file].file);
 
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
 
     for( i = 0; i < numRead; i++ ) {
         databuf[i] = SDL_Swap32(databuf[i]);
@@ -180,7 +181,7 @@ unsigned int ExternalFiles::writeByte(unsigned int file, const unsigned char* da
 unsigned int ExternalFiles::writeWord(unsigned int file, const unsigned short *databuf, unsigned int numWords)
 {
     unsigned int numWrote;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
 
     unsigned short* tmp = new unsigned short[numWords];
     unsigned int i;
@@ -202,7 +203,7 @@ unsigned int ExternalFiles::writeWord(unsigned int file, const unsigned short *d
 unsigned int ExternalFiles::writeThree(unsigned int file, const unsigned int *databuf, unsigned int numThrees)
 {
     unsigned int numWrote;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
 
     unsigned int* tmp = new unsigned int[numThrees];
     unsigned int i;
@@ -224,7 +225,7 @@ unsigned int ExternalFiles::writeThree(unsigned int file, const unsigned int *da
 unsigned int ExternalFiles::writeDWord(unsigned int file, const unsigned int *databuf, unsigned int numDWords)
 {
     unsigned int numWrote;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
 
     unsigned int i;
     unsigned int* tmp = new unsigned int[numDWords];

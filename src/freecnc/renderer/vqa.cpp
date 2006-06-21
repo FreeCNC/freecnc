@@ -9,7 +9,7 @@
 #include "graphicsengine.h"
 #include "imageproc.h"
 #include "vqa.h"
-#include "endianutils.h"
+#include "../lib/fcncendian.h"
 
 using std::runtime_error;
 
@@ -283,7 +283,7 @@ bool VQAMovie::DecodeFORMChunk()
 
     // skip chunklen 
     vqafile->seekCur(4);
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+#if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
     vqafile->readByte(reinterpret_cast<unsigned char *>(&header), header_size);
 #else
     vqafile->readByte((unsigned char*)&header.Signature, sizeof(header.Signature));
