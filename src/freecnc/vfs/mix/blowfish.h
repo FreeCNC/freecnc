@@ -1,8 +1,6 @@
 #ifndef _VFS_MIX_BLOWFISH_H
 #define _VFS_MIX_BLOWFISH_H
 
-#include "SDL_types.h"
-
 typedef unsigned int t_bf_p[18];
 typedef unsigned int t_bf_s[4][256];
 

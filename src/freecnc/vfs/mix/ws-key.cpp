@@ -6,7 +6,6 @@
  * Various stylistic changes by Euan MacGregor
  *****************************************************************************/
 #include <cstring>
-#include "SDL_types.h"
 #include "ws-key.h"
 
 const char* pubkey_str = "AihRvNoIbTn85FZRYNZRcT+i6KpU+maCsEqr3Q5q+LDB5tH7Tz2qQ38V";

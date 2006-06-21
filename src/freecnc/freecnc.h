@@ -12,7 +12,6 @@
 #include <boost/array.hpp>
 #include <boost/smart_ptr.hpp>
 
-#include "SDL_types.h"  // Needs to go
 #include "SDL_video.h"  // Needs to go
 #include "SDL_keysym.h" // Needs to go
 
