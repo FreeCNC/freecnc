@@ -30,7 +30,7 @@ void ActionEventQueue::scheduleEvent(ActionEvent *ev)
 /** Run all events in the actionqueue. */
 void ActionEventQueue::runEvents()
 {
-    Uint32 curtick = getCurtick();
+    unsigned int curtick = getCurtick();
     /* run all events in the queue with a prio lower than curtick */
     while( !eventqueue.empty() && eventqueue.top()->getPrio() <= curtick ) {
         eventqueue.top()->run();
@@ -38,12 +38,12 @@ void ActionEventQueue::runEvents()
     }
 }
 
-Uint32 ActionEventQueue::getElapsedTime()
+unsigned int ActionEventQueue::getElapsedTime()
 {
     return SDL_GetTicks()-starttick;
 }
 
-Uint32 ActionEventQueue::getCurtick()
+unsigned int ActionEventQueue::getCurtick()
 {
     return (SDL_GetTicks()-starttick) >> 5;
 }

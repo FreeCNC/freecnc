@@ -11,12 +11,12 @@ class Warhead
 public:
     Warhead(const char *whname, shared_ptr<INIFile> weapini);
     ~Warhead();
-    //void getExplosion(Uint32 &image, Uint8 &steps){image = explosionimage; steps = explosionanimsteps;}
-    Uint32 getEImage()
+    //void getExplosion(unsigned int &image, unsigned char &steps){image = explosionimage; steps = explosionanimsteps;}
+    unsigned int getEImage()
     {
         return explosionimage;
     }
-    Uint8 getESteps()
+    unsigned char getESteps()
     {
         return explosionanimsteps;
     }
@@ -28,22 +28,22 @@ public:
     {
         return walls;
     }
-    Uint8 getVersus(armour_t armour)
+    unsigned char getVersus(armour_t armour)
     {
-        return versus[(Uint8)armour];
+        return versus[(unsigned char)armour];
     }
 
 private:
-    //Uint8 explosiontype;
-    Uint32 explosionimage;
-    Uint8 explosionanimsteps;
+    //unsigned char explosiontype;
+    unsigned int explosionimage;
+    unsigned char explosionanimsteps;
     char *explosionsound;
-    Uint8 infantrydeath;
-    Uint8 blastradius;
+    unsigned char infantrydeath;
+    unsigned char blastradius;
     unsigned int versus[5];
     bool walls;
     bool trees;
-    //Uint16 damage;
+    //unsigned short damage;
 };
 
 class Projectile
@@ -51,22 +51,22 @@ class Projectile
 public:
     Projectile(const char *pname, shared_ptr<INIFile> weapini);
     ~Projectile();
-    Uint32 getImageNum()
+    unsigned int getImageNum()
     {
         return imagenum;
     }
-    //Uint8 getSpeed(){return speed;}
+    //unsigned char getSpeed(){return speed;}
     bool doesRotate()
     {
         return rotates;
     }
 
 private:
-    Uint32 imagenum;
-    Uint8 rotationimgs;
+    unsigned int imagenum;
+    unsigned char rotationimgs;
     bool AA;
     bool AG;
-    //Uint8 speed;
+    //unsigned char speed;
     bool high, inacurate, rotates;
 };
 
@@ -75,19 +75,19 @@ class Weapon
 public:
     Weapon(const char* wname);
     ~Weapon();
-    Uint8 getReloadTime() const
+    unsigned char getReloadTime() const
     {
         return reloadtime;
     }
-    Uint8 getRange() const
+    unsigned char getRange() const
     {
         return range;
     }
-    Uint8 getSpeed() const
+    unsigned char getSpeed() const
     {
         return speed;
     }
-    Sint16 getDamage() const
+    short getDamage() const
     {
         return damage;
     }
@@ -103,8 +103,8 @@ public:
     {
         return whead;
     }
-    void fire(UnitOrStructure* owner, Uint16 target, Uint8 subtarget);
-    //Uint32 tmppif;
+    void fire(UnitOrStructure* owner, unsigned short target, unsigned char subtarget);
+    //unsigned int tmppif;
     bool isHeatseek() const
     {
         return heatseek;
@@ -117,11 +117,11 @@ public:
     {
         return (whead->getVersus(armour))/(double)100.0;
     }
-    Uint8 getFuel() const
+    unsigned char getFuel() const
     {
         return fuel;
     }
-    Uint8 getSeekFuel() const
+    unsigned char getSeekFuel() const
     {
         return seekfuel;
     }
@@ -134,19 +134,19 @@ private:
     Weapon() {};
     Projectile *projectile;
     Warhead *whead;
-    Uint8 speed;
-    Uint8 range;
-    Uint8 reloadtime;
-    Sint16 damage;
-    Uint8 burst;
+    unsigned char speed;
+    unsigned char range;
+    unsigned char reloadtime;
+    short damage;
+    unsigned char burst;
     // Fuel - how many ticks this projectile can move for until being removed.
     // Seekfuel - how many ticks can this projectile change course to track its
     // target before falling back to flying in a straight line.
-    Uint8 fuel, seekfuel;
+    unsigned char fuel, seekfuel;
     bool heatseek,inaccurate;
-    Uint32 fireimage;
-    Uint32* fireimages;
-    Uint8 numfireimages,numfiredirections;
+    unsigned int fireimage;
+    unsigned int* fireimages;
+    unsigned char numfireimages,numfiredirections;
     char *firesound;
     std::string name;
 };

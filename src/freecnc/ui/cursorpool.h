@@ -7,14 +7,14 @@ class INIFile;
 
 struct CursorInfo
 {
-    Uint16 anstart,anend;
+    unsigned short anstart,anend;
 };
 
 class CursorPool
 {
 private:
     vector<CursorInfo*> cursorpool;
-    map<string, Uint16> name2index;
+    map<string, unsigned short> name2index;
     shared_ptr<INIFile> cursorini;
 public:
     CursorPool(const char* ininame);

@@ -23,7 +23,7 @@ struct OpenFile {
 };
 typedef std::map<size_t, OpenFile> openfiles_t;
 openfiles_t openfiles;
-FILE* fcaseopen(std::string* path, const char* mode, Uint32 caseoffset = 0) throw();
+FILE* fcaseopen(std::string* path, const char* mode, unsigned int caseoffset = 0) throw();
 bool isdir(const string& path);
 }
 
@@ -54,11 +54,11 @@ bool ExternalFiles::loadArchive(const char *fname)
     return true;
 }
 
-Uint32 ExternalFiles::getFile(const char *fname, const char* mode)
+unsigned int ExternalFiles::getFile(const char *fname, const char* mode)
 {
     ExtPriv::OpenFile newFile;
     FILE *f;
-    Uint32 i;
+    unsigned int i;
     string filename;
     size_t size, fnum;
 
@@ -92,26 +92,26 @@ Uint32 ExternalFiles::getFile(const char *fname, const char* mode)
         }
     }
 
-    return (Uint32)-1;
+    return (unsigned int)-1;
 }
 
-void ExternalFiles::releaseFile(Uint32 file)
+void ExternalFiles::releaseFile(unsigned int file)
 {
     fclose(openfiles[file].file);
     openfiles.erase(file);
 }
 
-Uint32 ExternalFiles::readByte(Uint32 file, Uint8 *databuf, Uint32 numBytes)
+unsigned int ExternalFiles::readByte(unsigned int file, unsigned char *databuf, unsigned int numBytes)
 {
     return fread(databuf, 1, numBytes, openfiles[file].file);
 }
 
-Uint32 ExternalFiles::readWord(Uint32 file, Uint16 *databuf, Uint32 numWords)
+unsigned int ExternalFiles::readWord(unsigned int file, unsigned short *databuf, unsigned int numWords)
 {
-    Uint32 numRead;
+    unsigned int numRead;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 
-    Uint32 i;
+    unsigned int i;
 #endif
 
     numRead = fread(databuf, 2, numWords, openfiles[file].file);
@@ -126,12 +126,12 @@ Uint32 ExternalFiles::readWord(Uint32 file, Uint16 *databuf, Uint32 numWords)
     return numRead;
 }
 
-Uint32 ExternalFiles::readThree(Uint32 file, Uint32 *databuf, Uint32 numThrees)
+unsigned int ExternalFiles::readThree(unsigned int file, unsigned int *databuf, unsigned int numThrees)
 {
-    Uint32 numRead;
+    unsigned int numRead;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 
-    Uint32 i;
+    unsigned int i;
 #endif
 
     numRead = fread(databuf, 3, numThrees, openfiles[file].file);
@@ -147,12 +147,12 @@ Uint32 ExternalFiles::readThree(Uint32 file, Uint32 *databuf, Uint32 numThrees)
     return numRead;
 }
 
-Uint32 ExternalFiles::readDWord(Uint32 file, Uint32 *databuf, Uint32 numDWords)
+unsigned int ExternalFiles::readDWord(unsigned int file, unsigned int *databuf, unsigned int numDWords)
 {
-    Uint32 numRead;
+    unsigned int numRead;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 
-    Uint32 i;
+    unsigned int i;
 #endif
 
     numRead = fread(databuf, 4, numDWords, openfiles[file].file);
@@ -167,23 +167,23 @@ Uint32 ExternalFiles::readDWord(Uint32 file, Uint32 *databuf, Uint32 numDWords)
     return numRead;
 }
 
-char *ExternalFiles::readLine(Uint32 file, char *databuf, Uint32 buflen)
+char *ExternalFiles::readLine(unsigned int file, char *databuf, unsigned int buflen)
 {
     return fgets(databuf, buflen, openfiles[file].file);
 }
 
-Uint32 ExternalFiles::writeByte(Uint32 file, const Uint8* databuf, Uint32 numBytes)
+unsigned int ExternalFiles::writeByte(unsigned int file, const unsigned char* databuf, unsigned int numBytes)
 {
     return fwrite(databuf, 1, numBytes, openfiles[file].file);
 }
 
-Uint32 ExternalFiles::writeWord(Uint32 file, const Uint16 *databuf, Uint32 numWords)
+unsigned int ExternalFiles::writeWord(unsigned int file, const unsigned short *databuf, unsigned int numWords)
 {
-    Uint32 numWrote;
+    unsigned int numWrote;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 
-    Uint16* tmp = new Uint16[numWords];
-    Uint32 i;
+    unsigned short* tmp = new unsigned short[numWords];
+    unsigned int i;
 
     for( i = 0; i < numWords; i++ ) {
         tmp[i] = SDL_Swap16(databuf[i]);
@@ -199,13 +199,13 @@ Uint32 ExternalFiles::writeWord(Uint32 file, const Uint16 *databuf, Uint32 numWo
     return numWrote;
 }
 
-Uint32 ExternalFiles::writeThree(Uint32 file, const Uint32 *databuf, Uint32 numThrees)
+unsigned int ExternalFiles::writeThree(unsigned int file, const unsigned int *databuf, unsigned int numThrees)
 {
-    Uint32 numWrote;
+    unsigned int numWrote;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 
-    Uint32* tmp = new Uint32[numThrees];
-    Uint32 i;
+    unsigned int* tmp = new unsigned int[numThrees];
+    unsigned int i;
 
     for( i = 0; i < numThrees; i++ ) {
         tmp[i] = SDL_Swap32(databuf[i]);
@@ -221,13 +221,13 @@ Uint32 ExternalFiles::writeThree(Uint32 file, const Uint32 *databuf, Uint32 numT
     return numWrote;
 }
 
-Uint32 ExternalFiles::writeDWord(Uint32 file, const Uint32 *databuf, Uint32 numDWords)
+unsigned int ExternalFiles::writeDWord(unsigned int file, const unsigned int *databuf, unsigned int numDWords)
 {
-    Uint32 numWrote;
+    unsigned int numWrote;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 
-    Uint32 i;
-    Uint32* tmp = new Uint32[numDWords];
+    unsigned int i;
+    unsigned int* tmp = new unsigned int[numDWords];
 
     for( i = 0; i < numDWords; i++ ) {
         tmp[i] = SDL_Swap32(databuf[i]);
@@ -242,33 +242,33 @@ Uint32 ExternalFiles::writeDWord(Uint32 file, const Uint32 *databuf, Uint32 numD
     return numWrote;
 }
 
-void ExternalFiles::writeLine(Uint32 file, const char *databuf)
+void ExternalFiles::writeLine(unsigned int file, const char *databuf)
 {
     fputs(databuf, openfiles[file].file);
 }
 
-int ExternalFiles::vfs_printf(Uint32 file, const char* fmt, va_list ap)
+int ExternalFiles::vfs_printf(unsigned int file, const char* fmt, va_list ap)
 {
     int ret;
     ret = vfprintf(openfiles[file].file, fmt, ap);
     return ret;
 }
 
-void ExternalFiles::flush(Uint32 file) {
+void ExternalFiles::flush(unsigned int file) {
     fflush(openfiles[file].file);
 }
 
-void ExternalFiles::seekSet(Uint32 file, Uint32 pos)
+void ExternalFiles::seekSet(unsigned int file, unsigned int pos)
 {
     fseek(openfiles[file].file, pos, SEEK_SET);
 }
 
-void ExternalFiles::seekCur(Uint32 file, Sint32 pos)
+void ExternalFiles::seekCur(unsigned int file, int pos)
 {
     fseek(openfiles[file].file, pos, SEEK_CUR);
 }
 
-Uint32 ExternalFiles::getPos(Uint32 file) const {
+unsigned int ExternalFiles::getPos(unsigned int file) const {
     /// @TODO Abstract this const implementation of operator[].
     openfiles_t::const_iterator i = openfiles.find(file);
     if (openfiles.end() != i) {
@@ -278,7 +278,7 @@ Uint32 ExternalFiles::getPos(Uint32 file) const {
     return 0;
 }
 
-Uint32 ExternalFiles::getSize(Uint32 file) const {
+unsigned int ExternalFiles::getSize(unsigned int file) const {
     /// @TODO Abstract this const implementation of operator[].
     openfiles_t::const_iterator i = openfiles.find(file);
     if (openfiles.end() != i) {
@@ -288,7 +288,7 @@ Uint32 ExternalFiles::getSize(Uint32 file) const {
     return 0;
 }
 
-const char* ExternalFiles::getPath(Uint32 file) const {
+const char* ExternalFiles::getPath(unsigned int file) const {
     /// @TODO Abstract this const implementation of operator[].
     openfiles_t::const_iterator i = openfiles.find(file);
     if (openfiles.end() != i) {
@@ -300,7 +300,7 @@ const char* ExternalFiles::getPath(Uint32 file) const {
 
 namespace ExtPriv {
 
-FILE* fcaseopen(string* name, const char* mode, Uint32 caseoffset) throw() {
+FILE* fcaseopen(string* name, const char* mode, unsigned int caseoffset) throw() {
     FILE* ret;
     ret = fopen(name->c_str(), mode);
     if (NULL != ret) {
@@ -311,7 +311,7 @@ FILE* fcaseopen(string* name, const char* mode, Uint32 caseoffset) throw() {
 #else
     string& fname = *name;
     // Try all other case.  Assuming uniform casing.
-    Uint32 i;
+    unsigned int i;
     // Skip over non-alpha chars.
     // @TODO These are the old style text munging routines that are a) consise
     // and b) doesn't work with UTF8 filenames.

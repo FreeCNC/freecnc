@@ -47,21 +47,21 @@ namespace Sound
         return Clip<OutputType, InputType>(value, std::numeric_limits<OutputType>::min(), std::numeric_limits<OutputType>::max());
     }
 
-    void IMADecode(Uint8 *output, Uint8 *input, Uint16 compressed_size, Sint32& sample, Sint32& index)
+    void IMADecode(unsigned char *output, unsigned char *input, unsigned short compressed_size, int& sample, int& index)
     {
         int  Samples;
-        Uint8 Code;
+        unsigned char Code;
         int  Sign;
         int  Delta;
-        Uint8 *InP;
-        Sint16 *OutP;
-        Uint16 uncompressed_size = compressed_size * 2;
+        unsigned char *InP;
+        short *OutP;
+        unsigned short uncompressed_size = compressed_size * 2;
 
         if (compressed_size==0)
             return;
 
-        InP=(Uint8 *)input;
-        OutP=(Sint16 *)output;
+        InP=(unsigned char *)input;
+        OutP=(short *)output;
 
         for (Samples=0; Samples<uncompressed_size; Samples++) {
             if (Samples&1)          // If Samples is odd
@@ -93,22 +93,22 @@ namespace Sound
             // popping noises. sample = Delta seems to have the smallest pop
             // If we do nothing, then audio after X seconds gets stuck
 
-            *OutP++ = Clip<Sint16>(sample);
+            *OutP++ = Clip<short>(sample);
 
             index+=Indexes[Code];
-            index = Clip<Uint8>(index, 0, 88);
+            index = Clip<unsigned char>(index, 0, 88);
         }
     }
 
     // Decode Westwood's ADPCM format.  Original code from ws-aud.txt by Asatur V. Nazarian
 
-    void WSADPCM_Decode(Uint8 *output, Uint8 *input, Uint16 compressed_size, Uint16 uncompressed_size)
+    void WSADPCM_Decode(unsigned char *output, unsigned char *input, unsigned short compressed_size, unsigned short uncompressed_size)
     {
-        Sint16 CurSample;
-        Uint8  code;
-        Sint8  count;
-        Uint16 i;
-        Uint16 shifted_input;
+        short CurSample;
+        unsigned char  code;
+        char  count;
+        unsigned short i;
+        unsigned short shifted_input;
 
         if (compressed_size==uncompressed_size) {
             std::copy(input, input+uncompressed_size, output);
@@ -118,7 +118,7 @@ namespace Sound
         CurSample=0x80;
         i=0;
 
-        Uint16 bytes_left = uncompressed_size;
+        unsigned short bytes_left = uncompressed_size;
         while (bytes_left>0) { // expecting more output
             shifted_input=input[i++];
             shifted_input<<=2;
@@ -130,7 +130,7 @@ namespace Sound
                 if (count & 0x20) {
                     count<<=3;  // here it's significant that (count) is signed:
                     CurSample+=count>>3; // the sign bit will be copied by these shifts!
-                    *output++ = Clip<Uint8>(CurSample);
+                    *output++ = Clip<unsigned char>(CurSample);
                     bytes_left--; // one byte added to output
                 } else {
                     // copy (count+1) bytes from input to output
@@ -153,9 +153,9 @@ namespace Sound
                 for (count++;count>0;count--) { // decode (count+1) bytes
                     code=input[i++];
                     CurSample+=WSTable4bit[(code & 0x0F)]; // lower nibble
-                    *output++ =  Clip<Uint8>(CurSample);
+                    *output++ =  Clip<unsigned char>(CurSample);
                     CurSample+=WSTable4bit[(code >> 4)]; // higher nibble
-                    *output++ =  Clip<Uint8>(CurSample);
+                    *output++ =  Clip<unsigned char>(CurSample);
                     bytes_left-=2; // two bytes added to output
                 }
                 break;
@@ -163,24 +163,24 @@ namespace Sound
                 for (count++;count>0;count--) { // decode (count+1) bytes
                     code=input[i++];
                     CurSample+=WSTable2bit[(code & 0x03)]; // lower 2 bits
-                    *output++ =  Clip<Uint8>(CurSample);
+                    *output++ =  Clip<unsigned char>(CurSample);
                     CurSample+=WSTable2bit[((code>>2) & 0x03)]; // lower middle 2 bits
-                    *output++ =  Clip<Uint8>(CurSample);
+                    *output++ =  Clip<unsigned char>(CurSample);
                     CurSample+=WSTable2bit[((code>>4) & 0x03)]; // higher middle 2 bits
-                    *output++ =  Clip<Uint8>(CurSample);
+                    *output++ =  Clip<unsigned char>(CurSample);
                     CurSample+=WSTable2bit[((code>>6) & 0x03)]; // higher 2 bits
-                    *output++ =  Clip<Uint8>(CurSample);
+                    *output++ =  Clip<unsigned char>(CurSample);
                     bytes_left-=4; // 4 bytes sent to output
                 }
                 break;
             default: // just copy (CurSample) (count+1) times to output
                 /// @TODO This version doesn't produce the same result as the loop below
-                //std::fill(output, output+count+2, Clip<Uint8>(CurSample));
+                //std::fill(output, output+count+2, Clip<unsigned char>(CurSample));
                 //bytes_left -= count+1;
 
                 // Old version for reference:
                 for (count++;count>0;count--,bytes_left--)
-                    *output++ = Clip<Uint8>(CurSample);
+                    *output++ = Clip<unsigned char>(CurSample);
             }
         }
     }
@@ -192,8 +192,8 @@ namespace
     SDL_AudioCVT eightbitconv;
     bool initconv = false;
 
-    Uint8 chunk[SOUND_MAX_CHUNK_SIZE];
-    Uint8 tmpbuff[SOUND_MAX_UNCOMPRESSED_SIZE * 4];
+    unsigned char chunk[SOUND_MAX_CHUNK_SIZE];
+    unsigned char tmpbuff[SOUND_MAX_UNCOMPRESSED_SIZE * 4];
 }
 
 SoundFile::SoundFile() : fileOpened(false)
@@ -269,24 +269,24 @@ void SoundFile::Close()
     }
 }
 
-Uint32 SoundFile::Decode(SampleBuffer& buffer, Uint32 length)
+unsigned int SoundFile::Decode(SampleBuffer& buffer, unsigned int length)
 {
     if (!initconv || !fileOpened)
         return SOUND_DECODE_ERROR;
 
     assert(buffer.empty());
 
-    Uint32 max_size = length == 0 ? uncomp_size * conv->len_mult : length;
+    unsigned int max_size = length == 0 ? uncomp_size * conv->len_mult : length;
     buffer.resize(max_size);
 
-    Uint16 comp_sample_size, uncomp_sample_size;
-    Uint32 ID;
+    unsigned short comp_sample_size, uncomp_sample_size;
+    unsigned int ID;
 
     //if (offset < 12)
     //    offset = 12;
     //file->seekSet(offset);
 
-    Uint32 written = 0;
+    unsigned int written = 0;
     while ((file->tell()+8) < file->fileSize()) {
         // Each sample has a header
         file->readWord(&comp_sample_size, 1);

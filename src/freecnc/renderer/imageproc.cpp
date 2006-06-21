@@ -18,18 +18,18 @@ ImageProc::~ImageProc()
 
 void ImageProc::scaleInterlace( SDL_Surface *src, SDL_Surface *dest)
 {
-    Uint16 cx, *xpos;
-    Uint32 linestart, curpos, curposlinestart, pos, limit;
+    unsigned short cx, *xpos;
+    unsigned int linestart, curpos, curposlinestart, pos, limit;
     float xmod = (float)(src->w-1)/(float)(dest->w-1);
     float ymod = 2.0f*(float)(src->h-1)/(float)(dest->h-1);
     float cxf, cyf;
-    Uint8 *srcp, *destp;
-    destp = (Uint8*)dest->pixels;
-    srcp = (Uint8*)src->pixels;
-    xpos = new Uint16[dest->w];
+    unsigned char *srcp, *destp;
+    destp = (unsigned char*)dest->pixels;
+    srcp = (unsigned char*)src->pixels;
+    xpos = new unsigned short[dest->w];
     cxf = 0;
     for( cx = 0; cx < dest->w; cx++ ) {
-        xpos[cx] = (Uint16)(cxf+0.5f)*src->format->BytesPerPixel;
+        xpos[cx] = (unsigned short)(cxf+0.5f)*src->format->BytesPerPixel;
         cxf += xmod;
     }
     curpos = 0;
@@ -41,7 +41,7 @@ void ImageProc::scaleInterlace( SDL_Surface *src, SDL_Surface *dest)
     for( pos = 0; pos < limit; pos++, cx++ ) {
         if( cx == dest->w ) {
             cyf += ymod;
-            linestart = src->pitch*((Uint16)(cyf+0.5f));
+            linestart = src->pitch*((unsigned short)(cyf+0.5f));
             curposlinestart += (dest->pitch<<1);
             curpos = curposlinestart;
             cx = 0;
@@ -55,24 +55,24 @@ void ImageProc::scaleInterlace( SDL_Surface *src, SDL_Surface *dest)
 
 void ImageProc::scaleNearest( SDL_Surface *src, SDL_Surface *dest)
 {
-    Uint16 cx, *xpos;
-    Uint32 linestart, curpos, curposlinestart, limit, pos;
+    unsigned short cx, *xpos;
+    unsigned int linestart, curpos, curposlinestart, limit, pos;
     float cxf, cyf;
-    Uint8 *srcp, *destp;
+    unsigned char *srcp, *destp;
 
     float xmod = (float)(src->w-1)/(float)(dest->w-1);
     float ymod = (float)(src->h-1)/(float)(dest->h-1);
 
     SDL_LockSurface(src);
     SDL_LockSurface(dest);
-    destp = (Uint8*)dest->pixels;
-    srcp = (Uint8*)src->pixels;
+    destp = (unsigned char*)dest->pixels;
+    srcp = (unsigned char*)src->pixels;
 
-    xpos = new Uint16[dest->w];
+    xpos = new unsigned short[dest->w];
 
     cxf = 0;
     for( cx = 0; cx < dest->w; cx++ ) {
-        xpos[cx] = (Uint16)(cxf+0.5f)*src->format->BytesPerPixel;
+        xpos[cx] = (unsigned short)(cxf+0.5f)*src->format->BytesPerPixel;
         cxf += xmod;
     }
 
@@ -86,7 +86,7 @@ void ImageProc::scaleNearest( SDL_Surface *src, SDL_Surface *dest)
     for( pos = 0; pos < limit; cx++, pos++ ) {
         if( cx == dest->w ) {
             cyf += ymod;
-            linestart = src->pitch*((Uint16)(cyf+0.5f));
+            linestart = src->pitch*((unsigned short)(cyf+0.5f));
             curposlinestart += dest->pitch;
             curpos = curposlinestart;
             cx = 0;
@@ -104,21 +104,21 @@ void ImageProc::scaleLinear( SDL_Surface *src, SDL_Surface *dest)
 {
     /* FIXME: there is not much right in this function, use the 8bppscr
     version as a base and write a new one */
-    Uint16 cx, cy, xbase, ybase;
+    unsigned short cx, cy, xbase, ybase;
     float xpos, ypos;
     float xa1, xa2, ya1, ya2;
-    Uint8 byte, top, bot;
-    Uint32 linestart, curpos, lineoffs, curposlinestart;
+    unsigned char byte, top, bot;
+    unsigned int linestart, curpos, lineoffs, curposlinestart;
     float xscale = (float)(src->w-1)/(float)(dest->w-1);
     float yscale = (float)(src->h-1)/(float)(dest->h-1);
-    Uint8 *srcp, *destp;
-    destp = (Uint8*)dest->pixels;
-    srcp = (Uint8*)src->pixels;
+    unsigned char *srcp, *destp;
+    destp = (unsigned char*)dest->pixels;
+    srcp = (unsigned char*)src->pixels;
     curpos = 0;
     curposlinestart = 0;
     for( cy = 0; cy < dest->h; cy++ ) {
         ypos = (float)cy*yscale;
-        ybase = (Uint16)ypos;
+        ybase = (unsigned short)ypos;
         ya2 = ypos-(float)ybase;
         ya1 = 1-ya2;
         linestart = ybase*src->pitch;
@@ -126,14 +126,14 @@ void ImageProc::scaleLinear( SDL_Surface *src, SDL_Surface *dest)
         curposlinestart += dest->pitch;
         for( cx = 0; cx < dest->w; cx++ ) {
             xpos = (float)cx*xscale;
-            xbase = (Uint16)xpos;
+            xbase = (unsigned short)xpos;
             xa2 = xpos-(float)xbase;
             xa1 = 1-xa2;
             lineoffs = xbase*src->format->BytesPerPixel;
             for( byte = 0; byte < src->format->BytesPerPixel; byte++ ) {
-                top = (Uint8)(xa1*srcp[linestart+lineoffs] + xa2*srcp[linestart+lineoffs+1]);
-                bot = (Uint8)(xa1*srcp[linestart+src->pitch+lineoffs] + xa2*srcp[linestart+src->pitch+lineoffs+1]);
-                destp[curpos] = (Uint8)(ya1*top+ya2*bot);
+                top = (unsigned char)(xa1*srcp[linestart+lineoffs] + xa2*srcp[linestart+lineoffs+1]);
+                bot = (unsigned char)(xa1*srcp[linestart+src->pitch+lineoffs] + xa2*srcp[linestart+src->pitch+lineoffs+1]);
+                destp[curpos] = (unsigned char)(ya1*top+ya2*bot);
                 curpos++;
             }
         }
@@ -142,27 +142,27 @@ void ImageProc::scaleLinear( SDL_Surface *src, SDL_Surface *dest)
 
 void ImageProc::scaleLinear8bppsrc(SDL_Surface *src, SDL_Surface *dest)
 {
-    Uint16 cx, *xbase, ybase;
+    unsigned short cx, *xbase, ybase;
     float xa1, *xa2, ya1, ya2;
-    Uint32 color, pos, limit;
+    unsigned int color, pos, limit;
     SDL_Color col1, col2;
-    Uint32 linestart, curpos, lineoffs, curposlinestart;
+    unsigned int linestart, curpos, lineoffs, curposlinestart;
     float xmod = (float)(src->w-1)/(float)(dest->w-1);
     float ymod = (float)(src->h-1)/(float)(dest->h-1);
     float cxf, cyf;
-    Uint8 *srcp, *destp;
+    unsigned char *srcp, *destp;
     SDL_Color *top, *bottom, *changetmp;
     int topline, bottomline;
-    destp = (Uint8*)dest->pixels;
-    srcp = (Uint8*)src->pixels;
-    xbase = new Uint16[dest->w];
+    destp = (unsigned char*)dest->pixels;
+    srcp = (unsigned char*)src->pixels;
+    xbase = new unsigned short[dest->w];
     top = new SDL_Color[dest->w];
     bottom = new SDL_Color[dest->w];
     xa2 = new float[dest->w];
 
     cxf = 0;
     for( cx = 0; cx < dest->w; cx++ ) {
-        xbase[cx] = (Uint16)cxf;
+        xbase[cx] = (unsigned short)cxf;
         xa2[cx] = cxf-(float)xbase[cx];
         cxf += xmod;
     }
@@ -184,7 +184,7 @@ void ImageProc::scaleLinear8bppsrc(SDL_Surface *src, SDL_Surface *dest)
                 bottomline = ybase+1;
 
             cyf += ymod;
-            ybase = (Uint16)cyf;
+            ybase = (unsigned short)cyf;
             ya2 = cyf-(float)ybase;
             ya1 = 1-ya2;
             linestart = ybase*src->pitch;
@@ -206,9 +206,9 @@ void ImageProc::scaleLinear8bppsrc(SDL_Surface *src, SDL_Surface *dest)
             if( xa2[cx] >= 0.01 ) {
                 col1 = src->format->palette->colors[srcp[linestart+lineoffs]];
                 col2 = src->format->palette->colors[srcp[linestart+lineoffs+1]];
-                top[cx].r = (Uint8)(xa1*col1.r+xa2[cx]*col2.r);
-                top[cx].g = (Uint8)(xa1*col1.g+xa2[cx]*col2.g);
-                top[cx].b = (Uint8)(xa1*col1.b+xa2[cx]*col2.b);
+                top[cx].r = (unsigned char)(xa1*col1.r+xa2[cx]*col2.r);
+                top[cx].g = (unsigned char)(xa1*col1.g+xa2[cx]*col2.g);
+                top[cx].b = (unsigned char)(xa1*col1.b+xa2[cx]*col2.b);
             } else {
                 top[cx] = src->format->palette->colors[srcp[linestart+lineoffs]];
             }
@@ -217,18 +217,18 @@ void ImageProc::scaleLinear8bppsrc(SDL_Surface *src, SDL_Surface *dest)
             if( xa2[cx] >= 0.01 ) {
                 col1 = src->format->palette->colors[srcp[linestart+src->pitch+lineoffs]];
                 col2 = src->format->palette->colors[srcp[linestart+src->pitch+lineoffs+1]];
-                bottom[cx].r = (Uint8)(xa1*col1.r+xa2[cx]*col2.r);
-                bottom[cx].g = (Uint8)(xa1*col1.g+xa2[cx]*col2.g);
-                bottom[cx].b = (Uint8)(xa1*col1.b+xa2[cx]*col2.b);
+                bottom[cx].r = (unsigned char)(xa1*col1.r+xa2[cx]*col2.r);
+                bottom[cx].g = (unsigned char)(xa1*col1.g+xa2[cx]*col2.g);
+                bottom[cx].b = (unsigned char)(xa1*col1.b+xa2[cx]*col2.b);
             } else {
                 bottom[cx] = src->format->palette->colors[srcp[linestart+src->pitch+lineoffs]];
 
             }
         }
         if( xa2[cx] >= 0.01 ) {
-            col1.r = (Uint8)(ya1*top[cx].r+ya2*bottom[cx].r);
-            col1.g = (Uint8)(ya1*top[cx].g+ya2*bottom[cx].g);
-            col1.b = (Uint8)(ya1*top[cx].b+ya2*bottom[cx].b);
+            col1.r = (unsigned char)(ya1*top[cx].r+ya2*bottom[cx].r);
+            col1.g = (unsigned char)(ya1*top[cx].g+ya2*bottom[cx].g);
+            col1.b = (unsigned char)(ya1*top[cx].b+ya2*bottom[cx].b);
         } else {
             col1 = top[cx];
         }
@@ -252,10 +252,10 @@ void ImageProc::scaleLinear8bppsrc(SDL_Surface *src, SDL_Surface *dest)
  * @param quality. Selects the interpolation method.  Currently unused.
  */
 
-SDL_Surface* ImageProc::scale(SDL_Surface* input, Sint8 quality)
+SDL_Surface* ImageProc::scale(SDL_Surface* input, char quality)
 {
     SDL_Surface *output;
-    Uint8 bytesPerPixel = input->format->BytesPerPixel;
+    unsigned char bytesPerPixel = input->format->BytesPerPixel;
 
     output = SDL_CreateRGBSurface (SDL_SWSURFACE,(input->w<<1),(input->h<<1),
                                    bytesPerPixel << 3, 0xff, 0xff, 0xff, 0);
@@ -277,7 +277,7 @@ SDL_Surface* ImageProc::scale(SDL_Surface* input, Sint8 quality)
 /** Scales down the map to a much smaller image which will be placed in the radar screen as the "minimap". Needs only to be called once per map load
  * @param the image to process
  */
-SDL_Surface* ImageProc::minimapScale(SDL_Surface *input, Uint8 pixsize)
+SDL_Surface* ImageProc::minimapScale(SDL_Surface *input, unsigned char pixsize)
 {
     SDL_Surface *output;
     int bytesPerPixel = input->format->BytesPerPixel;

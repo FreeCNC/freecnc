@@ -11,11 +11,11 @@ public:
     ~GraphicsEngine();
     void setupCurrentGame();
     void renderScene();
-    Uint16 getWidth()
+    unsigned short getWidth()
     {
         return width;
     }
-    Uint16 getHeight()
+    unsigned short getHeight()
     {
         return height;
     }
@@ -36,23 +36,23 @@ private:
     void clipToMaparea(SDL_Rect *dest);
     void clipToMaparea(SDL_Rect *src, SDL_Rect *dest);
     void drawSidebar();
-    void drawLine(Sint16 startx, Sint16 starty,
-                  Sint16 stopx, Sint16 stopy, Uint16 width, Uint32 colour);
+    void drawLine(short startx, short starty,
+                  short stopx, short stopy, unsigned short width, unsigned int colour);
     SDL_Surface* screen;
     SDL_Surface* icon;
-    Uint16 width;
-    Uint16 height;
-    Uint16 tilewidth;
+    unsigned short width;
+    unsigned short height;
+    unsigned short tilewidth;
     SDL_Rect maparea;
     // Minimap zoom factor
     struct {
-        Uint8 normal;
-        Uint8 max;
+        unsigned char normal;
+        unsigned char max;
     } minizoom;
     // Which zoom is currently used?
-    Uint8* mz;
+    unsigned char* mz;
     // Used to avoid SDL_MapRGB in the radar render step.
-    std::vector<Uint32> playercolours;
+    std::vector<unsigned int> playercolours;
 };
 
 #endif

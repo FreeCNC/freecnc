@@ -20,19 +20,19 @@ public:
     virtual ~UnitOrStructureType() {};
 
     /// Returns the cost in credits.
-    virtual Uint16 getCost() const = 0;
+    virtual unsigned short getCost() const = 0;
 
     /// Speed is measured in artitrary units
-    virtual Uint8 getSpeed() const = 0;
+    virtual unsigned char getSpeed() const = 0;
 
     /// Turn speed is measured in arbitrary units
-    virtual Uint8 getTurnspeed() const = 0;
+    virtual unsigned char getTurnspeed() const = 0;
 
     /// Sight is measured in cells
-    virtual Uint8 getSight() const = 0;
+    virtual unsigned char getSight() const = 0;
 
     /// Returns the maximum health for this type
-    virtual Uint16 getMaxHealth() const = 0;
+    virtual unsigned short getMaxHealth() const = 0;
 
     /** @brief Returns a number corresponding to the type's armour
      * class. See freecnc.h for the enum definition
@@ -43,7 +43,7 @@ public:
      * structure that returns 2 is the weapons factory.  Units with
      * turrets (tanks, humvee, buggy, missile launchers) return 2.
      */
-    virtual Uint8 getNumLayers() const = 0;
+    virtual unsigned char getNumLayers() const = 0;
 
     /**
      * Units and structures can have at most two weapons.
@@ -61,7 +61,7 @@ public:
     virtual bool isWall() const = 0;
 
     /// Only applicable to units.  StructureType always returns zero.
-    virtual Uint8 getOffset() const = 0;
+    virtual unsigned char getOffset() const = 0;
 
     /// @returns the internal name, e.g. E1
     virtual const char* getTName() const = 0;
@@ -73,10 +73,10 @@ public:
     virtual std::vector<char*> getPrereqs() const = 0;
 
     /// @returns the level the player has to have reached before can be built
-    virtual Uint8 getBuildlevel() const = 0;
+    virtual unsigned char getBuildlevel() const = 0;
 
     /// Earliest level this unit or structure appears
-    virtual Uint8 getTechlevel() const = 0;
+    virtual unsigned char getTechlevel() const = 0;
 
     /// @returns the names of the sides that can build this
     virtual std::vector<char*> getOwners() const = 0;
@@ -85,17 +85,17 @@ public:
     virtual bool isValid() const {return valid;}
 
     /// @returns which production queue the type is for
-    virtual Uint8 getPQueue() const = 0;
+    virtual unsigned char getPQueue() const = 0;
 
     /// @returns the production type of this type.
-    Uint8 getPType() const {return ptype;}
-    void setPType(Uint8 p) {ptype = p;}
+    unsigned char getPType() const {return ptype;}
+    void setPType(unsigned char p) {ptype = p;}
 
     // Calling a virtual function is much faster than a dynamic_cast
     virtual bool isStructure() const = 0;
 
 protected:
-    Uint8 ptype;
+    unsigned char ptype;
     bool valid;
 };
 
@@ -114,25 +114,25 @@ public:
 
     virtual ~UnitOrStructure();
 
-    virtual Uint32 getNum() const = 0;
+    virtual unsigned int getNum() const = 0;
 
-    virtual Sint8 getXoffset() const = 0;
+    virtual char getXoffset() const = 0;
 
-    virtual Sint8 getYoffset() const = 0;
+    virtual char getYoffset() const = 0;
 
-    virtual void setXoffset(Sint8 xo) {};
+    virtual void setXoffset(char xo) {};
 
-    virtual void setYoffset(Sint8 yo) {};
+    virtual void setYoffset(char yo) {};
 
-    virtual Uint16 getHealth() const = 0;
+    virtual unsigned short getHealth() const = 0;
 
-    virtual Uint8 getOwner() const = 0;
+    virtual unsigned char getOwner() const = 0;
 
-    virtual void setOwner(Uint8) = 0;
+    virtual void setOwner(unsigned char) = 0;
 
-    virtual Uint16 getPos() const = 0;
+    virtual unsigned short getPos() const = 0;
 
-    virtual Uint16 getSubpos() const = 0;
+    virtual unsigned short getSubpos() const = 0;
 
     /// get the first blocked cell in structure.
     /**
@@ -143,7 +143,7 @@ public:
      * blocked cell as it is done at the same time as the blocked matrix
      * is first created.
      */
-    virtual Uint16 getBPos(Uint16 pos) const = 0;
+    virtual unsigned short getBPos(unsigned short pos) const = 0;
 
     /**
      * When calling this function, one must be explicit in your casting
@@ -151,9 +151,9 @@ public:
      */
     virtual UnitOrStructureType* getType() = 0;
 
-    virtual Uint32 getImageNum(Uint8 layer) const = 0;
+    virtual unsigned int getImageNum(unsigned char layer) const = 0;
 
-    virtual void setImageNum(Uint32 num, Uint8 layer) = 0;
+    virtual void setImageNum(unsigned int num, unsigned char layer) = 0;
 
     void referTo() {++references;}
 
@@ -171,14 +171,14 @@ public:
 
     virtual void attack(UnitOrStructure* target) = 0;
 
-    virtual void applyDamage(Sint16 amount, Weapon* weap, UnitOrStructure* attacker) = 0;
+    virtual void applyDamage(short amount, Weapon* weap, UnitOrStructure* attacker) = 0;
 
     /// @returns ratio of actual health over maximum health for type.
     virtual double getRatio() const = 0;
 
-    virtual Uint32 getExitCell() const {return 0;}
+    virtual unsigned int getExitCell() const {return 0;}
 
-    virtual Uint16 getTargetCell() const {return targetcell;}
+    virtual unsigned short getTargetCell() const {return targetcell;}
 
     virtual UnitOrStructure* getTarget() {return target;}
 
@@ -188,11 +188,11 @@ protected:
      * and structures, so rather than duplicate code, we handle them
      * here.
      */
-    Uint8 references;
+    unsigned char references;
     bool deleted, selected;
-    Uint16 targetcell;
+    unsigned short targetcell;
     UnitOrStructure* target;
-    Uint8 showorder_timer;
+    unsigned char showorder_timer;
 };
 
 inline UnitOrStructure::UnitOrStructure() :

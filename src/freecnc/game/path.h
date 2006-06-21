@@ -5,10 +5,10 @@
 #include "../freecnc.h"
 
 /* empty, push, pop, top */
-class Path : public std::stack<Uint8>
+class Path : public std::stack<unsigned char>
 {
 public:
-    Path(Uint32 crBeg, Uint32 crEnd, Uint8 max_dist);
+    Path(unsigned int crBeg, unsigned int crEnd, unsigned char max_dist);
     ~Path();
 };
 

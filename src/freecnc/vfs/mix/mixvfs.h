@@ -40,8 +40,8 @@ namespace MIXPriv
     #define FCNC_PACKED
     #endif
     struct MixHeader {
-        Uint16 c_files;
-        Uint32 size FCNC_PACKED;
+        unsigned short c_files;
+        unsigned int size FCNC_PACKED;
     };
     #ifdef _MSC_VER
     #undef FCNC_PACKED
@@ -49,27 +49,27 @@ namespace MIXPriv
     #endif
 
     struct MixRecord {
-        Uint32 id;
-        Uint32 offset;
-        Uint32 size;
+        unsigned int id;
+        unsigned int offset;
+        unsigned int size;
     };
 
     /* only 256 mixfiles can be loaded */
     struct MIXEntry {
-        Uint8 filenum;
-        Uint32 offset;
-        Uint32 size;
+        unsigned char filenum;
+        unsigned int offset;
+        unsigned int size;
     };
 
     struct OpenFile {
-        Uint32 id;
-        Uint32 pos;
+        unsigned int id;
+        unsigned int pos;
     };
 
     enum tscheck_ {check_ts, nocheck_ts};
 
-    typedef std::map<Uint32, MIXEntry> mixheaders_t;
-    typedef std::map<Uint32, OpenFile> openfiles_t;
+    typedef std::map<unsigned int, MIXEntry> mixheaders_t;
+    typedef std::map<unsigned int, OpenFile> openfiles_t;
 }
 
 class MIXFiles : public Archive {
@@ -81,25 +81,25 @@ public:
     }
     bool loadArchive(const char *fname);
     void unloadArchives();
-    Uint32 getFile(const char *fname);
-    void releaseFile(Uint32 file);
+    unsigned int getFile(const char *fname);
+    void releaseFile(unsigned int file);
 
-    Uint32 readByte(Uint32 file, Uint8 *databuf, Uint32 numBytes);
-    Uint32 readWord(Uint32 file, Uint16 *databuf, Uint32 numWords);
-    Uint32 readThree(Uint32 file, Uint32 *databuf, Uint32 numThrees);
-    Uint32 readDWord(Uint32 file, Uint32 *databuf, Uint32 numDWords);
-    char *readLine(Uint32 file, char *databuf, Uint32 buflen);
+    unsigned int readByte(unsigned int file, unsigned char *databuf, unsigned int numBytes);
+    unsigned int readWord(unsigned int file, unsigned short *databuf, unsigned int numWords);
+    unsigned int readThree(unsigned int file, unsigned int *databuf, unsigned int numThrees);
+    unsigned int readDWord(unsigned int file, unsigned int *databuf, unsigned int numDWords);
+    char *readLine(unsigned int file, char *databuf, unsigned int buflen);
 
-    void seekSet(Uint32 file, Uint32 pos);
-    void seekCur(Uint32 file, Sint32 pos);
+    void seekSet(unsigned int file, unsigned int pos);
+    void seekCur(unsigned int file, int pos);
 
-    //Uint32 getStartpos(Uint32 file){return 0;}
-    Uint32 getPos(Uint32 file) const;
-    Uint32 getSize(Uint32 file) const;
+    //unsigned int getStartpos(unsigned int file){return 0;}
+    unsigned int getPos(unsigned int file) const;
+    unsigned int getSize(unsigned int file) const;
 
-    const char* getPath(Uint32 file) const;
+    const char* getPath(unsigned int file) const;
 private:
-    Uint32 calcID(const char* fname );
+    unsigned int calcID(const char* fname );
     void readMIXHeader(VFile* mix);
     MIXPriv::MixRecord* decodeHeader(VFile* mix, MIXPriv::MixHeader* header,
             MIXPriv::tscheck_ tscheck);

@@ -12,10 +12,10 @@ public:
     StructureType(const char* typeName, shared_ptr<INIFile> structini, shared_ptr<INIFile> artini, 
                   const char* thext);
     ~StructureType();
-    Uint16 *getSHPNums() {
+    unsigned short *getSHPNums() {
         return shpnums;
     }
-    Uint16 *getSHPTNum() {
+    unsigned short *getSHPTNum() {
         return shptnum;
     }
     const char* getTName() const {
@@ -30,47 +30,47 @@ public:
     std::vector<char*> getOwners() const {
         return owners;
     }
-    Uint8 getNumLayers() const {
+    unsigned char getNumLayers() const {
         return numshps;
     }
 
-    Uint16 getMakeImg() const {
+    unsigned short getMakeImg() const {
         return makeimg;
     }
     bool isWall() const {
         return is_wall;
     }
 
-    Uint8 getXsize() const {
+    unsigned char getXsize() const {
         return xsize;
     }
-    Uint8 getYsize() const {
+    unsigned char getYsize() const {
         return ysize;
     }
 
-    Uint8 isBlocked(Uint16 tile) const {
+    unsigned char isBlocked(unsigned short tile) const {
         return blocked[tile];
     }
 
-    Sint8 getXoffset() const {
+    char getXoffset() const {
         return xoffset;
     }
-    Sint8 getYoffset() const {
+    char getYoffset() const {
         return yoffset;
     }
-    Uint8 getOffset() const {
+    unsigned char getOffset() const {
         return 0;
     }
-    Uint16 getCost() const {
+    unsigned short getCost() const {
         return cost;
     }
-    Uint8 getTurnspeed() const {
+    unsigned char getTurnspeed() const {
         return turnspeed;
     }
-    Uint8 getSight() const {
+    unsigned char getSight() const {
         return sight;
     }
-    Uint8 getSpeed() const {
+    unsigned char getSpeed() const {
         return 0;
     }
     armour_t getArmour() const {
@@ -83,7 +83,7 @@ public:
     powerinfo_t getPowerInfo() const {
         return powerinfo;
     }
-    Uint16 getMaxHealth() const {
+    unsigned short getMaxHealth() const {
         return maxhealth;
     }
     Weapon *getWeapon(bool primary = true) const {
@@ -92,37 +92,37 @@ public:
     bool hasTurret() const {
         return turret;
     }
-    Uint16 getBlckOff() const {
+    unsigned short getBlckOff() const {
         return blckoff;
     }
     bool isInfantry() const {
         return false;
     }
-    Uint8 getNumWallLevels() const {
+    unsigned char getNumWallLevels() const {
         return numwalllevels;
     }
-    Uint8 getDefaultFace() const {
+    unsigned char getDefaultFace() const {
         return defaultface;
     }
-    Uint8 getBuildlevel() const {
+    unsigned char getBuildlevel() const {
         return buildlevel;
     }
-    Uint8 getTechlevel() const {
+    unsigned char getTechlevel() const {
         return techlevel;
     }
     bool primarySettable() const {
         return primarysettable;
     }
-    Uint8 getPQueue() const {return 0;}
+    unsigned char getPQueue() const {return 0;}
     bool isStructure() const {return true;}
 private:
-    Uint16* shpnums, *shptnum;
-    Uint16 cost,maxhealth,makeimg,blckoff;
-    Sint8 xoffset,yoffset;
+    unsigned short* shpnums, *shptnum;
+    unsigned short cost,maxhealth,makeimg,blckoff;
+    char xoffset,yoffset;
     armour_t armour;
-    Uint8 turnspeed,sight,xsize,ysize,numshps,numwalllevels,defaultface;
-    Uint8 techlevel,buildlevel;
-    Uint8 *blocked;
+    unsigned char turnspeed,sight,xsize,ysize,numshps,numwalllevels,defaultface;
+    unsigned char techlevel,buildlevel;
+    unsigned char *blocked;
     char tname[8];
     char* name;
     std::vector<char*> owners;
@@ -146,60 +146,60 @@ public:
     friend class BuildingAnimEvent;
     friend class BAttackAnimEvent;
 
-    Structure(StructureType *type, Uint16 cellpos, Uint8 owner,
-            Uint16 rhealth, Uint8 facing);
+    Structure(StructureType *type, unsigned short cellpos, unsigned char owner,
+            unsigned short rhealth, unsigned char facing);
     ~Structure();
-    Uint8 getImageNums(Uint32 **inums, Sint8 **xoffsets, Sint8 **yoffsets);
-    Uint16* getImageNums() const {
+    unsigned char getImageNums(unsigned int **inums, char **xoffsets, char **yoffsets);
+    unsigned short* getImageNums() const {
         return imagenumbers;
     }
-    void changeImage(Uint8 layer, Sint16 imagechange) {
+    void changeImage(unsigned char layer, short imagechange) {
         imagenumbers[layer]+=imagechange;
     }
-    Uint32 getImageNum(Uint8 layer) const {
+    unsigned int getImageNum(unsigned char layer) const {
         return type->getSHPNums()[layer]+imagenumbers[layer];
     }
-    void setImageNum(Uint32 num, Uint8 layer);
+    void setImageNum(unsigned int num, unsigned char layer);
     UnitOrStructureType* getType() {
         return type;
     }
-    void setStructnum(Uint32 stn) {
+    void setStructnum(unsigned int stn) {
         structnum = stn;
     }
-    Uint32 getNum() const {
+    unsigned int getNum() const {
         return structnum;
     }
-    Uint16 getPos() const {
+    unsigned short getPos() const {
         return cellpos;
     }
-    Uint16 getBPos(Uint16 curpos) const;
-    Uint16 getFreePos(Uint8* subpos, bool findsubpos);
+    unsigned short getBPos(unsigned short curpos) const;
+    unsigned short getFreePos(unsigned char* subpos, bool findsubpos);
     void remove();
-    Uint16 getSubpos() const {
+    unsigned short getSubpos() const {
         return 0;
     }
-    void applyDamage(Sint16 amount, Weapon* weap, UnitOrStructure* attacker);
-    void runAnim(Uint32 mode);
-    void runSecAnim(Uint32 param);
+    void applyDamage(short amount, Weapon* weap, UnitOrStructure* attacker);
+    void runAnim(unsigned int mode);
+    void runSecAnim(unsigned int param);
     void stopAnim();
     void stop();
-    Uint8 getOwner() const {
+    unsigned char getOwner() const {
         return owner;
     }
-    void setOwner(Uint8 newowner) {
+    void setOwner(unsigned char newowner) {
         owner = newowner;
     }
     bool canAttack() const {
         return type->getWeapon()!=NULL;
     }
     void attack(UnitOrStructure* target);
-    Uint16 getHealth() const {
+    unsigned short getHealth() const {
         return health;
     }
-    Sint8 getXoffset() const {
+    char getXoffset() const {
         return type->getXoffset();
     }
-    Sint8 getYoffset() const {
+    char getYoffset() const {
         return type->getYoffset();
     }
     bool isWall() const {
@@ -214,16 +214,16 @@ public:
     void setPrimary(bool pri) {
         primary = pri;
     }
-    Uint32 getExitCell() const;
-    void resetLoadState(bool runsec, Uint32 param);
-    Uint8 checkdamage();
-    Uint16 getTargetCell() const;
+    unsigned int getExitCell() const;
+    void resetLoadState(bool runsec, unsigned int param);
+    unsigned char checkdamage();
+    unsigned short getTargetCell() const;
 private:
     StructureType *type;
-    Uint32 structnum;
-    Uint16 *imagenumbers;
-    Uint16 cellpos,bcellpos,health;
-    Uint8 owner,references,damaged;
+    unsigned int structnum;
+    unsigned short *imagenumbers;
+    unsigned short cellpos,bcellpos,health;
+    unsigned char owner,references,damaged;
     bool animating,usemakeimgs,exploding,primary;
     double ratio; // health/maxhealth
 

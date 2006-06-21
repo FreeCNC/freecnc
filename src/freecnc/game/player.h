@@ -27,27 +27,27 @@ class Player
 public:
     explicit Player(const char *pname, shared_ptr<INIFile> mapini);
     ~Player();
-    void setPlayerNum(Uint8 num) {playernum = num;}
+    void setPlayerNum(unsigned char num) {playernum = num;}
     void setMultiColour(const char* colour);
     void setSettings(const char* nick, const char* colour, const char* mside);
 
-    Uint8 getPlayerNum() const {return playernum;}
+    unsigned char getPlayerNum() const {return playernum;}
     const char* getName() const {return playername;}
-    Uint8 getSide() const {return playerside;}
-    Uint8 getMSide() const {return multiside;}
+    unsigned char getSide() const {return playerside;}
+    unsigned char getMSide() const {return multiside;}
 
-    bool changeMoney(Sint32 change);
-    Sint32 getMoney() const {return money;}
+    bool changeMoney(int change);
+    int getMoney() const {return money;}
 
     bool startBuilding(UnitOrStructureType* type);
     ConStatus stopBuilding(UnitOrStructureType* type);
     void placed(UnitOrStructureType* type);
-    ConStatus getStatus(UnitOrStructureType* type, Uint8* quantity, Uint8* progress);
-    BuildQueue::BQueue* getQueue(Uint8 ptype);
+    ConStatus getStatus(UnitOrStructureType* type, unsigned char* quantity, unsigned char* progress);
+    BuildQueue::BQueue* getQueue(unsigned char ptype);
 
     void builtUnit(Unit* un);
     void lostUnit(Unit* un, bool wasDeployed);
-    void movedUnit(Uint32 oldpos, Uint32 newpos, Uint8 sight);
+    void movedUnit(unsigned int oldpos, unsigned int newpos, unsigned char sight);
     void builtStruct(Structure* str);
     void lostStruct(Structure* str);
 
@@ -56,16 +56,16 @@ public:
     const std::vector<Unit*>& getUnits() const {return unitpool;}
     const std::vector<Structure*>& getStructures() const {return structurepool;}
 
-    Uint8 getStructpalNum() const {return structpalnum;}
-    Uint8 getUnitpalNum() const {return unitpalnum;}
+    unsigned char getStructpalNum() const {return structpalnum;}
+    unsigned char getUnitpalNum() const {return unitpalnum;}
 
-    Uint32 getPower() const {return powerGenerated;}
-    Uint32 getPowerUsed() const {return powerUsed;}
+    unsigned int getPower() const {return powerGenerated;}
+    unsigned int getPowerUsed() const {return powerUsed;}
 
-    Uint16 getPlayerStart() const {return playerstart;}
+    unsigned short getPlayerStart() const {return playerstart;}
     void placeMultiUnits();
 
-    void updateOwner(Uint8 newnum);
+    void updateOwner(unsigned char newnum);
 
     bool isDefeated() const{return defeated;}
 
@@ -80,16 +80,16 @@ public:
 
     void addUnitKill() {++unitkills;}
     void addStructureKill() {++structurekills;}
-    Uint32 getUnitKills() const {return unitkills;}
-    Uint32 getUnitLosses() const {return unitlosses;}
-    Uint32 getStructureKills() const {return structurekills;}
-    Uint16 getStructureLosses() const {return structurelosses;}
+    unsigned int getUnitKills() const {return unitkills;}
+    unsigned int getUnitLosses() const {return unitlosses;}
+    unsigned int getStructureKills() const {return structurekills;}
+    unsigned short getStructureLosses() const {return structurelosses;}
 
     size_t ownsStructure(StructureType* stype) {return structures_owned[stype].size();}
     Structure*& getPrimary(const UnitOrStructureType* uostype) {
         return primary_structure[uostype->getPType()];
     }
-    Structure*& getPrimary(Uint32 ptype) {
+    Structure*& getPrimary(unsigned int ptype) {
         return primary_structure[ptype];
     }
     void setPrimary(Structure* str);
@@ -101,9 +101,9 @@ public:
     std::vector<bool>& getMapBuildable() {return mapBuildable;}
 
     /// Turns on a block of cells in either the sight or buildable matrix
-    void addSoB(Uint32 pos, Uint8 width, Uint8 height, Uint8 sight, SOB_update mode);
+    void addSoB(unsigned int pos, unsigned char width, unsigned char height, unsigned char sight, SOB_update mode);
     /// Turns off a block of cells in either the sight or buildable matrix
-    void removeSoB(Uint32 pos, Uint8 width, Uint8 height, Uint8 sight, SOB_update mode);
+    void removeSoB(unsigned int pos, unsigned char width, unsigned char height, unsigned char sight, SOB_update mode);
 
     bool canBuildAll() const {return buildall;}
     bool canBuildAny() const {return buildany;}
@@ -118,28 +118,28 @@ private:
 
     // This instead of a vector as we don't have to check ranges before
     // operations
-    std::map<Uint8, BuildQueue::BQueue*> queues;
+    std::map<unsigned char, BuildQueue::BQueue*> queues;
 
     bool defeated;
     char *playername, *nickname;
-    Uint8 playerside, multiside, playernum, radarstat, unitpalnum, structpalnum;
+    unsigned char playerside, multiside, playernum, radarstat, unitpalnum, structpalnum;
 
     // See the alliance code in the .cpp file
-    Uint8 unallycalls;
+    unsigned char unallycalls;
 
-    Sint32 money;
-    Uint32 powerGenerated, powerUsed;
+    int money;
+    unsigned int powerGenerated, powerUsed;
 
-    Uint32 unitkills, unitlosses, structurekills, structurelosses;
+    unsigned int unitkills, unitlosses, structurekills, structurelosses;
 
-    Uint16 playerstart;
+    unsigned short playerstart;
 
     // All of these pointers are owned elsewhere.
     std::vector<Unit*> unitpool;
     std::vector<Structure*> structurepool;
     std::map<StructureType*, std::list<Structure*> > structures_owned;
-    std::map<Uint32, std::list<Structure*> > production_groups;
-    std::map<Uint32, Structure*> primary_structure;
+    std::map<unsigned int, std::list<Structure*> > production_groups;
+    std::map<unsigned int, Structure*> primary_structure;
 
     std::vector<Player*> allies;
     // players that have allied with this player, but this player
@@ -147,7 +147,7 @@ private:
     // is defeated.
     std::vector<Player*> non_reciproc_allies;
 
-    std::vector<Uint8> sightMatrix, buildMatrix;
+    std::vector<unsigned char> sightMatrix, buildMatrix;
 
     std::vector<bool> mapVisible, mapBuildable;
     // cheat/debug flags: allmap (reveal all map), buildany (remove

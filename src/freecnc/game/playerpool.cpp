@@ -3,7 +3,7 @@
 #include "../lib/inifile.h"
 #include "playerpool.h"
 
-PlayerPool::PlayerPool(shared_ptr<INIFile> inifile, Uint8 gamemode)
+PlayerPool::PlayerPool(shared_ptr<INIFile> inifile, unsigned char gamemode)
 {
     lost = false;
     won = false;
@@ -15,7 +15,7 @@ PlayerPool::PlayerPool(shared_ptr<INIFile> inifile, Uint8 gamemode)
 
 PlayerPool::~PlayerPool()
 {
-    Uint8 i;
+    unsigned char i;
     for( i = 0; i < playerpool.size(); i++ ) {
         delete playerpool[i];
     }
@@ -23,7 +23,7 @@ PlayerPool::~PlayerPool()
 
 void PlayerPool::setLPlayer(const char* pname)
 {
-    Uint8 i;
+    unsigned char i;
     for( i = 0; i < playerpool.size(); i++ ) {
         if( !strcasecmp(playerpool[i]->getName(), pname) ) {
             localPlayer = i;
@@ -32,13 +32,13 @@ void PlayerPool::setLPlayer(const char* pname)
     }
     //logger->warning("Tried to set local player to non-existing player \"%s\"\n", pname);
     playerpool.push_back(new Player(pname, mapini));
-    localPlayer = static_cast<Uint8>(playerpool.size()-1);
+    localPlayer = static_cast<unsigned char>(playerpool.size()-1);
     playerpool[localPlayer]->setPlayerNum(localPlayer);
 }
 
-void PlayerPool::setLPlayer(Uint8 number, const char* nick, const char* colour, const char* mside)
+void PlayerPool::setLPlayer(unsigned char number, const char* nick, const char* colour, const char* mside)
 {
-    Uint8 i;
+    unsigned char i;
     for( i = 0; i < playerpool.size(); i++ ) {
         if( playerpool[i]->getMSide() == number ) {
             localPlayer = i;
@@ -53,17 +53,17 @@ void PlayerPool::setLPlayer(Uint8 number, const char* nick, const char* colour, 
     */
 }
 
-Uint8 PlayerPool::getPlayerNum(const char *pname)
+unsigned char PlayerPool::getPlayerNum(const char *pname)
 {
-    Uint8 i;
+    unsigned char i;
     for( i = 0; i < playerpool.size(); i++ ) {
         if( !strcasecmp(playerpool[i]->getName(), pname) ) {
             return i;
         }
     }
     playerpool.push_back(new Player(pname, mapini));
-    playerpool[playerpool.size()-1]->setPlayerNum(static_cast<Uint8>(playerpool.size()-1));
-    return static_cast<Uint8>(playerpool.size()-1);
+    playerpool[playerpool.size()-1]->setPlayerNum(static_cast<unsigned char>(playerpool.size()-1));
+    return static_cast<unsigned char>(playerpool.size()-1);
 }
 
 Player* PlayerPool::getPlayerByName(const char* pname)
@@ -74,7 +74,7 @@ Player* PlayerPool::getPlayerByName(const char* pname)
 std::vector<Player*> PlayerPool::getOpponents(Player* pl)
 {
     std::vector<Player*> opps;
-    for(Uint8 i = 0; i < playerpool.size(); i++ ) {
+    for(unsigned char i = 0; i < playerpool.size(); i++ ) {
         if (!playerpool[i]->isDefeated() && !pl->isAllied(playerpool[i])) {
             opps.push_back(playerpool[i]);
         }
@@ -84,7 +84,7 @@ std::vector<Player*> PlayerPool::getOpponents(Player* pl)
 
 void PlayerPool::playerDefeated(Player *pl)
 {
-    Uint8 i;
+    unsigned char i;
 
     pl->clearAlliances();
     for( i = 0; i < playerpool.size(); i++ ) {
@@ -96,7 +96,7 @@ void PlayerPool::playerDefeated(Player *pl)
         lost = true;
     }
     if (!lost) {
-        Uint8 defeated = 0;
+        unsigned char defeated = 0;
         for (i = 0; i < playerpool.size(); ++i) {
             if (playerpool[i]->isDefeated()) {
                 ++defeated;
@@ -112,7 +112,7 @@ void PlayerPool::playerDefeated(Player *pl)
 
 void PlayerPool::playerUndefeated(Player* pl)
 {
-    Uint8 i;
+    unsigned char i;
 
     pl->setAlliances();
     for( i = 0; i < playerpool.size(); i++ ) {
@@ -137,25 +137,25 @@ shared_ptr<INIFile> PlayerPool::getMapINI()
 
 void PlayerPool::setAlliances()
 {
-    for (Uint16 i=0; i < playerpool.size() ; ++i) {
+    for (unsigned short i=0; i < playerpool.size() ; ++i) {
         playerpool[i]->setAlliances();
     }
 }
 
 void PlayerPool::placeMultiUnits()
 {
-    for (Uint16 i=0; i < playerpool.size() ; ++i) {
+    for (unsigned short i=0; i < playerpool.size() ; ++i) {
         if (playerpool[i]->getPlayerStart() != 0) {
             playerpool[i]->placeMultiUnits();
         }
     }
 }
 
-Uint16 PlayerPool::getAStart()
+unsigned short PlayerPool::getAStart()
 {
-    Uint8 rnd,sze;
-    Uint16 rv;
-    sze = static_cast<Uint8>(player_starts.size());
+    unsigned char rnd,sze;
+    unsigned short rv;
+    sze = static_cast<unsigned char>(player_starts.size());
     if (sze == 0) {
         return 0;
     }
@@ -180,7 +180,7 @@ Uint16 PlayerPool::getAStart()
     return rv;
 }
 
-void PlayerPool::setWaypoints(std::vector<Uint16> wps)
+void PlayerPool::setWaypoints(std::vector<unsigned short> wps)
 {
     player_starts = wps;
 }
@@ -199,14 +199,14 @@ void PlayerPool::updateSidebar()
     updatesidebar = true;
 }
 
-Uint8 PlayerPool::statRadar()
+unsigned char PlayerPool::statRadar()
 {
-    Uint8 tmp = radarstatus;
+    unsigned char tmp = radarstatus;
     radarstatus = 0;
     return tmp;
 }
 
-void PlayerPool::updateRadar(Uint8 status)
+void PlayerPool::updateRadar(unsigned char status)
 {
     radarstatus = status;
 }

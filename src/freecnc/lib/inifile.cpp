@@ -21,7 +21,7 @@ using boost::lexical_cast;
  * @param keynum Will skip (keynum-1) entries in section.
  * @returns an iterator to the keynum'th key in section.
  */
-INIKey INIFile::readKeyValue(const char* section, Uint32 keynum)
+INIKey INIFile::readKeyValue(const char* section, unsigned int keynum)
 {
     map<string, INISection>::iterator sec;
     INIKey key;
@@ -39,7 +39,7 @@ INIKey INIFile::readKeyValue(const char* section, Uint32 keynum)
     }
 
     key = sec->second.begin();
-    for (Uint32 i = 0; i < keynum; ++i) {
+    for (unsigned int i = 0; i < keynum; ++i) {
         key++;
     }
     if (key == sec->second.end())
@@ -54,7 +54,7 @@ INIKey INIFile::readKeyValue(const char* section, Uint32 keynum)
  * @param index The index of the key to extract.
  * @returns an iterator to the key with the numeric value of index.
  */
-INIKey INIFile::readIndexedKeyValue(const char* section, Uint32 index, const char* prefix)
+INIKey INIFile::readIndexedKeyValue(const char* section, unsigned int index, const char* prefix)
 {
     map<string, INISection>::iterator sec;
     INIKey key;
@@ -83,10 +83,10 @@ INIKey INIFile::readIndexedKeyValue(const char* section, Uint32 index, const cha
 }
 
 
-string INIFile::readSection(Uint32 secnum)
+string INIFile::readSection(unsigned int secnum)
 {
     map<string, INISection>::iterator sec;
-    Uint32 i;
+    unsigned int i;
 
     if (secnum >= inidata.size()) {
         throw 0;
@@ -179,9 +179,9 @@ int INIFile::readInt(const char* section, const char* value)
 }
 
 /// wrapper around readInt to return a provided default instead of INIERROR
-int INIFile::readInt(const char* section, const char* value, Uint32 deflt)
+int INIFile::readInt(const char* section, const char* value, unsigned int deflt)
 {
-    Uint32 tmp;
+    unsigned int tmp;
 
     tmp = readInt(section,value);
     if (tmp == INIERROR)
@@ -198,7 +198,7 @@ INIFile::INIFile(const char* filename)
     char line[1024];
     char key[1024];
     char value[1024];
-    Uint32 i;
+    unsigned int i;
     char* str;
 
     VFile* inifile;

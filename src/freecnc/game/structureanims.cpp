@@ -10,7 +10,7 @@
 #include "structureanims.h"
 #include "weaponspool.h"
 
-BuildingAnimEvent::BuildingAnimEvent(Uint32 p, Structure* str, Uint8 mode) : ActionEvent(p)
+BuildingAnimEvent::BuildingAnimEvent(unsigned int p, Structure* str, unsigned char mode) : ActionEvent(p)
 {
     strct = str;
     strct->referTo();
@@ -114,7 +114,7 @@ void BuildingAnimEvent::updateDamaged()
     }
 }
 
-BuildAnimEvent::BuildAnimEvent(Uint32 p, Structure* str, bool sell) : BuildingAnimEvent(p,str,0)
+BuildAnimEvent::BuildAnimEvent(unsigned int p, Structure* str, bool sell) : BuildingAnimEvent(p,str,0)
 {
     updateDamaged();
     this->sell = sell;
@@ -145,7 +145,7 @@ BuildAnimEvent::~BuildAnimEvent()
 {}
 
 
-LoopAnimEvent::LoopAnimEvent(Uint32 p, Structure* str) : BuildingAnimEvent(p,str,1)
+LoopAnimEvent::LoopAnimEvent(unsigned int p, Structure* str) : BuildingAnimEvent(p,str,1)
 {
     updateDamaged();
     framend = getaniminfo().loopend;
@@ -163,7 +163,7 @@ void LoopAnimEvent::anim_func(anim_nfo* data)
     }
 }
 
-ProcAnimEvent::ProcAnimEvent(Uint32 p, Structure* str) : BuildingAnimEvent(p,str,4)
+ProcAnimEvent::ProcAnimEvent(unsigned int p, Structure* str) : BuildingAnimEvent(p,str,4)
 {
     updateDamaged();
     framend = getaniminfo().loopend;
@@ -191,9 +191,9 @@ void ProcAnimEvent::updateDamaged()
     }
 }
 
-BTurnAnimEvent::BTurnAnimEvent(Uint32 p, Structure* str, Uint8 face) : BuildingAnimEvent(p,str,6)
+BTurnAnimEvent::BTurnAnimEvent(unsigned int p, Structure* str, unsigned char face) : BuildingAnimEvent(p,str,6)
 {
-    Uint8 layerface;
+    unsigned char layerface;
     updateDamaged();
     targetface = face;
     layerface = (str->getImageNums()[0]&0x1f);
@@ -211,7 +211,7 @@ BTurnAnimEvent::BTurnAnimEvent(Uint32 p, Structure* str, Uint8 face) : BuildingA
 
 void BTurnAnimEvent::anim_func(anim_nfo* data)
 {
-    Uint8 layerface;
+    unsigned char layerface;
     layerface = (str->getImageNums()[0]&0x1f);
     if( abs((layerface-targetface)&0x1f) > abs(turnmod) ) {
         layerface += turnmod;
@@ -225,7 +225,7 @@ void BTurnAnimEvent::anim_func(anim_nfo* data)
     }
 }
 
-DoorAnimEvent::DoorAnimEvent(Uint32 p, Structure* str, bool opening) : BuildingAnimEvent(p,str,5)
+DoorAnimEvent::DoorAnimEvent(unsigned int p, Structure* str, bool opening) : BuildingAnimEvent(p,str,5)
 {
     updateDamaged();
     if (opening) {
@@ -273,7 +273,7 @@ void DoorAnimEvent::updateDamaged()
     frame0 = anim_data.damagedelta;
 }
 
-RefineAnimEvent::RefineAnimEvent(Uint32 p, Structure* str, Uint8 bails) : BuildingAnimEvent(p,str,7)
+RefineAnimEvent::RefineAnimEvent(unsigned int p, Structure* str, unsigned char bails) : BuildingAnimEvent(p,str,7)
 {
     updateDamaged();
     this->bails = bails;
@@ -310,7 +310,7 @@ void RefineAnimEvent::updateDamaged()
     framend = framestart + 17; // fixme: avoid hardcoded values
 }
 
-BAttackAnimEvent::BAttackAnimEvent(Uint32 p, Structure *str) : BuildingAnimEvent(p,str,8)
+BAttackAnimEvent::BAttackAnimEvent(unsigned int p, Structure *str) : BuildingAnimEvent(p,str,8)
 {
     this->strct = str;
     strct->referTo();
@@ -335,11 +335,11 @@ void BAttackAnimEvent::update()
 
 void BAttackAnimEvent::run()
 {
-    Uint32 distance;
-    Sint32 xtiles, ytiles;
-    Uint16 atkpos,mwid;
+    unsigned int distance;
+    int xtiles, ytiles;
+    unsigned short atkpos,mwid;
     float alpha;
-    Uint8 facing;
+    unsigned char facing;
     mwid = p::ccmap->getWidth();
     if( !strct->isAlive() || done ) {
         delete this;
@@ -378,7 +378,7 @@ void BAttackAnimEvent::run()
             alpha = M_PI+alpha;
         }
     }
-    facing = (40-(Sint8)(alpha*16/M_PI))&0x1f;
+    facing = (40-(char)(alpha*16/M_PI))&0x1f;
 
     if ((strct->type->hasTurret())&&((strct->getImageNums()[0]&0x1f)!=facing)) { // turn to face target first
         setDelay(0);
@@ -400,7 +400,7 @@ void BAttackAnimEvent::stop()
     done = true;
 }
 
-BExplodeAnimEvent::BExplodeAnimEvent(Uint32 p, Structure* str) : BuildingAnimEvent(p,str,9)
+BExplodeAnimEvent::BExplodeAnimEvent(unsigned int p, Structure* str) : BuildingAnimEvent(p,str,9)
 {
     this->strct = str;
     if (getType()->isWall()) {

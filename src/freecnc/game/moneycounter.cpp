@@ -4,7 +4,7 @@
 #include "moneycounter.h"
 #include "player.h"
 
-MoneyCounter::MoneyCounter(Sint32* money, Player* player, MoneyCounter** backref)
+MoneyCounter::MoneyCounter(int* money, Player* player, MoneyCounter** backref)
     : ActionEvent(1), money(*money), player(player), queued(false), creditleft(0), debtleft(0), creditsound(-1), debitsound(-1), sound(true), backref(backref)
 {
 }
@@ -17,8 +17,8 @@ MoneyCounter::~MoneyCounter()
 void MoneyCounter::run()
 {
     queued = false;
-    Uint8 Dcred = step(creditleft);
-    Uint8 Ddebt = step(debtleft);
+    unsigned char Dcred = step(creditleft);
+    unsigned char Ddebt = step(debtleft);
     if (Dcred > 0) {
         money += Dcred;
     } else if (sound && creditsound != -1) {
@@ -41,7 +41,7 @@ void MoneyCounter::run()
     }
 }
 
-void MoneyCounter::addCredit(Uint16 amount)
+void MoneyCounter::addCredit(unsigned short amount)
 {
     creditleft += amount;
     if (sound && -1 == creditsound) {
@@ -51,7 +51,7 @@ void MoneyCounter::addCredit(Uint16 amount)
     reshedule();
 }
 
-void MoneyCounter::addDebt(Uint16 amount)
+void MoneyCounter::addDebt(unsigned short amount)
 {
     debtleft += amount;
     if (sound && -1 == debitsound) {
@@ -61,13 +61,13 @@ void MoneyCounter::addDebt(Uint16 amount)
     reshedule();
 }
 
-Uint8 MoneyCounter::step(Uint16& value)
+unsigned char MoneyCounter::step(unsigned short& value)
 {
     if (value == 0)
         return 0;
 
     if (value < delta) {
-        Uint8 oldvalue = static_cast<Uint8>(value);
+        unsigned char oldvalue = static_cast<unsigned char>(value);
         value = 0;
         return oldvalue;
     } else {

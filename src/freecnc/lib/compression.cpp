@@ -16,7 +16,7 @@ namespace Compression
     // image_in: Buffer of compressed data
     // image_out: Buffer to hold output
     // returns: size of uncompressed data
-    int decode80(const Uint8 image_in[], Uint8 image_out[])
+    int decode80(const unsigned char image_in[], unsigned char image_out[])
     {
         /*
         0 copy 0cccpppp p
@@ -26,14 +26,14 @@ namespace Compression
         4 copy 11111111 c c p p
         */
 
-        const Uint8* copyp;
-        const Uint8* readp = image_in;
-        Uint8* writep = image_out;
-        Uint32 code;
-        Uint32 count;
+        const unsigned char* copyp;
+        const unsigned char* readp = image_in;
+        unsigned char* writep = image_out;
+        unsigned int code;
+        unsigned int count;
 
         #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-        Uint16 bigend; /* temporary big endian var */
+        unsigned short bigend; /* temporary big endian var */
         #endif
 
         while (1) {
@@ -66,7 +66,7 @@ namespace Compression
                         memcpy(&bigend, readp, 2);
                         copyp = &image_out[SDL_Swap16(bigend)];
                         #else
-                        copyp = &image_out[*(Uint16*)readp];
+                        copyp = &image_out[*(unsigned short*)readp];
                         #endif
 
                         readp += 2;
@@ -75,11 +75,11 @@ namespace Compression
                     } else if (count == 0x3e) {
                         //command 3 (11111110 c c v): fill
                         #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-                        memset(&count, 0, sizeof(Uint32));
+                        memset(&count, 0, sizeof(unsigned int));
                         memcpy(&count, readp, 2);
                         count = SDL_Swap32(count);
                         #else
-                        count = *(Uint16*)readp;
+                        count = *(unsigned short*)readp;
                         #endif
 
                         readp += 2;
@@ -89,11 +89,11 @@ namespace Compression
                     } else {
                         //command 4 (copy 11111111 c c p p): copy
                         #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-                        memset(&count, 0, sizeof(Uint32));
+                        memset(&count, 0, sizeof(unsigned int));
                         memcpy(&count, readp, 2);
                         count = SDL_Swap32(count);
                         #else
-                        count = *(Uint16*)readp;
+                        count = *(unsigned short*)readp;
                         #endif
 
                         readp += 2;
@@ -102,7 +102,7 @@ namespace Compression
                         memcpy(&bigend, readp, 2);
                         copyp = &image_out[SDL_Swap16(bigend)];
                         #else
-                        copyp = &image_out[*(Uint16*)readp];
+                        copyp = &image_out[*(unsigned short*)readp];
                         #endif
 
                         readp += 2;
@@ -120,7 +120,7 @@ namespace Compression
     // image_in: Buffer of compressed data
     // image_out: Buffer to hold output
     // returns: size of uncompressed data
-    int decode40(const Uint8 image_in[], Uint8 image_out[])
+    int decode40(const unsigned char image_in[], unsigned char image_out[])
     {
         /*
         0 fill 00000000 c v
@@ -131,10 +131,10 @@ namespace Compression
         5 skip 1ccccccc
         */
 
-        const Uint8* readp = image_in;
-        Uint8* writep = image_out;
-        Uint32 code;
-        Uint32 count;
+        const unsigned char* readp = image_in;
+        unsigned char* writep = image_out;
+        unsigned int code;
+        unsigned int count;
 
         while (1) {
             code = *readp++;
@@ -157,11 +157,11 @@ namespace Compression
                 //bit 7 = 1
                 if (!(count = code & 0x7f)) {
                     #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-                    memset(&count, 0, sizeof(Uint32));
+                    memset(&count, 0, sizeof(unsigned int));
                     memcpy(&count, readp, 2);
                     count = SDL_Swap32(count);
                     #else
-                    count = *(Uint16*)readp;
+                    count = *(unsigned short*)readp;
                     #endif
 
                     readp += 2;
@@ -203,11 +203,11 @@ namespace Compression
     // d: Buffer to hold output
     // cb_s: size of compressed data?
     // returns: size of uncompressed data?
-    int decode20(const Uint8* s, Uint8* d, int cb_s)
+    int decode20(const unsigned char* s, unsigned char* d, int cb_s)
     {
-        const Uint8* r = s;
-        const Uint8* r_end = s + cb_s;
-        Uint8* w = d;
+        const unsigned char* r = s;
+        const unsigned char* r_end = s + cb_s;
+        unsigned char* w = d;
         while (r < r_end) {
             int v = *r++;
             if (v)
@@ -255,9 +255,9 @@ namespace Compression
         for(i= '0';i<='9';i++) {
             dtable[i]= 52+(i-'0');
         }
-        dtable[(Uint8)'+']= 62;
-        dtable[(Uint8)'/']= 63;
-        dtable[(Uint8)'=']= 0;
+        dtable[(unsigned char)'+']= 62;
+        dtable[(unsigned char)'/']= 63;
+        dtable[(unsigned char)'=']= 0;
 
 
         while (length >= 4) {
@@ -291,7 +291,7 @@ namespace Compression
                 target[1] = b << 4 | c >> 2;
             } else {
                 logger->warning("Error in base64. #bits to skip doesn't match length\n");
-                logger->warning("skip %d bits, %d chars left\n\"%s\"\n", bits_to_skip, (Uint32)length, src);
+                logger->warning("skip %d bits, %d chars left\n\"%s\"\n", bits_to_skip, (unsigned int)length, src);
                 return -1;
             }
         }

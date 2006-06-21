@@ -17,9 +17,9 @@ public:
     bool addStructure(Structure *selstruct, bool enemy);
     void removeStructure(Structure *selstruct);
 
-    bool saveSelection(Uint8 savepos);
-    bool loadSelection(Uint8 loadpos);
-    bool mergeSelection(Uint8 loadpos);
+    bool saveSelection(unsigned char savepos);
+    bool loadSelection(unsigned char loadpos);
+    bool mergeSelection(unsigned char loadpos);
 
     void clearSelection();
 
@@ -31,8 +31,8 @@ public:
     bool isEnemy() const {return enemy_selected;}
     bool empty() const {return sel_units.empty() && sel_structs.empty();}
     // Returns the number of the player who owns all things selected
-    Uint8 getOwner() const;
-    void moveUnits(Uint32 pos);
+    unsigned char getOwner() const;
+    void moveUnits(unsigned int pos);
     void attackUnit(Unit* target);
     void attackStructure(Structure* target);
     void checkSelection();
@@ -43,7 +43,7 @@ private:
     std::list<Unit*> sel_units;
     std::list<Structure*> sel_structs;
 
-    Uint32 numattacking;
+    unsigned int numattacking;
     bool enemy_selected;
     std::list<Unit*>saved_unitsel[10];
     std::list<Structure*>saved_structsel[10];

@@ -195,12 +195,12 @@ void SoundEngine::PrevTrack()
     PlayTrack(*(--currentTrack));
 }
 
-void SoundEngine::MusicHook(void* userdata, Uint8* stream, int len)
+void SoundEngine::MusicHook(void* userdata, unsigned char* stream, int len)
 {
     bool* musicFinished = reinterpret_cast<bool*>(userdata);
     if (!*musicFinished) {
         SampleBuffer buffer;
-        Uint32 ret = musicDecoder.Decode(buffer, len);
+        unsigned int ret = musicDecoder.Decode(buffer, len);
         if (ret == SOUND_DECODE_COMPLETED) {
             musicDecoder.Close();
             *musicFinished = true;
@@ -240,7 +240,7 @@ SoundBuffer* SoundEngine::LoadSoundImpl(const std::string& sound)
         if (soundDecoder.Open(sound)) {
             buffer = new SoundBuffer();       
             if (soundDecoder.Decode(buffer->data) == SOUND_DECODE_COMPLETED) {
-                buffer->chunk = Mix_QuickLoad_RAW(&buffer->data[0], static_cast<Uint32>(buffer->data.size()));
+                buffer->chunk = Mix_QuickLoad_RAW(&buffer->data[0], static_cast<unsigned int>(buffer->data.size()));
                 soundCache.insert(SoundCache::value_type(sound, buffer));
             } else {
                 delete buffer;

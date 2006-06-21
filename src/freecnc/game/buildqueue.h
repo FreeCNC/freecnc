@@ -15,7 +15,7 @@ namespace BuildQueue
 {
     class BQTimer;
 
-    typedef std::map<const UnitOrStructureType*, Uint8> Production;
+    typedef std::map<const UnitOrStructureType*, unsigned char> Production;
     typedef std::list<const UnitOrStructureType*> Queue;
 
     class BQueue
@@ -27,7 +27,7 @@ namespace BuildQueue
         bool Add(const UnitOrStructureType* type);
         ConStatus PauseCancel(const UnitOrStructureType* type);
 
-        ConStatus getStatus(const UnitOrStructureType* type, Uint8* quantity, Uint8* progress) const;
+        ConStatus getStatus(const UnitOrStructureType* type, unsigned char* quantity, unsigned char* progress) const;
 
         void Placed();
 
@@ -39,7 +39,7 @@ namespace BuildQueue
         RQstate requeue(const UnitOrStructureType* type);
 
         Player *player;
-        Uint32 last, left;
+        unsigned int last, left;
         ConStatus status;
 
         BQTimer* timer;

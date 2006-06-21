@@ -8,16 +8,16 @@ CursorPool::CursorPool(const char* ininame)
 
 CursorPool::~CursorPool()
 {
-    for (Uint32 i = 0; i < cursorpool.size(); ++i) {
+    for (unsigned int i = 0; i < cursorpool.size(); ++i) {
         delete cursorpool[i];
     }
 }
 
 CursorInfo* CursorPool::getCursorByName(const char* name)
 {
-    map<string, Uint16>::iterator cursorentry;
+    map<string, unsigned short>::iterator cursorentry;
     CursorInfo* datum;
-    Uint16 index;
+    unsigned short index;
 
     string cname = (string)name;
     string::iterator p = cname.begin();
@@ -31,7 +31,7 @@ CursorInfo* CursorPool::getCursorByName(const char* name)
         index = cursorentry->second;
         datum = cursorpool[index];
     } else {
-        index = static_cast<Uint16>(cursorpool.size());
+        index = static_cast<unsigned short>(cursorpool.size());
         datum = new CursorInfo;
         //cursorini->seekSection(name);
         datum->anstart = cursorini->readInt(name,"start",0);

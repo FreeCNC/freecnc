@@ -31,11 +31,11 @@ void ImageCache::setImagePool(std::vector<SHPImage*>* imagepool)
           The index of the image, the palette to use, and the frame number
  * @returns A class containing the image and the shadow.
  */
-ImageCacheEntry& ImageCache::getImage(Uint32 imgnum)
+ImageCacheEntry& ImageCache::getImage(unsigned int imgnum)
 {
-    std::map<Uint32, ImageCacheEntry>::iterator cachepos;
+    std::map<unsigned int, ImageCacheEntry>::iterator cachepos;
 
-    if (imgnum == (Uint32)-1) {
+    if (imgnum == (unsigned int)-1) {
         throw ImageNotFound();
     }
 
@@ -73,34 +73,34 @@ ImageCacheEntry& ImageCache::getImage(Uint32 imgnum)
 }
 
 
-ImageCacheEntry& ImageCache::getImage(Uint32 imgnum, Uint32 frame) 
+ImageCacheEntry& ImageCache::getImage(unsigned int imgnum, unsigned int frame) 
 {
     return getImage(imgnum | (frame &0x7FF));
 }
 
-Uint32 ImageCache::loadImage(const char* fname, int scaleq) {
+unsigned int ImageCache::loadImage(const char* fname, int scaleq) {
     string name = fname;
-    map<string, Uint32>::iterator cachentry;
+    map<string, unsigned int>::iterator cachentry;
     transform(name.begin(), name.end(), name.begin(), toupper);
 
     cachentry = namecache.find(name);
     if (cachentry == namecache.end()) {
-        Uint32 size = static_cast<Uint32>(imagepool->size());
+        unsigned int size = static_cast<unsigned int>(imagepool->size());
         try {
             imagepool->push_back(new SHPImage(name.c_str(), scaleq));
             namecache[name] = size<<16;
             return size<<16;
         } catch (ImageNotFound&) {
-            namecache[name] = (Uint32)-1;
+            namecache[name] = (unsigned int)-1;
         }
     }
-    if ((Uint32)-1 == namecache[name]) {
+    if ((unsigned int)-1 == namecache[name]) {
         throw ImageNotFound();
     }
     return cachentry->second;
 }
 
-Uint32 ImageCache::loadImage(const char* fname)
+unsigned int ImageCache::loadImage(const char* fname)
 {
     return loadImage(fname, mapscaleq);
 }

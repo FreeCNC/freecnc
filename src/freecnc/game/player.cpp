@@ -30,7 +30,7 @@ using BuildQueue::BQueue;
  * that file for details).
  */
 Player::Player(const char *pname, shared_ptr<INIFile> mapini) {
-    Uint32 mapsize;
+    unsigned int mapsize;
     playername = cppstrdup(pname);
     multiside = 0;
     unallycalls = 0;
@@ -98,7 +98,7 @@ Player::Player(const char *pname, shared_ptr<INIFile> mapini) {
 Player::~Player()
 {
     delete[] playername;
-    map<Uint8, BQueue*>::iterator i, end;
+    map<unsigned char, BQueue*>::iterator i, end;
     end = queues.end();
     for (i = queues.begin(); i != end; ++i) {
         delete i->second;
@@ -106,14 +106,14 @@ Player::~Player()
     delete counter;
 }
 
-bool Player::changeMoney(Sint32 change) {
+bool Player::changeMoney(int change) {
     if (0 == change) {
         return true;
     } else if (change > 0) {
         counter->addCredit(change);
         return true;
     } else {
-        Sint32 after = money + change - counter->getDebt();
+        int after = money + change - counter->getDebt();
         if (!infmoney && after < 0) {
             return false;
         }
@@ -171,14 +171,14 @@ void Player::setAlliances()
     allyWithPlayer(this);
     // no initial allies for multiplayer
     if (multiside == 0) {
-        for (Uint16 i=0;i<allies_n.size();++i) {
+        for (unsigned short i=0;i<allies_n.size();++i) {
             if (strcasecmp(allies_n[i],playername)) {
                 allyWithPlayer(p::ppool->getPlayerByName(allies_n[i]));
             }
             delete[] allies_n[i];
         }
     } else {
-        for (Uint16 i=0;i<allies_n.size();++i) {
+        for (unsigned short i=0;i<allies_n.size();++i) {
             delete[] allies_n[i];
         }
     }
@@ -193,7 +193,7 @@ void Player::setAlliances()
 
 void Player::clearAlliances()
 {
-    Uint32 i;
+    unsigned int i;
     Player* tmp;
     for (i = 0; i < allies.size() ; ++i) {
         if (allies[i] != NULL) {
@@ -233,16 +233,16 @@ void Player::setMultiColour(const char* colour)
     }
 }
 
-BQueue* Player::getQueue(Uint8 queuenum)
+BQueue* Player::getQueue(unsigned char queuenum)
 {
-    map<Uint8, BQueue*>::iterator it = queues.find(queuenum);
+    map<unsigned char, BQueue*>::iterator it = queues.find(queuenum);
     if (queues.end() == it) {
         return 0;
     }
     return it->second;
 }
 
-ConStatus Player::getStatus(UnitOrStructureType* type, Uint8* quantity, Uint8* progress)
+ConStatus Player::getStatus(UnitOrStructureType* type, unsigned char* quantity, unsigned char* progress)
 {
     BQueue* queue = getQueue(type->getPQueue());
     if (0 == queue) {
@@ -300,12 +300,12 @@ void Player::builtUnit(Unit* un)
 
 void Player::lostUnit(Unit* un, bool wasDeployed)
 {
-    Uint32 i;
+    unsigned int i;
 
     removeSoB(un->getPos(), 1, 1, un->getType()->getSight(), SOB_SIGHT);
 
     if (!wasDeployed) {
-        logger->gameMsg("%s has %d structs and %d units", playername, (Uint32)structurepool.size(), (Uint32)unitpool.size()-1);
+        logger->gameMsg("%s has %d structs and %d units", playername, (unsigned int)structurepool.size(), (unsigned int)unitpool.size()-1);
         ++unitlosses;
     }
     if( unitpool.size() <= 1 && structurepool.empty() && !wasDeployed) {
@@ -325,7 +325,7 @@ void Player::lostUnit(Unit* un, bool wasDeployed)
     }
 }
 
-void Player::movedUnit(Uint32 oldpos, Uint32 newpos, Uint8 sight)
+void Player::movedUnit(unsigned int oldpos, unsigned int newpos, unsigned char sight)
 {
     removeSoB(oldpos, 1, 1, sight, SOB_SIGHT);
     addSoB(newpos, 1, 1, sight, SOB_SIGHT);
@@ -383,12 +383,12 @@ void Player::lostStruct(Structure* str)
 {
     StructureType* st = (StructureType*)str->getType();
     std::list<Structure*>& sto = structures_owned[st];
-    Uint32 i;
+    unsigned int i;
     removeSoB(str->getPos(), ((StructureType*)str->getType())->getXsize(), ((StructureType*)str->getType())->getYsize(), 1, SOB_BUILD);
     powerinfo_t newpower = ((StructureType*)str->getType())->getPowerInfo();
     powerGenerated -= newpower.power;
     powerUsed -= newpower.drain;
-    logger->gameMsg("%s has %d structs and %d units", playername, (Uint32)structurepool.size()-1, (Uint32)unitpool.size());
+    logger->gameMsg("%s has %d structs and %d units", playername, (unsigned int)structurepool.size()-1, (unsigned int)unitpool.size());
     std::list<Structure*>::iterator it = std::find(sto.begin(), sto.end(), str);
     assert(it != sto.end());
     sto.erase(it);
@@ -400,7 +400,7 @@ void Player::lostStruct(Structure* str)
         if (str == getPrimary(str->getType())) {
             if (prg.empty()) {
                 getPrimary(str->getType()) = 0;
-                map<Uint8, BQueue*>::iterator it = queues.find(st->getPType());
+                map<unsigned char, BQueue*>::iterator it = queues.find(st->getPType());
                 assert(it != queues.end());
                 delete (*it).second;
                 queues.erase(it);
@@ -440,16 +440,16 @@ void Player::lostStruct(Structure* str)
 }
 
 bool Player::isAllied(Player* pl) const {
-    for (Uint16 i = 0; i < allies.size() ; ++i) {
+    for (unsigned short i = 0; i < allies.size() ; ++i) {
         if (allies[i] == pl)
             return true;
     }
     return false;
 }
 
-void Player::updateOwner(Uint8 newnum)
+void Player::updateOwner(unsigned char newnum)
 {
-    Uint32 i;
+    unsigned int i;
     for (i=0;i<unitpool.size();++i)
         unitpool[i]->setOwner(newnum);
     for (i=0;i<structurepool.size();++i)
@@ -458,7 +458,7 @@ void Player::updateOwner(Uint8 newnum)
 
 bool Player::allyWithPlayer(Player* pl)
 {
-    Uint16 i;
+    unsigned short i;
     if (isAllied(pl)) {
         return false;
     }
@@ -485,7 +485,7 @@ bool Player::allyWithPlayer(Player* pl)
 
 bool Player::unallyWithPlayer(Player* pl)
 {
-    Uint16 i;
+    unsigned short i;
     if (pl == this) {
         return false;
     }
@@ -502,7 +502,7 @@ bool Player::unallyWithPlayer(Player* pl)
 
 void Player::didAlly(Player* pl)
 {
-    Uint32 i;
+    unsigned int i;
     if (isAllied(pl)) {
         return;
     }
@@ -528,12 +528,12 @@ void Player::placeMultiUnits()
     p::uspool->createUnit("MCV",playerstart,0,playernum, 256, 0);
 }
 
-void Player::addSoB(Uint32 pos, Uint8 width, Uint8 height, Uint8 sight, SOB_update mode)
+void Player::addSoB(unsigned int pos, unsigned char width, unsigned char height, unsigned char sight, SOB_update mode)
 {
-    Uint32 curpos, xsize, ysize, cpos;
-    Sint32 xstart, ystart;
+    unsigned int curpos, xsize, ysize, cpos;
+    int xstart, ystart;
     std::vector<bool>* mapVoB = NULL;
-    static Uint8 brad = getConfig().buildable_radius;
+    static unsigned char brad = getConfig().buildable_radius;
 
     if (mode == SOB_SIGHT) {
         mapVoB = &mapVisible;
@@ -573,12 +573,12 @@ void Player::addSoB(Uint32 pos, Uint8 width, Uint8 height, Uint8 sight, SOB_upda
     }
 }
 
-void Player::removeSoB(Uint32 pos, Uint8 width, Uint8 height, Uint8 sight, SOB_update mode)
+void Player::removeSoB(unsigned int pos, unsigned char width, unsigned char height, unsigned char sight, SOB_update mode)
 {
-    Uint32 curpos, xsize, ysize, cpos;
-    Sint32 xstart, ystart;
-    static Uint16 mwid = p::ccmap->getWidth();
-    static Uint8 brad = getConfig().buildable_radius;
+    unsigned int curpos, xsize, ysize, cpos;
+    int xstart, ystart;
+    static unsigned short mwid = p::ccmap->getWidth();
+    static unsigned char brad = getConfig().buildable_radius;
 
     if (mode == SOB_BUILD) {
         sight = brad;

@@ -17,7 +17,7 @@ SDL_Rect Input::markrect;
  * @param the width of the screen.
  * @param the height of the screen.
  */
-Input::Input(Uint16 screenwidth, Uint16 screenheight, SDL_Rect *maparea) :
+Input::Input(unsigned short screenwidth, unsigned short screenheight, SDL_Rect *maparea) :
     width(screenwidth), height(screenheight), done(0), donecount(0),
     finaldelay(getConfig().finaldelay), gamemode(p::ccmap->getGameMode()),
     maparea(maparea), tabwidth(pc::sidebar->getTabLocation()->w),
@@ -47,8 +47,8 @@ void Input::handle()
 {
     SDL_Event event;
     int mx, my;
-    Uint8 sdir, radarstat;
-    Uint8* keystate;
+    unsigned char sdir, radarstat;
+    unsigned char* keystate;
     static ConfigType config = getConfig();
 
     while ( SDL_PollEvent(&event) ) {
@@ -147,7 +147,7 @@ void Input::handle()
                     }
                 }
             } else {
-                Uint8 k_temp = kbdmod;
+                unsigned char k_temp = kbdmod;
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
                     done = 1;
@@ -177,7 +177,7 @@ void Input::handle()
                 case SDLK_8:
                 case SDLK_9:
                 case SDLK_0: {
-                    Uint8 groupnum = event.key.keysym.sym-48;
+                    unsigned char groupnum = event.key.keysym.sym-48;
                     if (kbdmod == k_ctrl) {
                         if (selected.saveSelection(groupnum)) {
                             logger->gameMsg("Saved group %i",groupnum);
@@ -206,7 +206,7 @@ void Input::handle()
                 case SDLK_F3:
                 case SDLK_F4:
                 case SDLK_F5: {
-                    Uint8 locnum = event.key.keysym.sym-282;
+                    unsigned char locnum = event.key.keysym.sym-282;
                     if (kbdmod == k_ctrl) {
                         p::ccmap->storeLocation(locnum);
                     } else if (kbdmod == k_none) {
@@ -265,7 +265,7 @@ void Input::handle()
             if (event.key.state != SDL_RELEASED)
                 break;
             {
-            Uint8 k_temp = kbdmod;
+            unsigned char k_temp = kbdmod;
             switch (event.key.keysym.sym) {
             case SDLK_RSHIFT:
             case SDLK_LSHIFT:
@@ -423,8 +423,8 @@ void Input::updateMousePos()
                 markrect.h = my;
             }
     } else { /* set the correct cursor at the end of this else */
-        Uint16 cursornum = 0;
-        Uint8 scroll = CnCMap::s_none;
+        unsigned short cursornum = 0;
+        unsigned char scroll = CnCMap::s_none;
 
         if (( mx > width - 10 ) || (rcd_scrolling && (mx >= (sx+5))) )
             scroll |= CnCMap::s_right;
@@ -436,7 +436,7 @@ void Input::updateMousePos()
             scroll |= CnCMap::s_up;
 
         if( scroll != CnCMap::s_none ) {
-            Uint8 tmp;
+            unsigned char tmp;
             if (rcd_scrolling) {
                 tmp = p::ccmap->absScroll((mx-sx),(my-sy), 5);
             } else {
@@ -497,8 +497,8 @@ void Input::clickMap(int mx, int my)
     Unit *curunit;
     Unit* tmpunit = NULL;
     Structure *curstructure;
-    Uint16 pos;
-    Uint8 subpos;
+    unsigned short pos;
+    unsigned char subpos;
     bool sndplayed = false;
     bool enemy;
 
@@ -669,14 +669,14 @@ void Input::clickMap(int mx, int my)
             }
             selected.moveUnits(pos);
             new ExplosionAnim(1, pos, p::ccmap->getMoveFlashNum(),
-                    static_cast<Uint8>(p::ccmap->getMoveFlash()->getNumImg()), 0, 0);
+                    static_cast<unsigned char>(p::ccmap->getMoveFlash()->getNumImg()), 0, 0);
         }
     }
 }
 
-void Input::clickedTile(int mx, int my, Uint16* pos, Uint8* subpos)
+void Input::clickedTile(int mx, int my, unsigned short* pos, unsigned char* subpos)
 {
-    Uint16 xrest, yrest, tx, ty;
+    unsigned short xrest, yrest, tx, ty;
     mx -= maparea->x-p::ccmap->getXTileScroll();
     my -= maparea->y-p::ccmap->getYTileScroll();
     tx = mx/tilewidth;
@@ -708,8 +708,8 @@ void Input::clickedTile(int mx, int my, Uint16* pos, Uint8* subpos)
 
 void Input::setCursorByPos(int mx, int my)
 {
-    Uint16 pos;
-    Uint8 subpos;
+    unsigned short pos;
+    unsigned char subpos;
     Unit *curunit;
     Structure *curstruct;
     bool enemy;
@@ -833,16 +833,16 @@ void Input::setCursorByPos(int mx, int my)
 
 void Input::selectRegion()
 {
-    Uint16 startx, starty, stopx, stopy;
-    Uint16 scannerx, scannery, curpos, i;
+    unsigned short startx, starty, stopx, stopy;
+    unsigned short scannerx, scannery, curpos, i;
     Unit *un;
     bool playedsnd = false;
 
     if (kbdmod != k_shift)
         selected.clearSelection();
 
-    startx = (min(markrect.x, (Sint16)markrect.w)-maparea->x+p::ccmap->getXTileScroll())/tilewidth+p::ccmap->getXScroll();
-    starty = (min(markrect.y, (Sint16)markrect.h)-maparea->y+p::ccmap->getYTileScroll())/tilewidth+p::ccmap->getYScroll();
+    startx = (min(markrect.x, (short)markrect.w)-maparea->x+p::ccmap->getXTileScroll())/tilewidth+p::ccmap->getXScroll();
+    starty = (min(markrect.y, (short)markrect.h)-maparea->y+p::ccmap->getYTileScroll())/tilewidth+p::ccmap->getYScroll();
     stopx = (abs(markrect.x - markrect.w)+1)/tilewidth+startx;
     stopy = (abs(markrect.y - markrect.h)+1)/tilewidth+starty;
     if( stopx >= p::ccmap->getWidth() )
@@ -854,7 +854,7 @@ void Input::selectRegion()
         for( scannerx = startx; scannerx <= stopx; scannerx++ ) {
             curpos = scannery*p::ccmap->getWidth()+scannerx;
             for( i = 0; i < 5; i++ ) {
-                un = p::uspool->getUnitAt(curpos, static_cast<Uint8>(i));
+                un = p::uspool->getUnitAt(curpos, static_cast<unsigned char>(i));
                 if( un != NULL ) {
                     if( un->getOwner() != p::ppool->getLPlayerNum() ) {
                         continue;
@@ -875,7 +875,7 @@ void Input::selectRegion()
 
 void Input::clickSidebar(int mx, int my, bool rightbutton)
 {
-    Uint8 butclick;
+    unsigned char butclick;
     createmode_t createmode;
 
     mx -= (width-tabwidth);
@@ -903,7 +903,7 @@ void Input::clickSidebar(int mx, int my, bool rightbutton)
         type = p::uspool->getStructureTypeByName(placename);
     }
     ConStatus status;
-    Uint8 dummy;
+    unsigned char dummy;
     // Always stopping building with a right click
     if (rightbutton) {
         status = lplayer->stopBuilding(type);
@@ -945,15 +945,15 @@ void Input::clickSidebar(int mx, int my, bool rightbutton)
     }
 }
 
-Uint16 Input::checkPlace(int mx, int my)
+unsigned short Input::checkPlace(int mx, int my)
 {
-    Uint16 x, y;
-    Sint16 delta;
-    Uint8 placexpos, placeypos;
-    Uint8* placemat;
+    unsigned short x, y;
+    short delta;
+    unsigned char placexpos, placeypos;
+    unsigned char* placemat;
     std::vector<bool>& buildable = lplayer->getMapBuildable();
-    Uint16 pos, curpos, placeoff;
-    Uint8 subpos;
+    unsigned short pos, curpos, placeoff;
+    unsigned char subpos;
 
     // Is the cursor in the map?
     if (my < maparea->y || my >= maparea->y+maparea->h ||
@@ -1002,7 +1002,7 @@ Uint16 Input::checkPlace(int mx, int my)
     placeposvalid = true;
     /// @TODO Assumes land based buildings for now
     p::uspool->setCostCalcOwnerAndType(lplayer->getPlayerNum(),0);
-    placemat = new Uint8[placetype->getXsize()*placetype->getYsize()];
+    placemat = new unsigned char[placetype->getXsize()*placetype->getYsize()];
     double blockedcount = 0.0;
     double rangecount = 0.0;
     for (placeypos = 0; placeypos < placetype->getYsize(); placeypos++) {

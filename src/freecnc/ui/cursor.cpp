@@ -7,7 +7,7 @@
 #include "cursor.h"
 #include "cursorpool.h"
 
-Uint8 Cursor::nsoff;
+unsigned char Cursor::nsoff;
 
 /** Constructor, load the cursorimage and set upp all surfaces to buffer
  * background in etc.
@@ -37,7 +37,7 @@ Cursor::Cursor() : currentcursor(0xffff), x(0), y(0), curimg(0), nimgs(0), ci(0)
 /** Destructor, free the surfaces */
 Cursor::~Cursor()
 {
-    for (Uint8 i = 0; i < nimgs; ++i)
+    for (unsigned char i = 0; i < nimgs; ++i)
         SDL_FreeSurface(image[i]);
 
     SDL_FreeSurface(transw);
@@ -74,7 +74,7 @@ void Cursor::reloadImages() {
 /** Change active cursor.
  * @param number of the new cursor.
  */
-void Cursor::setCursor(Uint16 cursornum, Uint8 animimages)
+void Cursor::setCursor(unsigned short cursornum, unsigned char animimages)
 {
     int i;
 
@@ -106,14 +106,14 @@ void Cursor::setCursor(const char* curname)
     setCursor(ci->anstart,  ci->anend - ci->anstart + 1);
 }
 
-void Cursor::setPlaceCursor(Uint8 stw, Uint8 sth, Uint8 *icn)
+void Cursor::setPlaceCursor(unsigned char stw, unsigned char sth, unsigned char *icn)
 {
     int i, x, y;
     SDL_Surface *bigimg;
 
-    Uint8 *data;
+    unsigned char *data;
     SDL_Rect dest;
-    Uint32 newptr;
+    unsigned int newptr;
 
     newptr = 0;
     for(i = 0; i < stw*sth; i++) {
@@ -133,7 +133,7 @@ void Cursor::setPlaceCursor(Uint8 stw, Uint8 sth, Uint8 *icn)
     nimgs = 1;
     cursor_offset = 0;
 
-    data = new Uint8[stw*sth*transw->w*transw->h];
+    data = new unsigned char[stw*sth*transw->w*transw->h];
     memset(data, 0, stw*sth*transw->w*transw->h);
 
     bigimg = SDL_CreateRGBSurfaceFrom(data, stw*transw->w, sth*transw->h,
@@ -183,8 +183,8 @@ void Cursor::setPlaceCursor(Uint8 stw, Uint8 sth, Uint8 *icn)
 
 SDL_Surface *Cursor::getCursor()
 {
-    static Uint32 lastchange = 0;
-    Uint32 tick = SDL_GetTicks();
+    static unsigned int lastchange = 0;
+    unsigned int tick = SDL_GetTicks();
     if( tick > lastchange +100 ) {
         curimg++;
         if( curimg >= nimgs )

@@ -193,11 +193,11 @@ shared_ptr<INIFile> GetConfig(std::string name);
 #endif
 
 // Bounded by colours.  This will change later
-const Uint8 MAXPLAYERS = 6;
+const unsigned char MAXPLAYERS = 6;
 
 enum gametypes {GAME_TD = 1, GAME_RA = 2};
 
-const Uint16 FULLHEALTH = 256;
+const unsigned short FULLHEALTH = 256;
 
 extern int mapscaleq;
 
@@ -213,16 +213,16 @@ extern int mapscaleq;
 
 /// @TODO: This shouldn't be here
 struct animinfo_t {
-    Uint32 animdelay;
-    Uint8 loopend, loopend2, animspeed, animtype, sectype;
-    Uint8 dmgoff, dmgoff2;
-    Uint16 makenum;
+    unsigned int animdelay;
+    unsigned char loopend, loopend2, animspeed, animtype, sectype;
+    unsigned char dmgoff, dmgoff2;
+    unsigned short makenum;
 };
 
 /// @TODO: This shouldn't be here
 struct powerinfo_t {
-    Uint16 power;
-    Uint16 drain;
+    unsigned short power;
+    unsigned short drain;
     bool powered;
 };
 
@@ -288,17 +288,17 @@ enum KEY_TYPE {
 
 struct ConfigType
 {
-    Uint32 videoflags;
-    Uint16 width, height, bpp, serverport;
-    Uint8 intro, gamemode, totalplayers, playernum,
+    unsigned int videoflags;
+    unsigned short width, height, bpp, serverport;
+    unsigned char intro, gamemode, totalplayers, playernum,
         scrollstep, scrolltime, maxscroll, finaldelay, dispatch_mode;
     bool nosound, playvqa, allowsandbagging, debug;
     gametypes gamenum;
     SDL_GrabMode grabmode;
-    static const Uint8 NUMBINDABLE = 3;
+    static const unsigned char NUMBINDABLE = 3;
     SDLKey bindablekeys[NUMBINDABLE];
-    Uint8 bindablemods[NUMBINDABLE];
-    Uint8 buildable_radius;
+    unsigned char bindablemods[NUMBINDABLE];
+    unsigned char buildable_radius;
     std::string mapname, vqamovie, nick, side_colour, mside, serveraddr; // ,disp_logname;
     double buildable_ratio;
 };

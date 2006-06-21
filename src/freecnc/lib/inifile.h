@@ -28,12 +28,12 @@ public:
     char* readString(const char* section, const char* value);
     char* readString(const char* section, const char* value, const char* deflt);
 
-    int readInt(const char* section, const char* value, Uint32 deflt);
+    int readInt(const char* section, const char* value, unsigned int deflt);
     int readInt(const char* section, const char* value);
 
-    INIKey readKeyValue(const char* section, Uint32 keynum);
-    INIKey readIndexedKeyValue(const char* section, Uint32 keynum, const char* prefix=0);
-    std::string readSection(Uint32 secnum);
+    INIKey readKeyValue(const char* section, unsigned int keynum);
+    INIKey readIndexedKeyValue(const char* section, unsigned int keynum, const char* prefix=0);
+    std::string readSection(unsigned int secnum);
 private:
     std::map<std::string, INISection> inidata;
 };

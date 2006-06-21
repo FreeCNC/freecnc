@@ -14,11 +14,11 @@ StructureType::StructureType(const char* typeName, shared_ptr<INIFile> structini
         shared_ptr<INIFile> artini, const char* thext) : UnitOrStructureType()
 {
     SHPImage *shpimage, *makeimage;
-    Uint32 i;
+    unsigned int i;
     char shpname[13], imagename[8];
     char* tmp;
     char blocktest[128];
-    Uint32 size;
+    unsigned int size;
     char* miscnames;
 
     // Ensure that there is a section in the ini file
@@ -63,8 +63,8 @@ StructureType::StructureType(const char* typeName, shared_ptr<INIFile> structini
     ysize = artini->readInt(tname, "ysize",1);
 
     blckoff = 0;
-    blocked = new Uint8[xsize*ysize];
-    for( i = 0; i < (Uint32)xsize*ysize; i++ ) {
+    blocked = new unsigned char[xsize*ysize];
+    for( i = 0; i < (unsigned int)xsize*ysize; i++ ) {
         sprintf(blocktest, "notblocked%d", i);
         size = artini->readInt(tname, blocktest);
         if(size == INIERROR) {
@@ -82,8 +82,8 @@ StructureType::StructureType(const char* typeName, shared_ptr<INIFile> structini
     memset(shpname,0,13);
     numshps = structini->readInt(tname, "layers",1);
 
-    shpnums = new Uint16[(is_wall?numshps:numshps+1)];
-    shptnum = new Uint16[numshps];
+    shpnums = new unsigned short[(is_wall?numshps:numshps+1)];
+    shptnum = new unsigned short[numshps];
 
     buildlevel = structini->readInt(tname,"buildlevel",100);
     techlevel = structini->readInt(tname,"techlevel",99);
@@ -212,7 +212,7 @@ StructureType::StructureType(const char* typeName, shared_ptr<INIFile> structini
 
 StructureType::~StructureType()
 {
-    Uint16 i;
+    unsigned short i;
     for (i=0;i<owners.size();++i)
         delete[] owners[i];
     for (i=0;i<prereqs.size();++i)
@@ -223,13 +223,13 @@ StructureType::~StructureType()
     delete[] name;
 }
 
-Structure::Structure(StructureType *type, Uint16 cellpos, Uint8 owner,
-        Uint16 rhealth, Uint8 facing) : UnitOrStructure()
+Structure::Structure(StructureType *type, unsigned short cellpos, unsigned char owner,
+        unsigned short rhealth, unsigned char facing) : UnitOrStructure()
 {
-    Uint32 i;
+    unsigned int i;
     targetcell = cellpos;
     this->type = type;
-    imagenumbers = new Uint16[type->getNumLayers()];
+    imagenumbers = new unsigned short[type->getNumLayers()];
     if (!type->hasTurret()) {
         facing = 0;
     }
@@ -249,7 +249,7 @@ Structure::Structure(StructureType *type, Uint16 cellpos, Uint8 owner,
     primary = false;
     buildAnim = NULL;
     attackAnim = NULL;
-    health = (Uint16)((double)rhealth/256.0f * (double)type->getMaxHealth());
+    health = (unsigned short)((double)rhealth/256.0f * (double)type->getMaxHealth());
     damaged = checkdamage();
     if( !type->isWall() ) {
         p::ppool->getPlayer(owner)->builtStruct(this);
@@ -261,11 +261,11 @@ Structure::~Structure()
     delete[] imagenumbers;
 }
 
-Uint16 Structure::getBPos(Uint16 pos) const
+unsigned short Structure::getBPos(unsigned short pos) const
 {
-    Uint16 x,y,dx,dy,t,retpos,bpos,sc;
-    Sint16 dw;
-    Uint32 mwid = p::ccmap->getWidth();
+    unsigned short x,y,dx,dy,t,retpos,bpos,sc;
+    short dw;
+    unsigned int mwid = p::ccmap->getWidth();
     x = cellpos%mwid;
     dx = 0;
     if ((pos%mwid) > x) {
@@ -318,13 +318,13 @@ Uint16 Structure::getBPos(Uint16 pos) const
 
 /// Helper function for getFreePos
 /// @BUG Doesn't check that the terrain is passable (only buildable).
-static bool valid_pos(Uint16 pos, Uint8*) {
+static bool valid_pos(unsigned short pos, unsigned char*) {
     return p::ccmap->isBuildableAt(pos);
 }
 
 /// Helper function for getFreePos
 /// @BUG Doesn't check that the terrain is passable (only buildable).
-static bool valid_possubpos(Uint16 pos, Uint8* subpos) {
+static bool valid_possubpos(unsigned short pos, unsigned char* subpos) {
     InfantryGroupPtr ig = p::uspool->getInfantryGroupAt(pos);
     if (!ig) {
         return p::ccmap->isBuildableAt(pos);
@@ -337,10 +337,10 @@ static bool valid_possubpos(Uint16 pos, Uint8* subpos) {
 }
 
 /// @BUG This literally doesn't handle edge cases.
-Uint16 Structure::getFreePos(Uint8* subpos, bool findsubpos) {
-    bool (*checker)(Uint16, Uint8*);
-    Uint8 i, xsize, ysize;
-    Uint16 x, y, curpos;
+unsigned short Structure::getFreePos(unsigned char* subpos, bool findsubpos) {
+    bool (*checker)(unsigned short, unsigned char*);
+    unsigned char i, xsize, ysize;
+    unsigned short x, y, curpos;
 
     xsize = type->getXsize();
     ysize = type->getYsize();
@@ -394,24 +394,24 @@ void Structure::remove() {
 }
 
 /** Method to get a list of imagenumbers which the renderer will draw. */
-Uint8 Structure::getImageNums(Uint32 **inums, Sint8 **xoffsets, Sint8 **yoffsets) {
-    Uint16 *shps;
+unsigned char Structure::getImageNums(unsigned int **inums, char **xoffsets, char **yoffsets) {
+    unsigned short *shps;
     int i;
 
     shps = type->getSHPNums();
 
     if (usemakeimgs && (!type->isWall()) && (type->getMakeImg() != 0)) {
-        *inums = new Uint32[1];
-        *xoffsets = new Sint8[1];
-        *yoffsets = new Sint8[1];
+        *inums = new unsigned int[1];
+        *xoffsets = new char[1];
+        *yoffsets = new char[1];
         (*inums)[0] = (type->getMakeImg()<<16)|imagenumbers[0];
         (*xoffsets)[0] = type->getXoffset();
         (*yoffsets)[0] = type->getYoffset();
         return 1;
     } else {
-        *inums = new Uint32[type->getNumLayers()];
-        *xoffsets = new Sint8[type->getNumLayers()];
-        *yoffsets = new Sint8[type->getNumLayers()];
+        *inums = new unsigned int[type->getNumLayers()];
+        *xoffsets = new char[type->getNumLayers()];
+        *yoffsets = new char[type->getNumLayers()];
         for(i = 0; i < type->getNumLayers(); i++ ) {
             (*inums)[i] = (shps[i]<<16)|imagenumbers[i];
             (*xoffsets)[i] = type->getXoffset();
@@ -421,9 +421,9 @@ Uint8 Structure::getImageNums(Uint32 **inums, Sint8 **xoffsets, Sint8 **yoffsets
     }
 }
 
-void Structure::runAnim(Uint32 mode)
+void Structure::runAnim(unsigned int mode)
 {
-    Uint32 speed;
+    unsigned int speed;
     if (!animating) {
         animating = true;
         if (mode == 0) { // run build anim at const speed
@@ -457,10 +457,10 @@ void Structure::runAnim(Uint32 mode)
     }
 }
 
-void Structure::runSecAnim(Uint32 param)
+void Structure::runSecAnim(unsigned int param)
 {
     BuildingAnimEvent* sec_anim = NULL;
-    Uint8 secmode = type->getAnimInfo().sectype;
+    unsigned char secmode = type->getAnimInfo().sectype;
     if (secmode != 0) {
         switch (secmode) {
         case 7:
@@ -496,12 +496,12 @@ void Structure::stop()
     }
 }
 
-void Structure::applyDamage(Sint16 amount, Weapon* weap, UnitOrStructure* attacker)
+void Structure::applyDamage(short amount, Weapon* weap, UnitOrStructure* attacker)
 {
     if (exploding)
         return;
-    Uint8 odam = damaged;
-    amount = (Sint16)((double)amount * weap->getVersus(type->getArmour()));
+    unsigned char odam = damaged;
+    amount = (short)((double)amount * weap->getVersus(type->getArmour()));
     if ((health-amount) <= 0) {
         exploding = true;
         if (type->isWall()) {
@@ -566,7 +566,7 @@ void Structure::attack(UnitOrStructure* target)
     }
 }
 
-Uint8 Structure::checkdamage()
+unsigned char Structure::checkdamage()
 {
     ratio = ((double)health)/((double)type->getMaxHealth());
     if (type->isWall()) {
@@ -579,18 +579,18 @@ Uint8 Structure::checkdamage()
     }
 }
 
-void Structure::setImageNum(Uint32 num, Uint8 layer)
+void Structure::setImageNum(unsigned int num, unsigned char layer)
 {
     imagenumbers[layer]=(num)|(p::ppool->getStructpalNum(owner)<<11);
 }
 
 // This should be customisable somehow
-Uint32 Structure::getExitCell() const
+unsigned int Structure::getExitCell() const
 {
     return cellpos+(type->getYsize()*p::ccmap->getWidth());
 }
 
-Uint16 Structure::getTargetCell() const
+unsigned short Structure::getTargetCell() const
 {
     if (attackAnim != NULL && target != NULL) {
         return target->getBPos(cellpos);

@@ -33,16 +33,16 @@ struct TemplateTileCacheCleaner : public std::unary_function<TemplateTileCache::
 // CnCMap Methods
 //-----------------------------------------------------------------------------
 
-Uint32 CnCMap::getOverlay(Uint32 pos)
+unsigned int CnCMap::getOverlay(unsigned int pos)
 {
     if (overlaymatrix[pos] & HAS_OVERLAY)
         return overlays[pos]<<16;
     return 0;
 }
 
-Uint32 CnCMap::getTerrain(Uint32 pos, Sint16* xoff, Sint16* yoff)
+unsigned int CnCMap::getTerrain(unsigned int pos, short* xoff, short* yoff)
 {
-    Uint32 terrain = 0;
+    unsigned int terrain = 0;
 
     if (overlaymatrix[pos] & HAS_TERRAIN) {
         terrain = terrains[pos].shpnum;
@@ -77,7 +77,7 @@ CnCMap::CnCMap()
     scrollvec.y = 0;
     scrollvec.t = 0;
     toscroll    = false;
-    for (Uint8 i=0;i<NUMMARKS;++i) {
+    for (unsigned char i=0;i<NUMMARKS;++i) {
         scrollbookmarks[i].x = 0;
         scrollbookmarks[i].y = 0;
         scrollbookmarks[i].xtile = 0;
@@ -92,7 +92,7 @@ CnCMap::CnCMap()
 /** Destructor, free up some memory */
 CnCMap::~CnCMap()
 {
-    Uint32 i;
+    unsigned int i;
 
     for( i = 0; i < tileimages.size(); i++ )
         SDL_FreeSurface(tileimages[i]);
@@ -143,7 +143,7 @@ void CnCMap::loadMap(const char* mapname, LoadingScreen* lscreen) {
 /** sets the scroll to the specified direction.
  * @param direction to scroll in.
  */
-Uint8 CnCMap::accScroll(Uint8 direction)
+unsigned char CnCMap::accScroll(unsigned char direction)
 {
     bool validx = false, validy = false;
     if (direction & s_up) {
@@ -197,15 +197,15 @@ Uint8 CnCMap::accScroll(Uint8 direction)
     return direction;
 }
 
-Uint8 CnCMap::absScroll(Sint16 dx, Sint16 dy, Uint8 border)
+unsigned char CnCMap::absScroll(short dx, short dy, unsigned char border)
 {
     static const double fmax = (double)maxscroll/100.0;
-    Uint8 direction = s_none;
+    unsigned char direction = s_none;
     bool validx = false, validy = false;
     if (dx <= -border) {
         validx = (valscroll & s_left);
         if (validx) {
-            scrollvec.x = (Sint8)(min(dx,(Sint16)100) * fmax);
+            scrollvec.x = (char)(min(dx,(short)100) * fmax);
             direction |= s_left;
         } else {
             scrollvec.x = 0;
@@ -213,7 +213,7 @@ Uint8 CnCMap::absScroll(Sint16 dx, Sint16 dy, Uint8 border)
     } else if (dx >= border) {
         validx = (valscroll & s_right);
         if (validx) {
-            scrollvec.x = (Sint8)(min(dx,(Sint16)100) * fmax);
+            scrollvec.x = (char)(min(dx,(short)100) * fmax);
             direction |= s_right;
         } else {
             scrollvec.x = 0;
@@ -222,7 +222,7 @@ Uint8 CnCMap::absScroll(Sint16 dx, Sint16 dy, Uint8 border)
     if (dy <= -border) {
         validy = (valscroll & s_up);
         if (validy) {
-            scrollvec.y = (Sint8)(min(dy,(Sint16)100) * fmax);
+            scrollvec.y = (char)(min(dy,(short)100) * fmax);
             direction |= s_up;
         } else {
             scrollvec.y = 0;
@@ -230,7 +230,7 @@ Uint8 CnCMap::absScroll(Sint16 dx, Sint16 dy, Uint8 border)
     } else if (dy >= border) {
         validy = (valscroll & s_down);
         if (validy) {
-            scrollvec.y = (Sint8)(min(dy,(Sint16)100) * fmax);
+            scrollvec.y = (char)(min(dy,(short)100) * fmax);
             direction |= s_down;
         } else {
             scrollvec.y = 0;
@@ -245,7 +245,7 @@ Uint8 CnCMap::absScroll(Sint16 dx, Sint16 dy, Uint8 border)
 */
 void CnCMap::doscroll()
 {
-    Sint32 xtile, ytile;
+    int xtile, ytile;
     if( scrollpos.curx*scrollpos.tilewidth+scrollpos.curxtileoffs <= -scrollvec.x &&
             scrollvec.x < 0) {
         scrollvec.t = 0;
@@ -322,7 +322,7 @@ void CnCMap::doscroll()
  * @param the maximum y scroll.
  */
 
-void CnCMap::setMaxScroll( Uint32 x, Uint32 y, Uint32 xtile, Uint32 ytile, Uint32 tilew )
+void CnCMap::setMaxScroll( unsigned int x, unsigned int y, unsigned int xtile, unsigned int ytile, unsigned int tilew )
 {
     scrollpos.maxx = 0;
     scrollpos.maxy = 0;
@@ -376,7 +376,7 @@ void CnCMap::setMaxScroll( Uint32 x, Uint32 y, Uint32 xtile, Uint32 ytile, Uint3
 
 void CnCMap::setValidScroll()
 {
-    Uint8 temp = s_all;
+    unsigned char temp = s_all;
     if( scrollpos.curx == 0 && scrollpos.curxtileoffs == 0 ) {
         temp &= ~s_left;
     }
@@ -394,7 +394,7 @@ void CnCMap::setValidScroll()
     valscroll = temp;
 }
 
-bool CnCMap::isBuildableAt(Uint16 pos, Unit* excpUn) const
+bool CnCMap::isBuildableAt(unsigned short pos, Unit* excpUn) const
 {
     UnitOrStructure* uos = 0;
     // Can't build where you haven't explored
@@ -432,9 +432,9 @@ bool CnCMap::isBuildableAt(Uint16 pos, Unit* excpUn) const
     // Unreachable
 }
 
-Uint16 CnCMap::getCost(Uint16 pos, Unit* excpUn) const
+unsigned short CnCMap::getCost(unsigned short pos, Unit* excpUn) const
 {
-    Uint16 cost;
+    unsigned short cost;
 
     if( !p::ppool->getLPlayer()->getMapVis()[pos] &&
             (excpUn == 0 || excpUn->getDist(pos)>1 )) {
@@ -476,9 +476,9 @@ Uint16 CnCMap::getCost(Uint16 pos, Unit* excpUn) const
     return cost;
 }
 
-SDL_Surface* CnCMap::getMiniMap(Uint8 pixsize) {
+SDL_Surface* CnCMap::getMiniMap(unsigned char pixsize) {
     static ImageProc ip;
-    Uint16 tx,ty;
+    unsigned short tx,ty;
     SDL_Rect pos = {0, 0, pixsize, pixsize};
     SDL_Surface *cminitile;
     if (pixsize == 0) {
@@ -517,7 +517,7 @@ SDL_Surface* CnCMap::getMiniMap(Uint8 pixsize) {
                       maptileOne->format->palette->ncolors);
     }
     int lineCounter = 0;
-    for(Uint32 i = 0;  i < (Uint32) width*height; i++, pos.x += pixsize,
+    for(unsigned int i = 0;  i < (unsigned int) width*height; i++, pos.x += pixsize,
             lineCounter++) {
         if(lineCounter == width) {
             pos.y += pixsize;
@@ -532,8 +532,8 @@ SDL_Surface* CnCMap::getMiniMap(Uint8 pixsize) {
      * To make things easier, ensure that the geometry is divisable by the
      * specified width and height.
      */
-    tx = min(miniclip.sidew, (Uint16)minimap->w);
-    ty = min(tx, (Uint16)minimap->h);
+    tx = min(miniclip.sidew, (unsigned short)minimap->w);
+    ty = min(tx, (unsigned short)minimap->h);
     // w == width in pixels of the minimap
     miniclip.w = pixsize*(int)floor((double)tx/(double)pixsize);
     miniclip.h = pixsize*(int)floor((double)ty/(double)pixsize);
@@ -549,7 +549,7 @@ SDL_Surface* CnCMap::getMiniMap(Uint8 pixsize) {
     return minimap;
 }
 
-void CnCMap::storeLocation(Uint8 loc)
+void CnCMap::storeLocation(unsigned char loc)
 {
     if (loc >= NUMMARKS) {
         return;
@@ -560,7 +560,7 @@ void CnCMap::storeLocation(Uint8 loc)
     scrollbookmarks[loc].ytile = scrollpos.curytileoffs;
 }
 
-void CnCMap::restoreLocation(Uint8 loc)
+void CnCMap::restoreLocation(unsigned char loc)
 {
     if (loc >= NUMMARKS) {
         return;
@@ -594,12 +594,12 @@ void CnCMap::restoreLocation(Uint8 loc)
     setValidScroll();
 }
 
-Uint32 CnCMap::translateToPos(Uint16 x, Uint16 y) const
+unsigned int CnCMap::translateToPos(unsigned short x, unsigned short y) const
 {
     return y*width+x;
 }
 
-void CnCMap::translateFromPos(Uint32 pos, Uint16 *x, Uint16 *y) const
+void CnCMap::translateFromPos(unsigned int pos, unsigned short *x, unsigned short *y) const
 {
     *y = pos/width;
     *x = pos-((*y)*width);

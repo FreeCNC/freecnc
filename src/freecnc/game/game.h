@@ -13,7 +13,7 @@ public:
     class GameError {};
 private:
     ConfigType config;
-    Uint8 gamemode;
+    unsigned char gamemode;
 };
 
 #endif

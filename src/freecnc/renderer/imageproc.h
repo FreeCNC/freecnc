@@ -12,11 +12,11 @@ public:
     ~ImageProc();
     //generic scale function that supports bpp's
     // It really should take the dimentions you want for output
-    SDL_Surface* scale(SDL_Surface* input, Sint8 quality);
+    SDL_Surface* scale(SDL_Surface* input, char quality);
 
     //function the decrease the map to a size that it'll fit in the radar screen.
     //NOTE: it's not to produce the radar image, only the minimap
-    SDL_Surface* minimapScale(SDL_Surface *input, Uint8 pixsize);
+    SDL_Surface* minimapScale(SDL_Surface *input, unsigned char pixsize);
 
     //Functions to scale the VQAs on-the-fly
     //quality setting is not supported.

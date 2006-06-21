@@ -95,7 +95,7 @@ Weapon::Weapon(const char* wname) : name(wname)
     map<string, Warhead*>::iterator wheadentry;
     shared_ptr<INIFile> weapini = p::weappool->getWeaponsINI();
     SHPImage* fireanimtemp;
-    Uint8 additional, i;
+    unsigned char additional, i;
     string projname, warheadname;
     string weapname = (string)wname;
     string::iterator p = weapname.begin();
@@ -171,7 +171,7 @@ Weapon::Weapon(const char* wname) : name(wname)
         numfiredirections = 1;
         fireimage = 0;
     } else {
-        additional = (Uint8)weapini->readInt(faname,"additional",0);
+        additional = (unsigned char)weapini->readInt(faname,"additional",0);
         faimage = weapini->readString(faname, "image", "minigun.shp");
         try {
             fireanimtemp = new SHPImage(faimage, mapscaleq);
@@ -185,7 +185,7 @@ Weapon::Weapon(const char* wname) : name(wname)
         if (numfiredirections == 0) {
             numfiredirections = 1;
         }
-        fireimages = new Uint32[numfiredirections];
+        fireimages = new unsigned int[numfiredirections];
         fireimages[0] = fireimage;
         pc::imagepool->push_back(fireanimtemp);
         if (additional != 0) {
@@ -229,13 +229,13 @@ Weapon::~Weapon()
     }
 }
 
-void Weapon::fire(UnitOrStructure *owner, Uint16 target, Uint8 subtarget) {
+void Weapon::fire(UnitOrStructure *owner, unsigned short target, unsigned char subtarget) {
     if( firesound != NULL ) {
         pc::sfxeng->PlaySound(firesound);
     }
     if( fireimage != 0 ) {
-        Uint32 length = numfireimages;
-        Uint8 facing;
+        unsigned int length = numfireimages;
+        unsigned char facing;
         if (owner->getType()->getNumLayers() == 1) {
             facing = (owner->getImageNum(0))&0x1f;
         } else {
@@ -249,7 +249,7 @@ void Weapon::fire(UnitOrStructure *owner, Uint16 target, Uint8 subtarget) {
             facing = 0;
         }
         new ExplosionAnim(1, owner->getPos(),fireimages[facing],
-                          (Uint8)length,/*owner->getXoffset()+*/InfantryGroup::GetUnitOffsets()[owner->getSubpos()],
+                          (unsigned char)length,/*owner->getXoffset()+*/InfantryGroup::GetUnitOffsets()[owner->getSubpos()],
                           /*owner->getYoffset()+*/InfantryGroup::GetUnitOffsets()[owner->getSubpos()]);
     }
     p::aequeue->scheduleEvent(new ProjectileAnim(0, this, owner, target, subtarget));

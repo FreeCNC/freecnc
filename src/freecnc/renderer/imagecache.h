@@ -22,28 +22,28 @@ public:
     ImageCache();
     ~ImageCache();
     void setImagePool(std::vector<SHPImage *> *imagepool);
-    ImageCacheEntry& getImage(Uint32 imgnum);
-    ImageCacheEntry& getImage(Uint32 imgnum, Uint32 frame);
+    ImageCacheEntry& getImage(unsigned int imgnum);
+    ImageCacheEntry& getImage(unsigned int imgnum, unsigned int frame);
 
     /** @TODO Arbitrary post-processing filter, e.g. colour fiddling.
      * ImageCacheEntry& getText(const char*); // Caches text
-     * 1) typedef void (FilterFunc*)(Uint32, ImageCacheEntry&);  OR
+     * 1) typedef void (FilterFunc*)(unsigned int, ImageCacheEntry&);  OR
      * 2) Policy class that provides this API:
      *    struct FilterFunc : public binary_functor(?) {
-     *         void operator()(Uint32, ImageCacheEntry&);
+     *         void operator()(unsigned int, ImageCacheEntry&);
      *    };
      * void applyFilter(const char* fname, const FilterFunc&);
      */
     /// @brief Loads the shpimage fname into the imagecache.
-    Uint32 loadImage(const char* fname);
-    Uint32 loadImage(const char* fname, int scaleq);
+    unsigned int loadImage(const char* fname);
+    unsigned int loadImage(const char* fname, int scaleq);
 
     void newCache();
     void flush();
 
 private:
-    std::map<Uint32, ImageCacheEntry> cache, prevcache;
-    std::map<std::string, Uint32> namecache;
+    std::map<unsigned int, ImageCacheEntry> cache, prevcache;
+    std::map<std::string, unsigned int> namecache;
     std::vector<SHPImage*>* imagepool;
 };
 

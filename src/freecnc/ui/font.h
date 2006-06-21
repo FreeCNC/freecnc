@@ -10,9 +10,9 @@ class Font : SHPBase {
 public:
     Font(const std::string& fontname);
     ~Font();
-    Uint32 getHeight() const;
-    Uint32 calcTextWidth(const string& text) const;
-    void drawText(const string& text, SDL_Surface* dest, Uint32 startx, Uint32 starty) const;
+    unsigned int getHeight() const;
+    unsigned int calcTextWidth(const string& text) const;
+    void drawText(const string& text, SDL_Surface* dest, unsigned int startx, unsigned int starty) const;
     void reload();
 private:
     SDL_Surface* fontimg;

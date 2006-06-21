@@ -28,19 +28,19 @@ class UnitOrStructure;
  */
 struct anim_nfo {
     /// layer zero of the structure will be set to this value
-    Uint16 frame0;
+    unsigned short frame0;
     /// layer one (if it exists) will be set to this value
-    Uint16 frame1;
+    unsigned short frame1;
     /// offset in the loop animation for layer zero if structure is damaged
-    Uint16 damagedelta;
+    unsigned short damagedelta;
     /// offset in the loop animation for layer one if structure is damaged
-    Uint16 damagedelta2;
+    unsigned short damagedelta2;
     /// has the animation finished
     bool done;
     /// is the structure damaged
     bool damaged;
     /// identifying constant for the animation type
-    Uint8 mode;
+    unsigned char mode;
 };
 
 class BAttackAnimEvent;
@@ -54,7 +54,7 @@ public:
      * @param mode a numberic constant that is unique for each 
      *        structure animation event.  Used for chaining events
      */
-    BuildingAnimEvent(Uint32 p, Structure* str, Uint8 mode);
+    BuildingAnimEvent(unsigned int p, Structure* str, unsigned char mode);
     /// cleans up, checks for a scheduled event and runs it if there is
     virtual ~BuildingAnimEvent();
     /// Passes control over to the anim_func (defined in derived classes)
@@ -143,11 +143,11 @@ public:
      * @param str pointer to the structure being built/sold
      * @param sell whether the structure is being built or sold (true if sold)
      */
-    BuildAnimEvent(Uint32 p, Structure* str, bool sell);
+    BuildAnimEvent(unsigned int p, Structure* str, bool sell);
     ~BuildAnimEvent();
     void anim_func(anim_nfo* data);
 private:
-    Uint8 frame,framend;
+    unsigned char frame,framend;
     bool sell;
 };
 
@@ -160,11 +160,11 @@ public:
      * @param str the structure to which this animation is to be applied
      * @param face the direction the structure is to face
      */
-    BTurnAnimEvent(Uint32 p, Structure* str, Uint8 face);
+    BTurnAnimEvent(unsigned int p, Structure* str, unsigned char face);
     void anim_func(anim_nfo* data);
 private:
-    Uint8 frame,targetface;
-    Sint8 turnmod;
+    unsigned char frame,targetface;
+    char turnmod;
     Structure* str;
 };
 
@@ -176,10 +176,10 @@ public:
      * @param p the priority of this event
      * @param str the structure to which this animation is to be applied
      */
-    LoopAnimEvent(Uint32 p, Structure* str);
+    LoopAnimEvent(unsigned int p, Structure* str);
     void anim_func(anim_nfo* data);
 private:
-    Uint8 frame, framend;
+    unsigned char frame, framend;
 };
 
 /// Animation used by the Weapons Factory to animate the door opening
@@ -191,11 +191,11 @@ public:
      * @param str the structure to which this animation is to be applied
      * @param opening whether the door is opening or closing
      */
-    DoorAnimEvent(Uint32 p, Structure* str, bool opening);
+    DoorAnimEvent(unsigned int p, Structure* str, bool opening);
     void anim_func(anim_nfo* data);
     void updateDamaged();
 private:
-    Uint8 frame,framend,framestart,frame0;
+    unsigned char frame,framend,framestart,frame0;
     bool opening;
 };
 
@@ -203,23 +203,23 @@ private:
 /// do not concurrently follow the normal frames
 class ProcAnimEvent : public BuildingAnimEvent {
 public:
-    ProcAnimEvent(Uint32 p, Structure* str);
+    ProcAnimEvent(unsigned int p, Structure* str);
     void anim_func(anim_nfo* data);
     void updateDamaged();
 private:
-    Uint8 frame,framend;
+    unsigned char frame,framend;
 };
 
 /// Animation depicting the refinery processing tiberium
 class RefineAnimEvent : public BuildingAnimEvent {
 public:
-    RefineAnimEvent(Uint32 p, Structure* str, Uint8 bails);
+    RefineAnimEvent(unsigned int p, Structure* str, unsigned char bails);
     void anim_func(anim_nfo* data);
     void updateDamaged();
 private:
     Structure* str;
-    Uint8 framestart,frame,framend;
-    Uint8 bails;
+    unsigned char framestart,frame,framend;
+    unsigned char bails;
 };
 
 /// Defines the attack logic
@@ -234,14 +234,14 @@ public:
      * @param str the attacking structure
      * @param target the unit or structure to be attacked
      */
-    BAttackAnimEvent(Uint32 p, Structure* str);
+    BAttackAnimEvent(unsigned int p, Structure* str);
     ~BAttackAnimEvent();
     void run();
     void stop();
     void anim_func(anim_nfo* data) {}
     void update();
 private:
-    Uint8 frame;
+    unsigned char frame;
     Structure* strct;
     UnitOrStructure* target;
     bool done;
@@ -261,7 +261,7 @@ public:
      * @param p the priority of this event
      * @param str the structure that has just been destroyed
      */
-    BExplodeAnimEvent(Uint32 p, Structure* str);
+    BExplodeAnimEvent(unsigned int p, Structure* str);
 
     /// Updates the UnitAndStructurePool
     /// @todo spawn survivors
@@ -270,7 +270,7 @@ public:
     virtual void run();
 private:
     Structure* strct;
-    Uint16 lastframe, counter;
+    unsigned short lastframe, counter;
     virtual void anim_func(anim_nfo* data);
 };
 

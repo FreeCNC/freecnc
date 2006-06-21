@@ -19,12 +19,12 @@ class PlayerPool;
 class PlayerPool
 {
 public:
-    explicit PlayerPool(shared_ptr<INIFile> inifile, Uint8 gamemode);
+    explicit PlayerPool(shared_ptr<INIFile> inifile, unsigned char gamemode);
     ~PlayerPool();
-    Uint8 getNumPlayers() const {
-        return static_cast<Uint8>(playerpool.size());
+    unsigned char getNumPlayers() const {
+        return static_cast<unsigned char>(playerpool.size());
     }
-    Uint8 getLPlayerNum() const {
+    unsigned char getLPlayerNum() const {
         return localPlayer;
     }
     Player *getLPlayer()
@@ -32,18 +32,18 @@ public:
         return playerpool[localPlayer];
     }
     void setLPlayer(const char *pname);
-    void setLPlayer(Uint8 number, const char* nick, const char* colour, const char* mside);
-    Player *getPlayer(Uint8 player)
+    void setLPlayer(unsigned char number, const char* nick, const char* colour, const char* mside);
+    Player *getPlayer(unsigned char player)
     {
         return playerpool[player];
     }
-    Uint8 getPlayerNum(const char *pname);
+    unsigned char getPlayerNum(const char *pname);
     Player* getPlayerByName(const char* pname);
 
-    Uint8 getUnitpalNum(Uint8 player) const {
+    unsigned char getUnitpalNum(unsigned char player) const {
         return playerpool[player]->getUnitpalNum();
     }
-    Uint8 getStructpalNum(Uint8 player) const {
+    unsigned char getStructpalNum(unsigned char player) const {
         return playerpool[player]->getStructpalNum();
     }
     std::vector<Player*> getOpponents(Player* pl);
@@ -58,8 +58,8 @@ public:
     void setAlliances();
     void placeMultiUnits();
     shared_ptr<INIFile> getMapINI();
-    Uint16 getAStart();
-    void setWaypoints(std::vector<Uint16> wps);
+    unsigned short getAStart();
+    void setWaypoints(std::vector<unsigned short> wps);
 
     /// Called by input to see if sidebar needs updating
     bool pollSidebar();
@@ -68,18 +68,18 @@ public:
     void updateSidebar();
 
     /// Called by input to see if radar status has changed.
-    Uint8 statRadar();
+    unsigned char statRadar();
 
     /// Called by the local player to update the radar status
-    void updateRadar(Uint8 status);
+    void updateRadar(unsigned char status);
 
 private:
     PlayerPool();
     PlayerPool(const PlayerPool&);
 
     std::vector<Player *> playerpool;
-    std::vector<Uint16> player_starts;
-    Uint8 localPlayer, gamemode, radarstatus;
+    std::vector<unsigned short> player_starts;
+    unsigned char localPlayer, gamemode, radarstatus;
     bool won, lost, updatesidebar;
     shared_ptr<INIFile> mapini;
 };

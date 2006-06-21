@@ -14,8 +14,8 @@ enum {
 };
 
 namespace Sound {
-    void IMADecode(Uint8 *output, Uint8 *input, Uint16 compressed_size, Sint32& sample, Sint32& index);
-    void WSADPCM_Decode(Uint8 *output, Uint8 *input, Uint16 compressed_size, Uint16 uncompressed_size);
+    void IMADecode(unsigned char *output, unsigned char *input, unsigned short compressed_size, int& sample, int& index);
+    void WSADPCM_Decode(unsigned char *output, unsigned char *input, unsigned short compressed_size, unsigned short uncompressed_size);
 }
 
 class SoundFile
@@ -29,23 +29,23 @@ public:
    
     // Length is the max size in bytes of the uncompressed sample, returned
     // in buffer. If length is zero, the full file is decoded.
-    Uint32 Decode(SampleBuffer& buffer, Uint32 length = 0);
+    unsigned int Decode(SampleBuffer& buffer, unsigned int length = 0);
 
 private:
     // File data
     std::string filename;
     VFile* file;
-    //Uint32 offset;
+    //unsigned int offset;
     bool fileOpened;
     
     // Header information
-    Uint16 frequency;
-    Uint32 comp_size, uncomp_size;
-    Uint8 flags, type;
+    unsigned short frequency;
+    unsigned int comp_size, uncomp_size;
+    unsigned char flags, type;
     
     // IMADecode state
-    Sint32 imaSample;
-    Sint32 imaIndex;
+    int imaSample;
+    int imaIndex;
 
     SDL_AudioCVT* conv;
 };

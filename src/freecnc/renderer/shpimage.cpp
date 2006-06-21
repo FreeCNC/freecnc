@@ -22,7 +22,7 @@ using std::runtime_error;
  */
 
 // Colour for NOD structures and Soviet units and structures (red)
-const Uint8 palone[] = {
+const unsigned char palone[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
     0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
@@ -42,7 +42,7 @@ const Uint8 palone[] = {
 };
 
 // Colour used for NOD units. (bluey gray)
-const Uint8 paltwo[] = {
+const unsigned char paltwo[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
     0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
@@ -62,7 +62,7 @@ const Uint8 paltwo[] = {
 };
 
 // Colour used for a multiplayer side (fluorescent orange)
-const Uint8 palthree[] = {
+const unsigned char palthree[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
     0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
@@ -82,7 +82,7 @@ const Uint8 palthree[] = {
 };
 
 // Another multiplayer colour (fluorescent green)
-const Uint8 palfour[] = {
+const unsigned char palfour[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
     0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
@@ -102,7 +102,7 @@ const Uint8 palfour[] = {
 };
 
 // Another multiplayer colour (turquoise)
-const Uint8 palfive[] = {
+const unsigned char palfive[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
     0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
@@ -125,11 +125,11 @@ const Uint8 palfive[] = {
 // SHPBase
 //-----------------------------------------------------------------------------
 
-const Uint8 SHPBase::numpals = 6;
+const unsigned char SHPBase::numpals = 6;
 SDL_Color SHPBase::palette[32][256];
 
 // Note: scaleq has a default of -1
-SHPBase::SHPBase(const std::string& fname, Sint8 scaleq) : name(fname), scaleq(scaleq), scaler(new ImageProc())
+SHPBase::SHPBase(const std::string& fname, char scaleq) : name(fname), scaleq(scaleq), scaler(new ImageProc())
 {
 }
 
@@ -176,7 +176,7 @@ SDL_Color SHPImage::alphapal[6] = {{0x00,0x00,0x00,0x00}, {0x33,0x33,0x33,0x33},
  * @param fname the filename
  * @param scaleq scaling option (-1 is disabled)
  */
-SHPImage::SHPImage(const char *fname, Sint8 scaleq) : SHPBase(fname, scaleq)
+SHPImage::SHPImage(const char *fname, char scaleq) : SHPBase(fname, scaleq)
 {
     int i, j;
     VFile *imgfile;
@@ -184,7 +184,7 @@ SHPImage::SHPImage(const char *fname, Sint8 scaleq) : SHPBase(fname, scaleq)
     if (0 == imgfile) {
         throw ImageNotFound();
     }
-    shpdata = new Uint8[imgfile->fileSize()];
+    shpdata = new unsigned char[imgfile->fileSize()];
     imgfile->readByte(shpdata, imgfile->fileSize());
 
     // Header
@@ -192,10 +192,10 @@ SHPImage::SHPImage(const char *fname, Sint8 scaleq) : SHPBase(fname, scaleq)
     header.Width = readword(shpdata, 6);
 
     header.Height = readword(shpdata, 8);
-    header.Offset = new Uint32[header.NumImages + 2];
-    header.Format = new Uint8[header.NumImages + 2];
-    header.RefOffs = new Uint32[header.NumImages + 2];
-    header.RefFormat = new Uint8[header.NumImages + 2];
+    header.Offset = new unsigned int[header.NumImages + 2];
+    header.Format = new unsigned char[header.NumImages + 2];
+    header.RefOffs = new unsigned int[header.NumImages + 2];
+    header.RefFormat = new unsigned char[header.NumImages + 2];
 
     // "Offsets"
     j = 14;
@@ -228,7 +228,7 @@ SHPImage::~SHPImage()
  * @param shadow pointer to the SDL_Surface* into which the shadow frame is
  * decoded.  This can be 0 if you don't need the shadow.
  */
-void SHPImage::getImage(Uint16 imgnum, SDL_Surface **img, SDL_Surface **shadow, Uint8 palnum)
+void SHPImage::getImage(unsigned short imgnum, SDL_Surface **img, SDL_Surface **shadow, unsigned char palnum)
 {
     if (0 == img) {
         string s = name + ": can't decode to a NULL surface";
@@ -236,11 +236,11 @@ void SHPImage::getImage(Uint16 imgnum, SDL_Surface **img, SDL_Surface **shadow, 
         throw runtime_error(s);
     }
 
-    Uint8* imgdata = new Uint8[header.Width * header.Height];
+    unsigned char* imgdata = new unsigned char[header.Width * header.Height];
     DecodeSprite(imgdata, imgnum);
 
     if (shadow != 0) {
-        Uint8* shadowdata = new Uint8[header.Width * header.Height];
+        unsigned char* shadowdata = new unsigned char[header.Width * header.Height];
         memset(shadowdata, 0, header.Width * header.Height);
         for (int i = 0; i<header.Width * header.Height; ++i) {
             if (imgdata[i] == 4) {
@@ -288,13 +288,13 @@ void SHPImage::getImage(Uint16 imgnum, SDL_Surface **img, SDL_Surface **shadow, 
  * are 0, 12-16. However only shadows.shp seems to use this function, thus
  * its ok.
  */
-void SHPImage::getImageAsAlpha(Uint16 imgnum, SDL_Surface **img)
+void SHPImage::getImageAsAlpha(unsigned short imgnum, SDL_Surface **img)
 {
-    Uint8* imgdata = new Uint8[header.Width * header.Height];
+    unsigned char* imgdata = new unsigned char[header.Width * header.Height];
 
     DecodeSprite(imgdata, imgnum);
 
-    for (Uint16 i = 0; i < header.Width * header.Height; ++i)  {
+    for (unsigned short i = 0; i < header.Width * header.Height; ++i)  {
         // The shadows.shp only uses 0, 12-16
         // So we map them to 0-5
         if (imgdata[i] > 11) {
@@ -313,8 +313,8 @@ void SHPImage::getImageAsAlpha(Uint16 imgnum, SDL_Surface **img)
     SDL_LockSurface(alphaimg);
 
     // Use the Red value as the alpha value for each pixel
-    Uint32 *p = (Uint32 *)alphaimg->pixels;
-    for (Uint16 i = 0; i < header.Width * header.Height; ++i) {
+    unsigned int *p = (unsigned int *)alphaimg->pixels;
+    for (unsigned short i = 0; i < header.Width * header.Height; ++i) {
         #if SDL_BYTEORDER == SDL_BIG_ENDIAN
         *p = SDL_Swap32(*p);
         #endif
@@ -341,32 +341,32 @@ void SHPImage::getImageAsAlpha(Uint16 imgnum, SDL_Surface **img)
  * @param imgdst The buffer in which to put the image (must contain XOR image).
  * @param imgnum The index of the frame to decompress.
  */
-void SHPImage::DecodeSprite(Uint8 *imgdst, Uint16 imgnum)
+void SHPImage::DecodeSprite(unsigned char *imgdst, unsigned short imgnum)
 {
     if (imgnum >= header.NumImages) {
         logger->error("%s: Invalid SHP imagenumber (%i >= %i)\n", name.c_str(), imgnum,header.NumImages);
         return;
     }
     
-    Uint32 len;
-    Uint8* imgsrc;
+    unsigned int len;
+    unsigned char* imgsrc;
     switch (header.Format[imgnum]) {
         case FORMAT_80:
             len = header.Offset[imgnum + 1] - header.Offset[imgnum];
-            imgsrc = new Uint8[len];
+            imgsrc = new unsigned char[len];
             memcpy(imgsrc, shpdata + header.Offset[imgnum], len);
             memset(imgdst, 0, sizeof(imgdst));
             Compression::decode80(imgsrc, imgdst);
             break;
         case FORMAT_40:{
-            Uint32 i;
+            unsigned int i;
             for (i = 0; i < header.NumImages; i++ ) {
                 if (header.Offset[i] == header.RefOffs[imgnum])
                     break;
             }
             DecodeSprite(imgdst, i);
             len = header.Offset[imgnum + 1] - header.Offset[imgnum];
-            imgsrc = new Uint8[len];
+            imgsrc = new unsigned char[len];
             memcpy(imgsrc, shpdata + header.Offset[imgnum], len);
             Compression::decode40(imgsrc, imgdst);
             break;
@@ -374,7 +374,7 @@ void SHPImage::DecodeSprite(Uint8 *imgdst, Uint16 imgnum)
         case FORMAT_20:
             DecodeSprite(imgdst, imgnum - 1);
             len = header.Offset[imgnum + 1] - header.Offset[imgnum];
-            imgsrc = new Uint8[len];
+            imgsrc = new unsigned char[len];
             memcpy(imgsrc, shpdata + header.Offset[imgnum], len);
             Compression::decode40(imgsrc, imgdst);
             break;
@@ -393,7 +393,7 @@ void SHPImage::DecodeSprite(Uint8 *imgdst, Uint16 imgnum)
  * @param the mixfiles.
  * @param the name of the dune2 shpfile.
  */
-Dune2Image::Dune2Image(const char *fname, Sint8 scaleq) : SHPBase(fname,scaleq)
+Dune2Image::Dune2Image(const char *fname, char scaleq) : SHPBase(fname,scaleq)
 {
     VFile *imgfile;
 
@@ -404,7 +404,7 @@ Dune2Image::Dune2Image(const char *fname, Sint8 scaleq) : SHPBase(fname,scaleq)
         throw ImageNotFound();
     }
     //shpdata = mixes->extract(fname);
-    shpdata = new Uint8[imgfile->fileSize()];
+    shpdata = new unsigned char[imgfile->fileSize()];
     imgfile->readByte(shpdata, imgfile->fileSize());
     VFS_Close(imgfile);
 }
@@ -419,18 +419,18 @@ Dune2Image::~Dune2Image()
  * @param the number of the image to decode.
  * @returns a SDL_Surface containing the image.
  */
-SDL_Surface *Dune2Image::getImage(Uint16 imgnum)
+SDL_Surface *Dune2Image::getImage(unsigned short imgnum)
 {
     SDL_Surface *image, *optimage;
-    Uint32 startpos;
-    Uint8 *d, *data;
+    unsigned int startpos;
+    unsigned char *d, *data;
 
     startpos = getD2Header( imgnum );
 
-    data = new Uint8[header.cx * header.cy];
+    data = new unsigned char[header.cx * header.cy];
 
     if( ~header.compression & 2 ) {
-        d = new Uint8[header.size_out];
+        d = new unsigned char[header.size_out];
 
         memset(d, 0, header.size_out);
 
@@ -448,7 +448,7 @@ SDL_Surface *Dune2Image::getImage(Uint16 imgnum)
     // the palette as (0,0,0), which is also the colour of the index 0, which
     // has to be set transparent.  Not sure why it kills 0x0c as well as 0x0.
     // 0x0c does not get killed in 8 bit mode.
-    for (Sint32 pos = 0; pos < header.cx*header.cy; ++pos) {
+    for (int pos = 0; pos < header.cx*header.cy; ++pos) {
         if (data[pos] == 0x0c)
             data[pos] = 0x9a;
     }
@@ -472,10 +472,10 @@ SDL_Surface *Dune2Image::getImage(Uint16 imgnum)
  * @param the number of the image to read the header from.
  * @returns the offset of the image.
  */
-Uint32 Dune2Image::getD2Header(Uint16 imgnum)
+unsigned int Dune2Image::getD2Header(unsigned short imgnum)
 {
-    Uint16 imgs;
-    Uint32 curpos;
+    unsigned short imgs;
+    unsigned int curpos;
 
     imgs = readword(shpdata, 0);
 
@@ -515,7 +515,7 @@ Uint32 Dune2Image::getD2Header(Uint16 imgnum)
 // TemplateImage
 //-----------------------------------------------------------------------------
 
-TemplateImage::TemplateImage(const char *fname, Sint8 scaleq, bool ratemp)
+TemplateImage::TemplateImage(const char *fname, char scaleq, bool ratemp)
     : SHPBase(fname, scaleq), ratemp(ratemp)
 {
     tmpfile = VFS_Open(fname);
@@ -528,20 +528,20 @@ TemplateImage::~TemplateImage()
     VFS_Close(tmpfile);
 }
 
-Uint16 TemplateImage::getNumTiles()
+unsigned short TemplateImage::getNumTiles()
 {
-    Uint16 data;
+    unsigned short data;
     tmpfile->seekSet(4);
     tmpfile->readWord(&data, 1);
     return data;
 }
 
-SDL_Surface* TemplateImage::getImage(Uint16 imgnum)
+SDL_Surface* TemplateImage::getImage(unsigned short imgnum)
 {
     // Read width, hight and number of tiles in template
-    Uint16 imgwidth;
-    Uint16 imgheight;
-    Uint16 numtil;
+    unsigned short imgwidth;
+    unsigned short imgheight;
+    unsigned short numtil;
 
     tmpfile->seekSet(0);
     tmpfile->readWord(&imgwidth, 1);
@@ -558,7 +558,7 @@ SDL_Surface* TemplateImage::getImage(Uint16 imgnum)
         tmpfile->seekCur(6);
     
     // Load the offset to the image
-    Uint32 imgStart;
+    unsigned int imgStart;
     tmpfile->readDWord(&imgStart, 1);
 
     // Skip some constants
@@ -568,11 +568,11 @@ SDL_Surface* TemplateImage::getImage(Uint16 imgnum)
         tmpfile->seekCur(12);
 
     // Load address of index1
-    Uint32 index1;
+    unsigned int index1;
     tmpfile->readDWord(&index1, 1);
 
     // Read the index1 value of the tile
-    Uint8 index1val;
+    unsigned char index1val;
     tmpfile->seekSet(index1+imgnum);
     tmpfile->readByte(&index1val, 1);
 
@@ -583,7 +583,7 @@ SDL_Surface* TemplateImage::getImage(Uint16 imgnum)
     tmpfile->seekSet(imgStart+imgwidth*imgheight*index1val);
 
     // allocate space for the imagedata and load it
-    Uint8* imgdata = new Uint8[imgwidth*imgheight];
+    unsigned char* imgdata = new unsigned char[imgwidth*imgheight];
     tmpfile->readByte(imgdata, imgwidth*imgheight);
 
     // The image is made up from the data

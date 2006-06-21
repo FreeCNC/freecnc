@@ -7,10 +7,10 @@
 #include "blowfish.h"
 #include "SDL_endian.h"
 
-void Cblowfish::set_key(const Uint8* key, Uint32 cb_key)
+void Cblowfish::set_key(const unsigned char* key, unsigned int cb_key)
 {
     int i, j;
-    Uint32 datal, datar;
+    unsigned int datal, datar;
 
     memcpy(m_p, bfp, sizeof(t_bf_p));
     memcpy(m_s, bfs, sizeof(t_bf_s));
@@ -47,25 +47,25 @@ void Cblowfish::set_key(const Uint8* key, Uint32 cb_key)
     }
 }
 
-inline Uint32 Cblowfish::S(Uint32 x, int i) const
+inline unsigned int Cblowfish::S(unsigned int x, int i) const
 {
     return m_s[i][(x >> ((3 - i) << 3)) & 0xff];
 }
 
-inline Uint32 Cblowfish::bf_f(Uint32 x) const
+inline unsigned int Cblowfish::bf_f(unsigned int x) const
 {
     return ((S(x, 0) + S(x, 1)) ^ S(x, 2)) + S(x, 3);
 }
 
-inline void Cblowfish::ROUND(Uint32& a, Uint32 b, int n) const
+inline void Cblowfish::ROUND(unsigned int& a, unsigned int b, int n) const
 {
     a ^= bf_f(b) ^ m_p[n];
 }
 
-void Cblowfish::encipher(Uint32& xl, Uint32& xr) const
+void Cblowfish::encipher(unsigned int& xl, unsigned int& xr) const
 {
-    Uint32 Xl = xl;
-    Uint32 Xr = xr;
+    unsigned int Xl = xl;
+    unsigned int Xr = xr;
 
     Xl ^= m_p[0];
     ROUND (Xr, Xl, 1);
@@ -90,10 +90,10 @@ void Cblowfish::encipher(Uint32& xl, Uint32& xr) const
     xl = Xr;
 }
 
-void Cblowfish::decipher(Uint32& xl, Uint32& xr) const
+void Cblowfish::decipher(unsigned int& xl, unsigned int& xr) const
 {
-    Uint32  Xl = xl;
-    Uint32  Xr = xr;
+    unsigned int  Xl = xl;
+    unsigned int  Xr = xr;
 
     Xl ^= m_p[17];
     ROUND (Xr, Xl, 16);
@@ -118,7 +118,7 @@ void Cblowfish::decipher(Uint32& xl, Uint32& xr) const
     xr = Xl;
 }
 
-static inline Uint32 reverse(Uint32 v)
+static inline unsigned int reverse(unsigned int v)
 {
     return SDL_Swap32(v);
     /*_asm
@@ -134,14 +134,14 @@ static inline Uint32 reverse(Uint32 v)
 
 }
 
-void Cblowfish::encipher(const void* s, void* d, Uint32 size) const
+void Cblowfish::encipher(const void* s, void* d, unsigned int size) const
 {
-    const Uint32* r = reinterpret_cast<const Uint32*>(s);
-    Uint32* w = reinterpret_cast<Uint32*>(d);
+    const unsigned int* r = reinterpret_cast<const unsigned int*>(s);
+    unsigned int* w = reinterpret_cast<unsigned int*>(d);
     size >>= 3;
     while (size--) {
-        Uint32 a = reverse(*r++);
-        Uint32 b = reverse(*r++);
+        unsigned int a = reverse(*r++);
+        unsigned int b = reverse(*r++);
         encipher(a, b);
         *w++ = reverse(a);
         *w++ = reverse(b);
@@ -150,12 +150,12 @@ void Cblowfish::encipher(const void* s, void* d, Uint32 size) const
 
 void Cblowfish::decipher(const void* s, void* d, int size) const
 {
-    const Uint32* r = reinterpret_cast<const Uint32*>(s);
-    Uint32* w = reinterpret_cast<Uint32*>(d);
+    const unsigned int* r = reinterpret_cast<const unsigned int*>(s);
+    unsigned int* w = reinterpret_cast<unsigned int*>(d);
     size >>= 3;
     while (size--) {
-        Uint32 a = reverse(*r++);
-        Uint32 b = reverse(*r++);
+        unsigned int a = reverse(*r++);
+        unsigned int b = reverse(*r++);
         decipher(a, b);
         *w++ = reverse(a);
         *w++ = reverse(b);

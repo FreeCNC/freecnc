@@ -113,7 +113,7 @@ void GraphicsEngine::setupCurrentGame()
                 p::ccmap->getWidth()*tilewidth, p::ccmap->getHeight()*tilewidth));
     mz = &minizoom.normal;
     playercolours.resize(SHPBase::numPalettes());
-    for (Uint8 i = 0; i < playercolours.size() ; ++i) {
+    for (unsigned char i = 0; i < playercolours.size() ; ++i) {
         // Magic Number 179: See comment at start of
         // shpimage.cpp
         playercolours[i] = SHPBase::getColour(screen->format, i, 179);
@@ -153,34 +153,34 @@ void GraphicsEngine::renderScene()
 {
     //   int mx, my;
     int i;
-    Sint16 xpos, ypos;
+    short xpos, ypos;
 
     SDL_Surface *curimg, *bgimage;
     SDL_Rect dest, src, udest, oldudest;
 
-    Uint32 tiberium, smudge, overlay, terrain;
-    Uint8 numshps;
-    Uint32 *unitorstructshps;
-    Sint8 *uxoffsets, *uyoffsets;
-    Sint16 txoff, tyoff;
+    unsigned int tiberium, smudge, overlay, terrain;
+    unsigned char numshps;
+    unsigned int *unitorstructshps;
+    char *uxoffsets, *uyoffsets;
+    short txoff, tyoff;
     double ratio;
     Unit* tmp_un;
 
-    std::vector<Uint16> l2overlays;
+    std::vector<unsigned short> l2overlays;
 
     Player* lplayer = p::ppool->getLPlayer();
     std::vector<bool>& mapvis = lplayer->getMapVis();
 
-    static Uint32 whitepix = SDL_MapRGB(screen->format,0xff, 0xff, 0xff);
-    static Uint32 greenpix = SDL_MapRGB(screen->format,0, 0xff, 0);
-    static Uint32 yellowpix = SDL_MapRGB(screen->format,0xff, 0xff, 0);
-    static Uint32 redpix = SDL_MapRGB(screen->format,0xff, 0, 0);
-    static Uint32 blackpix = SDL_MapRGB(screen->format,0, 0, 0);
+    static unsigned int whitepix = SDL_MapRGB(screen->format,0xff, 0xff, 0xff);
+    static unsigned int greenpix = SDL_MapRGB(screen->format,0, 0xff, 0);
+    static unsigned int yellowpix = SDL_MapRGB(screen->format,0xff, 0xff, 0);
+    static unsigned int redpix = SDL_MapRGB(screen->format,0xff, 0, 0);
+    static unsigned int blackpix = SDL_MapRGB(screen->format,0, 0, 0);
 
-    Uint16 mapWidth, mapHeight, selection;
-    Uint32 curpos, curdpos;
+    unsigned short mapWidth, mapHeight, selection;
+    unsigned int curpos, curdpos;
 
-    Sint8 xmax, ymax;
+    char xmax, ymax;
     static SDL_Rect oldmouse = {0, 0, 0, 0};
     /* remove the old mousecursor */
     SDL_FillRect(screen, &oldmouse, blackpix);
@@ -198,12 +198,12 @@ void GraphicsEngine::renderScene()
 
     /*draw minimap*/
     if (Input::isMinimapEnabled()) {
-        const Uint8 minizoom = *mz;
-        const Uint32 mapwidth = p::ccmap->getWidth();
-        const Uint32 mapheight = p::ccmap->getHeight();
+        const unsigned char minizoom = *mz;
+        const unsigned int mapwidth = p::ccmap->getWidth();
+        const unsigned int mapheight = p::ccmap->getHeight();
         const MiniMapClipping& clip = p::ccmap->getMiniMapClipping();
-        Uint8 minx;
-        Uint32 cury;
+        unsigned char minx;
+        unsigned int cury;
         bool blocked;
         // Need the exact dimensions in tiles
         // @TODO Positioning needs tweaking
@@ -235,8 +235,8 @@ void GraphicsEngine::renderScene()
             for (xpos = 0 ; xpos < clip.tilew ; ++xpos) {
                 if (mapvis[curpos]) {
                     float width, height;
-                    Uint8 igroup, owner, pcol;
-                    Uint32 cellpos;
+                    unsigned char igroup, owner, pcol;
+                    unsigned int cellpos;
                     // Rather than make the graphics engine depend on the
                     // UnitOrStructureType, just pull what we need from the
                     // USPool.
@@ -246,8 +246,8 @@ void GraphicsEngine::renderScene()
                         if (blocked) {
                             dest.x = maparea.x+maparea.w+clip.x+xpos*minizoom;
                             dest.y = maparea.y+clip.y+ypos*minizoom;
-                            dest.w = (Uint16)ceil(width*minizoom);
-                            dest.h = (Uint16)ceil(height*minizoom);
+                            dest.w = (unsigned short)ceil(width*minizoom);
+                            dest.h = (unsigned short)ceil(height*minizoom);
                             SDL_FillRect(screen, &dest, playercolours[pcol]);
                         }
                     }
@@ -377,7 +377,7 @@ void GraphicsEngine::renderScene()
                             udest.w = 12;
                             udest.h = 5;
                             SDL_FillRect(screen, &udest, blackpix);
-                            udest.w = (Uint16)(10.0 * ratio);
+                            udest.w = (unsigned short)(10.0 * ratio);
                             udest.h -= 2;
                             ++udest.x;
                             ++udest.y;
@@ -392,7 +392,7 @@ void GraphicsEngine::renderScene()
                             udest.w = 12;
                             udest.h = 5;
                             SDL_FillRect(screen, &udest, blackpix);
-                            udest.w = (Uint16)(10.0 * ratio);
+                            udest.w = (unsigned short)(10.0 * ratio);
                             udest.h -= 2;
                             ++udest.x;
                             ++udest.y;
@@ -407,7 +407,7 @@ void GraphicsEngine::renderScene()
                             udest.w = 12;
                             udest.h = 5;
                             SDL_FillRect(screen, &udest, blackpix);
-                            udest.w = (Uint16)(10.0 * ratio);
+                            udest.w = (unsigned short)(10.0 * ratio);
                             udest.h -= 2;
                             ++udest.x;
                             ++udest.y;
@@ -422,7 +422,7 @@ void GraphicsEngine::renderScene()
                             udest.w = 12;
                             udest.h = 5;
                             SDL_FillRect(screen, &udest, blackpix);
-                            udest.w = (Uint16)(10.0 * ratio);
+                            udest.w = (unsigned short)(10.0 * ratio);
                             udest.h -= 2;
                             ++udest.x;
                             ++udest.y;
@@ -437,7 +437,7 @@ void GraphicsEngine::renderScene()
                             udest.w = 12;
                             udest.h = 5;
                             SDL_FillRect(screen, &udest, blackpix);
-                            udest.w = (Uint16)(10.0 * ratio);
+                            udest.w = (unsigned short)(10.0 * ratio);
                             udest.h -= 2;
                             ++udest.x;
                             ++udest.y;
@@ -450,7 +450,7 @@ void GraphicsEngine::renderScene()
                         udest.h -= 2;
                         ++udest.x;
                         ++udest.y;
-                        udest.w = (Uint16)((double)(udest.w-2) * ratio);
+                        udest.w = (unsigned short)((double)(udest.w-2) * ratio);
                         SDL_FillRect(screen, &udest, ((ratio<=0.5)?(ratio<=0.25?redpix:yellowpix):greenpix));
                     }
 
@@ -479,7 +479,7 @@ void GraphicsEngine::renderScene()
         dest.y += tilewidth;
     }
     /* draw the level two overlays */
-    for( i = 0; (Uint32)i < l2overlays.size(); i++) {
+    for( i = 0; (unsigned int)i < l2overlays.size(); i++) {
         curpos = l2overlays[i];
         dest.x = maparea.x-p::ccmap->getXTileScroll()+(curpos%p::ccmap->getWidth()-p::ccmap->getXScroll())*tilewidth;
         dest.y = maparea.y-p::ccmap->getYTileScroll()+(curpos/p::ccmap->getWidth()-p::ccmap->getYScroll())*tilewidth;
@@ -522,10 +522,10 @@ void GraphicsEngine::renderScene()
                 if (curpos >= p::ccmap->getWidth() && !mapvis[curpos-p::ccmap->getWidth()]) {
                     i |= 1;
                 }
-                if (curpos%p::ccmap->getWidth() < (Uint16)(p::ccmap->getWidth()-1) && !mapvis[curpos+1]) {
+                if (curpos%p::ccmap->getWidth() < (unsigned short)(p::ccmap->getWidth()-1) && !mapvis[curpos+1]) {
                     i |= 2;
                 }
-                if (curpos < (Uint32)p::ccmap->getWidth()*(p::ccmap->getHeight()-1) && !mapvis[curpos+p::ccmap->getWidth()]) {
+                if (curpos < (unsigned int)p::ccmap->getWidth()*(p::ccmap->getHeight()-1) && !mapvis[curpos+p::ccmap->getWidth()]) {
                     i |= 4;
                 }
                 if (curpos%p::ccmap->getWidth() > 0 && !mapvis[curpos-1]) {
@@ -560,13 +560,13 @@ void GraphicsEngine::renderScene()
                         SDL_BlitSurface(p::ccmap->getShadowTile(9+shadowoffs), &src, screen, &udest);
                     }
                 } else {
-                    if (curpos >= p::ccmap->getWidth() && curpos%p::ccmap->getWidth() < (Uint16)(p::ccmap->getWidth()-1) && !mapvis[curpos-p::ccmap->getWidth()+1]) {
+                    if (curpos >= p::ccmap->getWidth() && curpos%p::ccmap->getWidth() < (unsigned short)(p::ccmap->getWidth()-1) && !mapvis[curpos-p::ccmap->getWidth()+1]) {
                         i |= 1;
                     }
-                    if (curpos < (Uint32)p::ccmap->getWidth()*(p::ccmap->getHeight()-1) && curpos%p::ccmap->getWidth() < (Uint16)(p::ccmap->getWidth()-1) && !mapvis[curpos+p::ccmap->getWidth()+1]) {
+                    if (curpos < (unsigned int)p::ccmap->getWidth()*(p::ccmap->getHeight()-1) && curpos%p::ccmap->getWidth() < (unsigned short)(p::ccmap->getWidth()-1) && !mapvis[curpos+p::ccmap->getWidth()+1]) {
                         i |= 2;
                     }
-                    if (curpos < (Uint32)p::ccmap->getWidth()*(p::ccmap->getHeight()-1) && curpos%p::ccmap->getWidth() > 0 && !mapvis[curpos+p::ccmap->getWidth()-1]) {
+                    if (curpos < (unsigned int)p::ccmap->getWidth()*(p::ccmap->getHeight()-1) && curpos%p::ccmap->getWidth() > 0 && !mapvis[curpos+p::ccmap->getWidth()-1]) {
                         i |= 4;
                     }
                     if (curpos >= p::ccmap->getWidth() && curpos%p::ccmap->getWidth() > 0 && !mapvis[curpos-p::ccmap->getWidth()-1]) {
@@ -604,8 +604,8 @@ void GraphicsEngine::renderScene()
 
     /* draw the selectionbox */
     if (Input::isDrawing()) {
-        dest.x = min(Input::getMarkRect().x, (Sint16)Input::getMarkRect().w);
-        dest.y = min(Input::getMarkRect().y, (Sint16)Input::getMarkRect().h);
+        dest.x = min(Input::getMarkRect().x, (short)Input::getMarkRect().w);
+        dest.y = min(Input::getMarkRect().y, (short)Input::getMarkRect().h);
         dest.w = abs(Input::getMarkRect().x - Input::getMarkRect().w);
         dest.h = 1;
         SDL_FillRect(screen, &dest, whitepix);
@@ -673,12 +673,12 @@ void GraphicsEngine::drawSidebar()
     SDL_Rect dest;
     SDL_Rect *tabpos;
 
-    static Uint32 firstframe = SDL_GetTicks();
-    static Uint32 frames = 0;
+    static unsigned int firstframe = SDL_GetTicks();
+    static unsigned int frames = 0;
     static bool clearBack = false;
-    //    static Uint32 blackpix = SDL_MapRGB(screen->format, 0, 0, 0);
-    Uint32 tick;
-    Uint16 framerate;
+    //    static unsigned int blackpix = SDL_MapRGB(screen->format, 0, 0, 0);
+    unsigned int tick;
+    unsigned short framerate;
     char mtext[128];
 
     Player* lplayer = p::ppool->getLPlayer();
@@ -820,7 +820,7 @@ void GraphicsEngine::drawVQAFrame(SDL_Surface *frame)
 /** Clear the frontBuffer, i.e. paint it black. */
 void GraphicsEngine::clearBuffer()
 {
-    static Uint32 blackpix = SDL_MapRGB(screen->format, 0, 0, 0);
+    static unsigned int blackpix = SDL_MapRGB(screen->format, 0, 0, 0);
     SDL_Rect dest;
 
     dest.x = 0;
@@ -835,7 +835,7 @@ void GraphicsEngine::clearBuffer()
 /** Clear the screen, i.e. paint it black. */
 void GraphicsEngine::clearScreen()
 {
-    static Uint32 blackpix = SDL_MapRGB(screen->format, 0, 0, 0);
+    static unsigned int blackpix = SDL_MapRGB(screen->format, 0, 0, 0);
     SDL_Rect dest;
 
     dest.x = 0;
@@ -855,7 +855,7 @@ void GraphicsEngine::clearScreen()
 
 void GraphicsEngine::renderLoading(const std::string& buff, SDL_Surface* logo)
 {
-    static Uint32 blackpix = SDL_MapRGB(screen->format, 0, 0, 0);
+    static unsigned int blackpix = SDL_MapRGB(screen->format, 0, 0, 0);
     SDL_Rect dest;
     SDL_Surface *curimg;
     int i;
@@ -899,8 +899,8 @@ void GraphicsEngine::renderLoading(const std::string& buff, SDL_Surface* logo)
 
 }
 
-void GraphicsEngine::drawLine(Sint16 startx, Sint16 starty,
-                              Sint16 stopx, Sint16 stopy, Uint16 width, Uint32 colour)
+void GraphicsEngine::drawLine(short startx, short starty,
+                              short stopx, short stopy, unsigned short width, unsigned int colour)
 {
     float xmod, ymod, length, xpos, ypos;
     int i, len;
@@ -916,8 +916,8 @@ void GraphicsEngine::drawLine(Sint16 startx, Sint16 starty,
     xpos = static_cast<float>(startx-(width>>1));
     ypos = static_cast<float>(starty-(width>>1));
     for(i = 0; i < len; i++) {
-        dest.x = (Sint16)xpos;
-        dest.y = (Sint16)ypos;
+        dest.x = (short)xpos;
+        dest.y = (short)ypos;
         dest.w = width;
         dest.h = width;
         SDL_FillRect(screen, &dest, colour);

@@ -94,7 +94,7 @@ bool parse(int argc, char **argv)
     config.maxscroll  = freecnc_ini->readInt("Options","MaxScroll",24);
     config.buildable_radius = internal_ini->readInt("Rules","buildable_radius",2);
     // if this is lower than 2, it makes placing the refinery difficult
-    config.buildable_radius = max((Uint8)2,config.buildable_radius);
+    config.buildable_radius = max((unsigned char)2,config.buildable_radius);
     config.buildable_ratio  = (internal_ini->readInt("Rules","buildable_ratio",70))/100.0;
     config.bindablekeys[KEY_SIDEBAR] = SDLK_TAB;
     config.bindablemods[KEY_SIDEBAR] = 0;

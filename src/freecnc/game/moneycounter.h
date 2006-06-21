@@ -10,25 +10,25 @@ class MoneyCounter;
 class MoneyCounter : public ActionEvent
 {
 public:
-    MoneyCounter(Sint32*, Player*, MoneyCounter**);
+    MoneyCounter(int*, Player*, MoneyCounter**);
     ~MoneyCounter();
     void run();
-    Uint16 getDebt() const {return debtleft;}
-    void addCredit(Uint16 amount);
-    void addDebt(Uint16 amount);
+    unsigned short getDebt() const {return debtleft;}
+    void addCredit(unsigned short amount);
+    void addDebt(unsigned short amount);
     bool isScheduled() const {return queued;}
 
 private:
-    static const Uint8 delta = 5;
+    static const unsigned char delta = 5;
 
-    Sint32& money;
+    int& money;
     Player* player;
     bool queued;
     // Seperate because we want both credit and debit sounds being played
-    Uint16 creditleft, debtleft;
-    Sint32 creditsound, debitsound;
+    unsigned short creditleft, debtleft;
+    int creditsound, debitsound;
 
-    Uint8 step(Uint16& value);
+    unsigned char step(unsigned short& value);
     bool sound;
 
     MoneyCounter** backref;

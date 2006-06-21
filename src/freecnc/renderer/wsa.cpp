@@ -21,7 +21,7 @@ WSA::WSA(const char* fname)
     if( wfile == NULL ) {
         throw WSAError();
     }
-    wsadata = new Uint8[wfile->fileSize()];
+    wsadata = new unsigned char[wfile->fileSize()];
     wfile->readByte(wsadata, wfile->fileSize());
     VFS_Close(wfile);
     //wsadata = mixes->extract(fname);
@@ -44,8 +44,8 @@ WSA::WSA(const char* fname)
         header.width = readword(wsadata, 6);
         header.height = readword(wsadata, 8);
         header.delta = readlong(wsadata, 10);
-        header.offsets = new Uint32[header.NumFrames + 2];
-        memset(header.offsets, 0, (header.NumFrames + 2) * sizeof(Uint32));
+        header.offsets = new unsigned int[header.NumFrames + 2];
+        memset(header.offsets, 0, (header.NumFrames + 2) * sizeof(unsigned int));
         j = 14; /* start of offsets */
         for (i = 0; i < header.NumFrames + 2; i++) {
             header.offsets[i] = readlong(wsadata, j) + 0x300;
@@ -67,7 +67,7 @@ WSA::WSA(const char* fname)
          * the first frame has to be decoded over a zeroed frame
          * and then each subsequent frame, decoded over the previous one
          */
-        framedata = new Uint8[header.height * header.width];
+        framedata = new unsigned char[header.height * header.width];
         memset(framedata, 0, header.height * header.width);
 
         if (header.offsets[header.NumFrames + 1] - 0x300) {
@@ -90,17 +90,17 @@ WSA::~WSA()
     delete[] sndfile;
 }
 
-SDL_Surface* WSA::decodeFrame(Uint16 framenum)
+SDL_Surface* WSA::decodeFrame(unsigned short framenum)
 {
-    Uint32 FrameLen;
-    Uint8 *image40, *image80;
+    unsigned int FrameLen;
+    unsigned char *image40, *image80;
     SDL_Surface *tempframe;
     // SDL_Surface *frame;
 
     /* Get length of specific frame */
     FrameLen = header.offsets[framenum+1] - header.offsets[framenum];
-    image80 = new Uint8[FrameLen];
-    image40 = new Uint8[64000]; /* Max space. We dont know how big
+    image80 = new unsigned char[FrameLen];
+    image40 = new unsigned char[64000]; /* Max space. We dont know how big
                                                decompressed image will be */
 
     memcpy(image80, wsadata + header.offsets[framenum], FrameLen);

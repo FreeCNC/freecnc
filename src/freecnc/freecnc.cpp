@@ -96,7 +96,7 @@ int main(int argc, char** argv)
         // "Standalone" VQA Player
         if (config.playvqa) {
             logger->note("Now playing %s\n", config.vqamovie.c_str());
-            Uint8 ret = 0;
+            unsigned char ret = 0;
             try {
                 VQAMovie mov(config.vqamovie.c_str());
                 mov.play();

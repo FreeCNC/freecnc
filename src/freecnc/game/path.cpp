@@ -5,29 +5,29 @@
 #include "path.h"
 
 struct TileRef {
-    Uint16 crx;
-    Uint16 cry;
-    Uint32 g;
-    Uint32 h;
+    unsigned short crx;
+    unsigned short cry;
+    unsigned int g;
+    unsigned int h;
 };
 
 
 class FibHeapEntry {
 public:
     friend class KeyComp;
-    FibHeapEntry(TileRef *val, Uint32 k) {
+    FibHeapEntry(TileRef *val, unsigned int k) {
         value = val;
         key = k;
     }
     TileRef *getValue() {
         return value;
     }
-    void setKey(Uint32 k) {
+    void setKey(unsigned int k) {
         key = k;
     }
 private:
     TileRef *value;
-    Uint32 key;
+    unsigned int key;
 };
 
 // Friend class which compares ActionEvents priority
@@ -39,28 +39,28 @@ public:
 };
 
 
-Path::Path(Uint32 crBeg, Uint32 crEnd, Uint8 max_dist) : std::stack<Uint8>() {
-    Uint16 startposx;
-    Uint16 startposy;
-    Uint16 stopposx;
-    Uint16 stopposy;
+Path::Path(unsigned int crBeg, unsigned int crEnd, unsigned char max_dist) : std::stack<unsigned char>() {
+    unsigned short startposx;
+    unsigned short startposy;
+    unsigned short stopposx;
+    unsigned short stopposy;
     FibHeapEntry** Nodes;
-    Uint8 *ed;
+    unsigned char *ed;
     FibHeapEntry *pU, *pV;
     FibHeapEntry *pReuse;
     FibHeapEntry *retired;
     std::priority_queue<FibHeapEntry*, std::vector<FibHeapEntry *>, KeyComp> PQ;
-    Uint32 crU, crV;
-    Uint16 crX, crY, ncrX, ncrY;
-    Uint32 dwCost;
+    unsigned int crU, crV;
+    unsigned short crX, crY, ncrX, ncrY;
+    unsigned int dwCost;
     int i;
     TileRef *cellTempU, *cellTempV;
-    Uint16 diffx, diffy;
-    Uint8 edp;
-    Uint32 cmincr;
-    Uint32 cminh;
+    unsigned short diffx, diffy;
+    unsigned char edp;
+    unsigned int cmincr;
+    unsigned int cminh;
 
-    Uint16 mapsize = p::ccmap->getWidth()*p::ccmap->getHeight();
+    unsigned short mapsize = p::ccmap->getWidth()*p::ccmap->getHeight();
 
     p::ccmap->translateFromPos(crBeg, &startposx, &startposy);
     p::ccmap->translateFromPos(crEnd, &stopposx, &stopposy);
@@ -73,7 +73,7 @@ Path::Path(Uint32 crBeg, Uint32 crEnd, Uint8 max_dist) : std::stack<Uint8>() {
 
     Nodes = new FibHeapEntry*[mapsize];
 
-    ed = new Uint8[mapsize];
+    ed = new unsigned char[mapsize];
 
 
     //for( i = 0; i < mapsize; i++ )
@@ -111,7 +111,7 @@ Path::Path(Uint32 crBeg, Uint32 crEnd, Uint8 max_dist) : std::stack<Uint8>() {
             cmincr = crU;
         }
 
-        if( cellTempU->h <= ((Uint32)max_dist)*10 || cellTempU->g >= 100)
+        if( cellTempU->h <= ((unsigned int)max_dist)*10 || cellTempU->g >= 100)
             /* desired min dist to target, 0 to go all the way. Currently the length of the path is limited to 100 */
             break;
 

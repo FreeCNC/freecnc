@@ -10,7 +10,7 @@
 #include "unitanimations.h"
 #include "weaponspool.h"
 
-UnitAnimEvent::UnitAnimEvent(Uint32 p, Unit* un) : ActionEvent(p)
+UnitAnimEvent::UnitAnimEvent(unsigned int p, Unit* un) : ActionEvent(p)
 {
     //logger->debug("UAE cons: this:%p un:%p\n",this,un);
     this->un = un;
@@ -44,7 +44,7 @@ void UnitAnimEvent::stopScheduled()
     }
 }
 
-MoveAnimEvent::MoveAnimEvent(Uint32 p, Unit* un) : UnitAnimEvent(p,un)
+MoveAnimEvent::MoveAnimEvent(unsigned int p, Unit* un) : UnitAnimEvent(p,un)
 {
     //logger->debug("MoveAnim cons (this %p un %p)\n",this,un);
     stopping = false;
@@ -83,8 +83,8 @@ MoveAnimEvent::~MoveAnimEvent()
 
 void MoveAnimEvent::run()
 {
-    Sint8 uxoff, uyoff;
-    Uint8 oldsubpos;
+    char uxoff, uyoff;
+    unsigned char oldsubpos;
 
     waiting = false;
     if( !un->isAlive() ) {
@@ -159,9 +159,9 @@ void MoveAnimEvent::startMoveOne(bool wasblocked)
 {
 #ifdef LOOPEND_TURN
     //TODO: transport boat is jerky (?)
-    Uint8 loopend=((UnitType*)un->type)->getAnimInfo().loopend;
+    unsigned char loopend=((UnitType*)un->type)->getAnimInfo().loopend;
 #endif
-    Uint8 face;
+    unsigned char face;
 
     newpos = p::uspool->preMove(un, path->top(), &xmod, &ymod);
     if( newpos == 0xffff ) {
@@ -203,7 +203,7 @@ void MoveAnimEvent::startMoveOne(bool wasblocked)
     }
 
 #ifdef LOOPEND_TURN 
-    face = ((Sint8)((loopend+1)*(8-path->top())/8))&loopend;
+    face = ((char)((loopend+1)*(8-path->top())/8))&loopend;
 #else
     face = (32-(path->top() << 2))&0x1f;
 #endif
@@ -222,13 +222,13 @@ void MoveAnimEvent::startMoveOne(bool wasblocked)
 
     } else {
 #ifdef LOOPEND_TURN 
-        Uint8 curface = (un->getImageNum(0)&loopend);
-        Uint8 delta = (abs(curface-face))&loopend;
+        unsigned char curface = (un->getImageNum(0)&loopend);
+        unsigned char delta = (abs(curface-face))&loopend;
         if( curface != face ) {
-            if( (delta <= (Sint8)((loopend+1)/8)) || (delta >= (Sint8)(loopend*7/8))) {
+            if( (delta <= (char)((loopend+1)/8)) || (delta >= (char)(loopend*7/8))) {
 #else
-        Uint8 curface = (un->getImageNum(0)&0x1f);
-        Uint8 delta = (abs(curface-face))&0x1f;
+        unsigned char curface = (un->getImageNum(0)&0x1f);
+        unsigned char delta = (abs(curface-face))&0x1f;
         if( (un->getImageNum(0)&0x1f) != face ) {
             if( (delta < 5) || (delta > 27) ) {
 #endif
@@ -291,7 +291,7 @@ void MoveAnimEvent::update()
     range = 0;
 }
 
-WalkAnimEvent::WalkAnimEvent(Uint32 p, Unit *un, Uint8 dir, Uint8 layer) : UnitAnimEvent(p,un)
+WalkAnimEvent::WalkAnimEvent(unsigned int p, Unit *un, unsigned char dir, unsigned char layer) : UnitAnimEvent(p,un)
 {
     //fprintf(stderr,"debug: WalkAnim constructor\n");
     this->un = un;
@@ -315,7 +315,7 @@ WalkAnimEvent::~WalkAnimEvent()
 
 void WalkAnimEvent::run()
 {
-    Uint8 layerface;
+    unsigned char layerface;
     if (!stopping) {
         layerface = baseimage + istep;
         // XXX: Assumes 6 frames to loop over
@@ -334,13 +334,13 @@ void WalkAnimEvent::calcbaseimage()
     baseimage = 16 + 3*(dir/2);
 }
 
-TurnAnimEvent::TurnAnimEvent(Uint32 p, Unit *un, Uint8 dir, Uint8 layer) : UnitAnimEvent(p,un)
+TurnAnimEvent::TurnAnimEvent(unsigned int p, Unit *un, unsigned char dir, unsigned char layer) : UnitAnimEvent(p,un)
 {
 #ifdef LOOPEND_TURN   
-    Uint8 loopend=((UnitType*)un->type)->getAnimInfo().loopend;
+    unsigned char loopend=((UnitType*)un->type)->getAnimInfo().loopend;
 #endif
     //logger->debug("Turn cons (t%p u%p d%i l%i)\n",this,un,dir,layer);
-    Uint8 layerface;
+    unsigned char layerface;
     this->un = un;
     this->dir = dir;
     this->layer = layer;
@@ -373,9 +373,9 @@ TurnAnimEvent::~TurnAnimEvent()
 void TurnAnimEvent::run()
 {
 #ifdef LOOPEND_TURN   
-    Uint8 loopend=((UnitType*)un->type)->getAnimInfo().loopend;
+    unsigned char loopend=((UnitType*)un->type)->getAnimInfo().loopend;
 #endif
-    Uint8 layerface;
+    unsigned char layerface;
 
     //logger->debug("TurnAnim run (s%i)\n",stopping);
     if (stopping) {
@@ -405,7 +405,7 @@ void TurnAnimEvent::run()
     p::aequeue->scheduleEvent(this);
 }
 
-UAttackAnimEvent::UAttackAnimEvent(Uint32 p, Unit *un) : UnitAnimEvent(p,un)
+UAttackAnimEvent::UAttackAnimEvent(unsigned int p, Unit *un) : UnitAnimEvent(p,un)
 {
     //logger->debug("UAttack cons\n");
     this->un = un;
@@ -443,13 +443,13 @@ void UAttackAnimEvent::stop()
 
 void UAttackAnimEvent::run()
 {
-    Uint32 distance;
-    Sint32 xtiles, ytiles;
-    Uint16 atkpos;
+    unsigned int distance;
+    int xtiles, ytiles;
+    unsigned short atkpos;
     float alpha;
-    Uint8 facing;
+    unsigned char facing;
 #ifdef LOOPEND_TURN
-    Uint8 loopend2=((UnitType*)un->type)->getAnimInfo().loopend2;
+    unsigned char loopend2=((UnitType*)un->type)->getAnimInfo().loopend2;
 #endif
 
     //logger->debug("attack run t%p u%p\n",this,un);
@@ -494,15 +494,15 @@ void UAttackAnimEvent::run()
         }
     }
 #ifdef LOOPEND_TURN
-    facing = ((Sint8)((loopend2+1)*(1-alpha/2/M_PI)+8))&loopend2;
+    facing = ((char)((loopend2+1)*(1-alpha/2/M_PI)+8))&loopend2;
     if (un->type->isInfantry()) {
         if (facing != (un->getImageNum(0)&loopend2)) {
-            un->setImageNum((Sint8)((loopend2+1)*facing/8),0);
+            un->setImageNum((char)((loopend2+1)*facing/8),0);
         }
     } else if (un->type->getNumLayers() > 1 ) {
         if (abs((int)(facing - (un->getImageNum(1)&loopend2))) > un->type->getROT()) {
 #else
-    facing = (40-(Sint8)(alpha*16/M_PI))&0x1f;
+    facing = (40-(char)(alpha*16/M_PI))&0x1f;
     if (un->type->isInfantry()) {
         if (facing != (un->getImageNum(0)&0x1f)) {
             un->setImageNum(facing>>2,0);

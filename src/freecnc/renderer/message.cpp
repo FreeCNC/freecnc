@@ -9,14 +9,14 @@ namespace
 
 struct drawMessage : std::unary_function<void, Message>
 {
-    drawMessage(Font& font, SDL_Surface* textimg, Uint32& msgy) : font(font), textimg(textimg), msgy(msgy) {}
+    drawMessage(Font& font, SDL_Surface* textimg, unsigned int& msgy) : font(font), textimg(textimg), msgy(msgy) {}
     void operator()(const Message& msg) {
         font.drawText(msg.getMessage(), textimg, 0, msgy);
         msgy += font.getHeight()+1;
     }
     Font& font;
     SDL_Surface* textimg;
-    Uint32& msgy;
+    unsigned int& msgy;
 };
 
 }
@@ -32,7 +32,7 @@ MessagePool::~MessagePool()
 
 SDL_Surface *MessagePool::getMessages()
 {
-    Uint32 curtick = SDL_GetTicks();
+    unsigned int curtick = SDL_GetTicks();
     SDL_Rect dest;
 
     if (!updated) {
@@ -63,7 +63,7 @@ SDL_Surface *MessagePool::getMessages()
     dest.h = textimg->h;
     SDL_FillRect(textimg, &dest, 0);
     SDL_SetColorKey(textimg, SDL_SRCCOLORKEY, 0);
-    Uint32 msgy = 0;
+    unsigned int msgy = 0;
     drawMessage dm(msgfont, textimg, msgy);
     for_each(msglist.begin(), msglist.end(), dm);
     return textimg;

@@ -3,21 +3,21 @@
 
 #include "SDL_types.h"
 
-typedef Uint32 t_bf_p[18];
-typedef Uint32 t_bf_s[4][256];
+typedef unsigned int t_bf_p[18];
+typedef unsigned int t_bf_s[4][256];
 
 class Cblowfish
 {
 public:
-    void set_key(const Uint8* key, Uint32 cb_key);
-    void encipher(Uint32& xl, Uint32& xr) const;
-    void encipher(const void* s, void* d, Uint32 size) const;
-    void decipher(Uint32& xl, Uint32& xr) const;
+    void set_key(const unsigned char* key, unsigned int cb_key);
+    void encipher(unsigned int& xl, unsigned int& xr) const;
+    void encipher(const void* s, void* d, unsigned int size) const;
+    void decipher(unsigned int& xl, unsigned int& xr) const;
     void decipher(const void* s, void* d, int size) const;
 private:
-    inline Uint32 S(Uint32 x, int i) const;
-    inline Uint32 bf_f(Uint32 x) const;
-    inline void ROUND(Uint32& a, Uint32 b, int n) const;
+    inline unsigned int S(unsigned int x, int i) const;
+    inline unsigned int bf_f(unsigned int x) const;
+    inline void ROUND(unsigned int& a, unsigned int b, int n) const;
 
     t_bf_p m_p;
     t_bf_s m_s;

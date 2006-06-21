@@ -12,10 +12,10 @@ class StructureType;
 class Input
 {
 public:
-    Input(Uint16 screenwidth, Uint16 screenheight, SDL_Rect *maparea);
+    Input(unsigned short screenwidth, unsigned short screenheight, SDL_Rect *maparea);
     ~Input();
     void handle();
-    Uint8 shouldQuit()
+    unsigned char shouldQuit()
     {
         return done;
     }
@@ -42,18 +42,18 @@ private:
 
     void updateMousePos();
     void clickMap(int mx, int my);
-    void clickedTile(int mx, int my, Uint16* pos, Uint8* subpos);
+    void clickedTile(int mx, int my, unsigned short* pos, unsigned char* subpos);
     void clickSidebar(int mx, int my, bool rightbutton);
     void setCursorByPos(int mx, int my);
     void selectRegion();
-    Uint16 checkPlace(int mx, int my);
+    unsigned short checkPlace(int mx, int my);
 
-    Uint16 width;
-    Uint16 height;
-    Uint8 done, donecount, finaldelay, gamemode;
+    unsigned short width;
+    unsigned short height;
+    unsigned char done, donecount, finaldelay, gamemode;
     SDL_Rect *maparea;
-    Uint16 tabwidth;
-    Uint8 tilewidth;
+    unsigned short tabwidth;
+    unsigned char tilewidth;
 
     static bool drawing;
     static SDL_Rect markrect;

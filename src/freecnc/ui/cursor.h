@@ -36,52 +36,52 @@ class Cursor
 public:
     Cursor();
     ~Cursor();
-    void setCursor(Uint16 cursornum, Uint8 animimages);
+    void setCursor(unsigned short cursornum, unsigned char animimages);
     void setCursor(const char* curname);
-    void setPlaceCursor(Uint8 stw, Uint8 sth, Uint8 *icn);
+    void setPlaceCursor(unsigned char stw, unsigned char sth, unsigned char *icn);
     SDL_Surface *getCursor();/*{return image[curimg];}*/
 
-    Uint16 getX()
+    unsigned short getX()
     {
         return x+cursor_offset;
     }
-    Uint16 getY()
+    unsigned short getY()
     {
         return y+cursor_offset;
     }
-    void setXY(Uint16 nx, Uint16 ny)
+    void setXY(unsigned short nx, unsigned short ny)
     {
         x = nx;
         y = ny;
     }
-    static Uint8 getNoScrollOffset() {
+    static unsigned char getNoScrollOffset() {
         return nsoff;
     }
-    //   void setY(Uint16 ny){y = ny;}
+    //   void setY(unsigned short ny){y = ny;}
     void reloadImages();
 private:
-    Uint16 currentcursor;
+    unsigned short currentcursor;
 
-    Uint16 x, y;
+    unsigned short x, y;
 
-    Uint8 curimg;
-    Uint8 nimgs;
+    unsigned char curimg;
+    unsigned char nimgs;
 
     // Either CUR_RA_NOSCROLL_OFFSET or CUR_NOSCROLL_OFFSET
-    static Uint8 nsoff;
+    static unsigned char nsoff;
 
     SDL_Surface *image[MAX_CURS_IN_ANIM];
 
     Dune2Image *cursorimg;
     TemplateImage *transicn;
-    Sint16 cursor_offset;
+    short cursor_offset;
 
     CursorPool* cursorpool;
     CursorInfo* ci;
     SDL_Surface* transw, *transy, *transr;
 
     //Used by place cursor
-    Uint32 oldptr;
+    unsigned int oldptr;
 };
 
 #endif

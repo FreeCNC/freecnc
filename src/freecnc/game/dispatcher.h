@@ -24,7 +24,7 @@ namespace Dispatcher
     public:
         Dispatcher();
         ~Dispatcher();
-        void unitMove(Unit* un, Uint32 dest);
+        void unitMove(Unit* un, unsigned int dest);
         void unitAttack(Unit* un, UnitOrStructure* target, bool tisunit);
         void unitDeploy(Unit* un);
 
@@ -33,29 +33,29 @@ namespace Dispatcher
         /// @TODO Implement these
         bool constructionStart(const UnitOrStructureType* type);
         void constructionPause(const UnitOrStructureType* type);
-        void constructionPause(Uint8 ptype);
+        void constructionPause(unsigned char ptype);
         void constructionResume(const UnitOrStructureType* type);
-        void constructionResume(Uint8 ptype);
+        void constructionResume(unsigned char ptype);
         void constructionCancel(const UnitOrStructureType* type);
-        void constructionCancel(Uint8 ptype);
+        void constructionCancel(unsigned char ptype);
 
         ConStatus constructionQuery(const UnitOrStructureType* type);
-        ConStatus constructionQuery(Uint8 ptype);
+        ConStatus constructionQuery(unsigned char ptype);
 
         /// @returns true if structure was placed at given location.
-        bool structurePlace(const StructureType* type, Uint32 pos, Uint8 owner);
-        bool structurePlace(const char* typen, Uint32 pos, Uint8 owner);
+        bool structurePlace(const StructureType* type, unsigned int pos, unsigned char owner);
+        bool structurePlace(const char* typen, unsigned int pos, unsigned char owner);
         /// Spawns a unit at the player's appropriate primary building
-        bool unitSpawn(UnitType* type, Uint8 owner);
-        bool unitSpawn(const char* tname, Uint8 owner);
+        bool unitSpawn(UnitType* type, unsigned char owner);
+        bool unitSpawn(const char* tname, unsigned char owner);
         /// Temporary function to place a unit directly on the map
-        bool unitCreate(const char* tname, Uint32 pos, Uint8 subpos, Uint8 owner);
+        bool unitCreate(const char* tname, unsigned int pos, unsigned char subpos, unsigned char owner);
 
-        Uint16 getExitCell(const UnitOrStructureType* type);
-        Uint16 getExitCell(Uint8 ptype);
+        unsigned short getExitCell(const UnitOrStructureType* type);
+        unsigned short getExitCell(unsigned char ptype);
     private:
         DispatchLogState logstate;
-        Uint8 localPlayer;
+        unsigned char localPlayer;
     };
 }
 

@@ -9,8 +9,8 @@
 #include "unitandstructurepool.h"
 #include "weaponspool.h"
 
-ExplosionAnim::ExplosionAnim(Uint32 p, Uint16 pos, Uint32 startimage,
-        Uint8 animsteps, Sint8 xoff, Sint8 yoff) : ActionEvent(p)
+ExplosionAnim::ExplosionAnim(unsigned int p, unsigned short pos, unsigned int startimage,
+        unsigned char animsteps, char xoff, char yoff) : ActionEvent(p)
 {
     l2o = new L2Overlay(1);
     l2o->imagenums[0] = startimage;
@@ -40,8 +40,8 @@ void ExplosionAnim::run()
     p::aequeue->scheduleEvent(this);
 }
 
-ProjectileAnim::ProjectileAnim(Uint32 p, Weapon *weap, UnitOrStructure* owner,
-        Uint16 dest, Uint8 subdest) : ActionEvent(p)
+ProjectileAnim::ProjectileAnim(unsigned int p, Weapon *weap, UnitOrStructure* owner,
+        unsigned short dest, unsigned char subdest) : ActionEvent(p)
 {
     double pixelspertick;
     double totlen;
@@ -107,7 +107,7 @@ ProjectileAnim::ProjectileAnim(Uint32 p, Weapon *weap, UnitOrStructure* owner,
                     alpha = M_PI+alpha;
                 }
             }
-            facing = (40-(Sint8)(alpha*16/M_PI))&0x1f;
+            facing = (40-(char)(alpha*16/M_PI))&0x1f;
         } else {
             facing = 0;
         }
@@ -142,7 +142,7 @@ ProjectileAnim::~ProjectileAnim()
 
 void ProjectileAnim::run()
 {
-    Uint32 oldpos;
+    unsigned int oldpos;
     Unit *utarget;
     Structure *starget;
     if (fuelled) {
@@ -180,7 +180,7 @@ void ProjectileAnim::run()
                         alpha = M_PI+alpha;
                     }
                 }
-                facing = (40-(Sint8)(alpha*16/M_PI))&0x1f;
+                facing = (40-(char)(alpha*16/M_PI))&0x1f;
                 l2o->imagenums[0] = weap->getProjectile()->getImageNum()+facing;
 
             }
@@ -221,12 +221,12 @@ void ProjectileAnim::run()
                     if (utarget != NULL) {
                         // each soldier in that cell gets one third of
                         // normal damage
-                        utarget->applyDamage((Sint16)((double)weap->getDamage()/3.0),weap,owner);
+                        utarget->applyDamage((short)((double)weap->getDamage()/3.0),weap,owner);
                     }
                 } // targeted soldier gets full normal damage
                 utarget = p::uspool->getUnitAt(dest, subdest);
                 if (utarget != NULL) { // soldier might have already been killed
-                    utarget->applyDamage((Sint16)(2.0*(double)weap->getDamage()/3.0),weap,owner);
+                    utarget->applyDamage((short)(2.0*(double)weap->getDamage()/3.0),weap,owner);
                 }
                 delete this;
                 return;
@@ -266,8 +266,8 @@ void ProjectileAnim::run()
         ryoffs -= 24;
         l2o->cellpos += p::ccmap->getWidth();
     }
-    l2o->xoffsets[0] = (Sint8)rxoffs;
-    l2o->yoffsets[0] = (Sint8)ryoffs;
+    l2o->xoffsets[0] = (char)rxoffs;
+    l2o->yoffsets[0] = (char)ryoffs;
 
     if( oldpos != l2o->cellpos) {
         p::uspool->removeL2overlay(l2entry);

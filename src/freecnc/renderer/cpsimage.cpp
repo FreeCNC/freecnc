@@ -16,7 +16,7 @@ CPSImage::CPSImage(const char* fname, int scaleq) : cpsdata(0), image(0) {
     }
     imgsize = imgfile->fileSize();
     image = NULL;
-    cpsdata = new Uint8[imgsize];
+    cpsdata = new unsigned char[imgsize];
     imgfile->readByte(cpsdata, imgsize);
     header.size    = readword(cpsdata,0);
     header.unknown = readword(cpsdata,2);
@@ -39,7 +39,7 @@ CPSImage::~CPSImage()
 
 void CPSImage::readPalette()
 {
-    Uint16 i;
+    unsigned short i;
     offset = 10;
     for (i = 0; i < 256; i++) {
         palette[i].r = readbyte(cpsdata, offset);
@@ -62,13 +62,13 @@ SDL_Surface* CPSImage::getImage()
 
 void CPSImage::loadImage()
 {
-    Uint32 len;
-    Uint8* imgsrc;
-    Uint8 *imgdst;
+    unsigned int len;
+    unsigned char* imgsrc;
+    unsigned char *imgdst;
     SDL_Surface* imgtmp;
     len = imgsize-offset;
-    imgsrc = new Uint8[len];
-    imgdst = new Uint8[header.imsize];
+    imgsrc = new unsigned char[len];
+    imgdst = new unsigned char[header.imsize];
     memcpy(imgsrc, cpsdata + offset, len);
     memset(imgdst, 0, header.imsize);
     Compression::decode80(imgsrc, imgdst);

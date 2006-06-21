@@ -10,22 +10,22 @@ class ActionEvent
 {
 public:
     friend class Comp;
-    ActionEvent( Uint32 p )
+    ActionEvent( unsigned int p )
     {
         delay = p;
     }
-    void addCurtick( Uint32 curtick )
+    void addCurtick( unsigned int curtick )
     {
         prio=delay+curtick;
     }
     virtual void run()
     {}
 
-    void setDelay(Uint32 p)
+    void setDelay(unsigned int p)
     {
         delay = p;
     }
-    Uint32 getPrio()
+    unsigned int getPrio()
     {
         return prio;
     }
@@ -34,7 +34,7 @@ public:
     virtual void stop()
     {}
 private:
-    Uint32 prio, delay;
+    unsigned int prio, delay;
 };
 
 // Friend class which compares ActionEvents priority
@@ -54,10 +54,10 @@ public:
     ~ActionEventQueue();
     void scheduleEvent(ActionEvent *ev);
     void runEvents();
-    Uint32 getElapsedTime();
-    Uint32 getCurtick();
+    unsigned int getElapsedTime();
+    unsigned int getCurtick();
 private:
-    Uint32 starttick;
+    unsigned int starttick;
     std::priority_queue<ActionEvent*, std::vector<ActionEvent*>, Comp> eventqueue;
 };
 

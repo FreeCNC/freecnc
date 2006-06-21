@@ -17,13 +17,13 @@ Font::~Font() {
 
 void Font::reload() {
     VFile *fontfile;
-    Uint16 wpos, hpos, cdata, nchars;
-    Uint8 fnheight, fnmaxw;
-    Uint32 fntotalw;
-    //vector<Uint8> chardata, wchar, hchar;
-    Uint32 ypos, i, pos, curchar;
-    Uint8 data;
-    //Uint16 *dataoffsets;
+    unsigned short wpos, hpos, cdata, nchars;
+    unsigned char fnheight, fnmaxw;
+    unsigned int fntotalw;
+    //vector<unsigned char> chardata, wchar, hchar;
+    unsigned int ypos, i, pos, curchar;
+    unsigned char data;
+    //unsigned short *dataoffsets;
     SDL_Surface *imgtmp;
 
     static SDL_Color colours[] = {{0x0, 0x0, 0x0, 0x0}, {0xff, 0xff, 0xff, 0xff}};
@@ -47,10 +47,10 @@ void Font::reload() {
 
     nchars++;
 
-    vector<Uint8> wchar(nchars);
-    vector<Uint8> hchar(nchars<<1);
+    vector<unsigned char> wchar(nchars);
+    vector<unsigned char> hchar(nchars<<1);
 
-    vector<Uint16> dataoffsets(nchars);
+    vector<unsigned short> dataoffsets(nchars);
     fontfile->readWord(&dataoffsets[0], nchars);
 
     fontfile->seekSet(wpos);
@@ -69,11 +69,11 @@ void Font::reload() {
         chrdest[i].w = wchar[i];
         fntotalw += wchar[i];
     }
-    vector<Uint8> chardata(fnheight*fntotalw);
+    vector<unsigned char> chardata(fnheight*fntotalw);
 
     for( curchar = 0; curchar < nchars; curchar++ ) {
         fontfile->seekSet(dataoffsets[curchar]);
-        for( ypos = hchar[curchar<<1]; ypos < (Uint32)(hchar[curchar<<1]+hchar[(curchar<<1)+1]); ypos++ ) {
+        for( ypos = hchar[curchar<<1]; ypos < (unsigned int)(hchar[curchar<<1]+hchar[(curchar<<1)+1]); ypos++ ) {
             pos = chrdest[curchar].x+ypos*fntotalw;
             for( i = 0; i < wchar[curchar]; i+=2 ) {
                 fontfile->readByte( &data, 1 );
@@ -99,21 +99,21 @@ void Font::reload() {
     VFS_Close(fontfile);
 }
 
-Uint32 Font::getHeight() const {
+unsigned int Font::getHeight() const {
     return chrdest[0].h;
 }
 
-Uint32 Font::calcTextWidth(const std::string& text) const {
-    Uint32 wdt = 0;
-    Uint32 i;
+unsigned int Font::calcTextWidth(const std::string& text) const {
+    unsigned int wdt = 0;
+    unsigned int i;
 
     for (i = 0; text[i] != '\0'; i++)
         wdt += chrdest[text[i]].w+1;
     return wdt;
 }
 
-void Font::drawText(const std::string& text, SDL_Surface *dest, Uint32 startx, Uint32 starty) const {
-    Uint32 i;
+void Font::drawText(const std::string& text, SDL_Surface *dest, unsigned int startx, unsigned int starty) const {
+    unsigned int i;
     SDL_Rect destr;
     destr.x = startx;
     destr.y = starty;

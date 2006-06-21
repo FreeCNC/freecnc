@@ -7,7 +7,7 @@
 class VFile
 {
 public:
-    VFile(Uint32 filenum, Archive *arch)
+    VFile(unsigned int filenum, Archive *arch)
         : filenum(filenum), archive(arch)
     {}
 
@@ -16,47 +16,47 @@ public:
         archive->releaseFile(filenum);
     }
 
-    Uint32 readByte(Uint8 *databuf, Uint32 numBytes)
+    unsigned int readByte(unsigned char *databuf, unsigned int numBytes)
     {
         return archive->readByte(filenum, databuf, numBytes);
     }
 
-    Uint32 readWord(Uint16 *databuf, Uint32 numWords)
+    unsigned int readWord(unsigned short *databuf, unsigned int numWords)
     {
         return archive->readWord(filenum, databuf, numWords);
     }
 
-    Uint32 readThree(Uint32 *databuf, Uint32 numThrees)
+    unsigned int readThree(unsigned int *databuf, unsigned int numThrees)
     {
         return archive->readThree(filenum, databuf, numThrees);
     }
 
-    Uint32 readDWord(Uint32 *databuf, Uint32 numDWords)
+    unsigned int readDWord(unsigned int *databuf, unsigned int numDWords)
     {
         return archive->readDWord(filenum, databuf, numDWords);
     }
 
-    char *getLine(char *string, Uint32 buflen)
+    char *getLine(char *string, unsigned int buflen)
     {
         return archive->readLine(filenum, string, buflen);
     }
 
-    Uint32 writeByte(Uint8* databuf, Uint32 numBytes)
+    unsigned int writeByte(unsigned char* databuf, unsigned int numBytes)
     {
         return archive->writeByte(filenum, databuf, numBytes);
     }
 
-    Uint32 writeWord(Uint16 *databuf, Uint32 numWords)
+    unsigned int writeWord(unsigned short *databuf, unsigned int numWords)
     {
         return archive->writeWord(filenum, databuf, numWords);
     }
 
-    Uint32 writeThree(Uint32 *databuf, Uint32 numThrees)
+    unsigned int writeThree(unsigned int *databuf, unsigned int numThrees)
     {
         return archive->writeThree(filenum, databuf, numThrees);
     }
 
-    Uint32 writeDWord(Uint32 *databuf, Uint32 numDWords)
+    unsigned int writeDWord(unsigned int *databuf, unsigned int numDWords)
     {
         return archive->writeDWord(filenum, databuf, numDWords);
     }
@@ -86,22 +86,22 @@ public:
         archive->flush(filenum);
     }
 
-    void seekSet(Uint32 pos)
+    void seekSet(unsigned int pos)
     {
         archive->seekSet(filenum, pos);
     }
 
-    void seekCur(Sint32 offset)
+    void seekCur(int offset)
     {
         archive->seekCur(filenum, offset);
     }
 
-    Uint32 fileSize()
+    unsigned int fileSize()
     {
         return archive->getSize(filenum);
     }
 
-    Uint32 tell()
+    unsigned int tell()
     {
         return archive->getPos(filenum);
     }
@@ -112,7 +112,7 @@ public:
     }
 
 private:
-    Uint32 filenum;
+    unsigned int filenum;
     Archive *archive;
 };
 

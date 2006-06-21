@@ -6,27 +6,27 @@
 class TemplateData
 {
 public:
-    TemplateData(INIFile *tmpini, Uint32 tmpnum);
+    TemplateData(INIFile *tmpini, unsigned int tmpnum);
     ~TemplateData();
-    Uint32 getWidth()
+    unsigned int getWidth()
     {
         return width;
     }
-    Uint32 getHeight()
+    unsigned int getHeight()
     {
         return height;
     }
     void increaseWidth();
     void decreaseWidth();
-    Uint32 getNumTiles()
+    unsigned int getNumTiles()
     {
         return numtiles;
     }
-    Uint8 getType(Uint32 tile)
+    unsigned char getType(unsigned int tile)
     {
         return types[tile];
     }
-    void setType(Uint32 tile, Uint8 type)
+    void setType(unsigned int tile, unsigned char type)
     {
         types[tile]=type;
     }
@@ -41,10 +41,10 @@ public:
     }
     void writeData(FILE *inifile);
 private:
-    Uint32 width;
-    Uint32 height;
-    Uint32 numtiles;
-    Uint8 *types;
+    unsigned int width;
+    unsigned int height;
+    unsigned int numtiles;
+    unsigned char *types;
     char *name;
     char tmpnumname[16];
 };

@@ -45,9 +45,9 @@ namespace BuildQueue
 
     /// @TODO These values should be moved to a configuration file
     // I don't think buildspeed needs to be changed once this code is stable.
-    const Uint8 buildspeed = 1;
-    //const Uint8 buildspeed = 5;
-    const Uint8 maxbuild = 99;
+    const unsigned char buildspeed = 1;
+    //const unsigned char buildspeed = 5;
+    const unsigned char maxbuild = 99;
 
     BQueue::BQueue(Player *p) : player(p), status(BQ_EMPTY)
     {
@@ -179,7 +179,7 @@ namespace BuildQueue
         if (BQ_RUNNING != status) {
             return false;
         }
-        Uint8 delta = min((p::aequeue->getCurtick()-last)/buildspeed, left);
+        unsigned char delta = min((p::aequeue->getCurtick()-last)/buildspeed, left);
 
         if (delta == 0) {
             return false;
@@ -221,7 +221,7 @@ namespace BuildQueue
         return false;
     }
 
-    ConStatus BQueue::getStatus(const UnitOrStructureType* type, Uint8* quantity, Uint8* progress) const
+    ConStatus BQueue::getStatus(const UnitOrStructureType* type, unsigned char* quantity, unsigned char* progress) const
     {
         *quantity = 0;
         *progress = 100; // Default to not grey'd out.

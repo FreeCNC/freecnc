@@ -7,24 +7,24 @@
 
 struct SDL_Surface;
 
-/// @TODO Replace this class with a std::pair<string, Uint32>
+/// @TODO Replace this class with a std::pair<string, unsigned int>
 class Message
 {
 public:
-    Message(const std::string& msg, Uint32 deltime) : message(msg), deltime(deltime) {}
+    Message(const std::string& msg, unsigned int deltime) : message(msg), deltime(deltime) {}
     const char *getMessage() const { return message.c_str(); }
-    bool expired(Uint32 time) const { return time > deltime; }
+    bool expired(unsigned int time) const { return time > deltime; }
 private:
     std::string message;
-    Uint32 deltime;
+    unsigned int deltime;
 };
 
 class MessagePool
 {
 public:
     MessagePool();
-    void setWidth(Uint32 width) {this->width = width;}
-    Uint32 getWidth() const {return width;}
+    void setWidth(unsigned int width) {this->width = width;}
+    unsigned int getWidth() const {return width;}
     ~MessagePool();
     SDL_Surface *getMessages();
     void postMessage(const std::string& msg);
@@ -35,7 +35,7 @@ private:
     bool updated;
     SDL_Surface* textimg;
     Font msgfont;
-    Uint32 width;
+    unsigned int width;
 };
 
 #endif

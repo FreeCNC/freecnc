@@ -62,9 +62,9 @@ TemplateImage *TemplateData::getImage()
     return img;
 }
 
-TemplateData::TemplateData(INIFile *tmpini, Uint32 tmpnum)
+TemplateData::TemplateData(INIFile *tmpini, unsigned int tmpnum)
 {
-    Uint32 i, type;
+    unsigned int i, type;
     //   char tmpnumname[16];
     char fname[16];
     TemplateImage *img;
@@ -87,7 +87,7 @@ TemplateData::TemplateData(INIFile *tmpini, Uint32 tmpnum)
         height = 1;
     }
 
-    types = new Uint8[numtiles];
+    types = new unsigned char[numtiles];
     for( i = 0; i < numtiles; i++ ) {
         sprintf(fname, "tiletype%d", i);
         type = tmpini->readInt(tmpnumname, fname);
@@ -137,7 +137,7 @@ private:
     Font *fnt;
     TmpGFX *gfx;
     TemplateData **tmps;
-    Uint32 currentTmp;
+    unsigned int currentTmp;
     //   void loadPal(char *palname);
     TemplateImage *trans;
     void saveIni();
@@ -145,7 +145,7 @@ private:
 
 TmpIniEd::TmpIniEd()
 {
-    Uint32 i;
+    unsigned int i;
     INIFile *templini;
     gfx = new TmpGFX();
     fnt = new Font("6point.fnt");
@@ -169,7 +169,7 @@ TmpIniEd::TmpIniEd()
 
 TmpIniEd::~TmpIniEd()
 {
-    Uint32 i;
+    unsigned int i;
     delete fnt;
     delete gfx;
     for( i = 0; i < TEMPLATES; i++ ) {
@@ -182,9 +182,9 @@ TmpIniEd::~TmpIniEd()
 void TmpIniEd::run()
 {
     SDL_Event event;
-    Uint8 done = 0;
+    unsigned char done = 0;
     bool image_updated = true;
-    Uint32 curpos = 0;
+    unsigned int curpos = 0;
 
     while(!done) {
         if(SDL_PollEvent(&event)) {
@@ -322,7 +322,7 @@ int main(int argc, char **argv)
 void loadPal(char *palname)
 {
     VFile *mixfile;
-    //Uint32 offset, size;
+    //unsigned int offset, size;
     SDL_Color palette[256];
     int i;
 
@@ -343,7 +343,7 @@ void loadPal(char *palname)
 
 void TmpIniEd::saveIni()
 {
-    Uint32 i;
+    unsigned int i;
     FILE *inifile;
     inifile = fopen("templates.ini", "w");
     fputs(";tiletype%d can be:\n; 0, land (default)\n; 1, water\n; 2, road\n; 3, rock\n; 4, tree\n; 5, water(blocked)\n; 7, other non passable terrain thing\n\n", inifile);
@@ -356,7 +356,7 @@ void TmpIniEd::saveIni()
 
 void TemplateData::writeData(FILE *inifile)
 {
-    Uint32 i;
+    unsigned int i;
     fprintf(inifile, "[%s]\nName=%s\n", tmpnumname, name);
     fprintf(inifile, "width=%d\nheight=%d\n", width, height);
     for( i = 0; i < numtiles; i++ ) {

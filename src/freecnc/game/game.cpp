@@ -144,8 +144,8 @@ void Game::play()
 void Game::dumpstats()
 {
     Player* pl;
-    Uint8 h,m,s,i;
-    Uint32 uptime = p::aequeue->getElapsedTime();
+    unsigned char h,m,s,i;
+    unsigned int uptime = p::aequeue->getElapsedTime();
     uptime /= 1000;
     h = uptime/3600;
     uptime %= 3600;

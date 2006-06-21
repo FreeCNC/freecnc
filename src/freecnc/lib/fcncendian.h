@@ -26,16 +26,16 @@
 #define readlong(x,y) SDL_Swap32((x[y] << 24) ^ (x[y+1] << 16) ^ (x[y+2] << 8) ^ (x[y+3]))
 #endif
 
-inline Uint8 freadbyte(FILE *fptr)
+inline unsigned char freadbyte(FILE *fptr)
 {
-    Uint8 x;
+    unsigned char x;
     fread(&x,1,1,fptr);
     return x;
 }
 
-inline Uint16 freadword(FILE *fptr)
+inline unsigned short freadword(FILE *fptr)
 {
-    Uint16 x;
+    unsigned short x;
     fread(&x,2,1,fptr);
 
     #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
@@ -45,17 +45,17 @@ inline Uint16 freadword(FILE *fptr)
     #endif
 }
 
-inline Uint32 freadthree(FILE *fptr)
+inline unsigned int freadthree(FILE *fptr)
 {
     // Can this be made better?
-    Uint8 x[3];
+    unsigned char x[3];
     fread(x,3,1,fptr);
     return readthree(x,0);
 }
 
-inline Uint32 freadlong(FILE *fptr)
+inline unsigned int freadlong(FILE *fptr)
 {
-    Uint32 x;
+    unsigned int x;
     fread(&x, 4, 1, fptr);
 
     #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN

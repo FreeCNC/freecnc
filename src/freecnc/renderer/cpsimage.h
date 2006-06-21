@@ -8,10 +8,10 @@
 
 struct CPSHeader
 {
-    Uint16 size;
-    Uint16 unknown;
-    Uint16 imsize;
-    Uint32 palette;
+    unsigned short size;
+    unsigned short unknown;
+    unsigned short imsize;
+    unsigned int palette;
 };
 
 class CPSImage
@@ -23,8 +23,8 @@ public:
 private:
     void loadImage();
     void readPalette();
-    Uint32 imgsize, offset;
-    Uint8* cpsdata;
+    unsigned int imgsize, offset;
+    unsigned char* cpsdata;
     SDL_Color palette[256];
     CPSHeader header;
     int scaleq;

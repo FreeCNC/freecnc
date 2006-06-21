@@ -64,7 +64,7 @@ void CnCMap::loadIni()
 
     // spawn player starts.
     if (gamemode > 0) {
-        for (Uint8 i=0;i<config.totalplayers;++i) {
+        for (unsigned char i=0;i<config.totalplayers;++i) {
             tmpname = "multi" + lexical_cast<string>(i+1);
             p::ppool->getPlayerNum(tmpname.c_str());
             if ((i+1) == config.playernum) {
@@ -112,7 +112,7 @@ void CnCMap::loadIni()
  */
 void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
     const char* key;
-    Uint8 iter = 0;
+    unsigned char iter = 0;
 
     // The strings in the basic section
     static const char* strreads[] = {
@@ -125,7 +125,7 @@ void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
     static const char* intreads[] = {
         "HEIGHT", "WIDTH", "X", "Y", 0,
     };
-    static Uint16* intvars[]  = {&height, &width, &x, &y};
+    static unsigned short* intvars[]  = {&height, &width, &x, &y};
 
     while (strreads[iter] != 0) {
         char** variable;
@@ -142,7 +142,7 @@ void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
     iter = 0;
     while (intreads[iter] != 0) {
         int temp;
-        Uint16* variable;
+        unsigned short* variable;
         key      = intreads[iter];
         variable = intvars[iter];
 
@@ -169,7 +169,7 @@ void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
  * @param a pointer to the inifile
  */
 void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
-    Uint32 keynum;
+    unsigned int keynum;
     int i;
     //char *line;
     char shpname[128];
@@ -179,28 +179,28 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
     char owner[128];
     int facing, health, subpos;
     int linenum, smudgenum, tmpval;
-    Uint16 tx, ty, xsize, ysize, tmp2;
-    std::map<std::string, Uint32> imagelist;
-    std::map<std::string, Uint32>::iterator imgpos;
+    unsigned short tx, ty, xsize, ysize, tmp2;
+    std::map<std::string, unsigned int> imagelist;
+    std::map<std::string, unsigned int>::iterator imgpos;
     SHPImage *image;
     TerrainEntry tmpterrain;
     INIKey key;
 
-    Uint16 xwalk, ywalk, ttype;
+    unsigned short xwalk, ywalk, ttype;
 
     try {
         for (keynum = 0; ; keynum++) {
             key = inifile->readKeyValue("WAYPOINTS", keynum);
             if (sscanf(key->first.c_str(), "%d", &tmpval) == 1) {
                 if (tmpval == 26) { /* waypoint 26 is the startpos of the map */
-                    tmp2 = (Uint16)atoi(key->second.c_str());
+                    tmp2 = (unsigned short)atoi(key->second.c_str());
                     //waypoints.push_back(tmp2);
                     translateCoord(tmp2, &tx, &ty);
                     scrollbookmarks[0].x = tx-x;
                     scrollbookmarks[0].y = ty-y;
                 }
                 if (tmpval < 8) {
-                    tmp2 = (Uint16)atoi(key->second.c_str());
+                    tmp2 = (unsigned short)atoi(key->second.c_str());
                     waypoints.push_back(tmp2);
                 }
             }
@@ -460,14 +460,14 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
 
 struct tiledata
 {
-    Uint32 image;
-    Uint8 type;
+    unsigned int image;
+    unsigned char type;
 };
 
 void CnCMap::loadBin()
 {
-    Uint32 index = 0;
-    //    Uint8 templ, tile;
+    unsigned int index = 0;
+    //    unsigned char templ, tile;
     int xtile, ytile;
     VFile *binfile;
     char *binname = new char[strlen(missionData.mapname)+5];
@@ -498,10 +498,10 @@ void CnCMap::loadBin()
 
     for( ytile = 0; ytile < height; ytile++ ) {
         for( xtile = 0; xtile < width; xtile++ ) {
-            Uint16 tmpread = 0;
+            unsigned short tmpread = 0;
             /* Read template and tile */
             mapdata[index].templateNum = 0;
-            binfile->readByte((Uint8 *)&(tmpread), 1);
+            binfile->readByte((unsigned char *)&(tmpread), 1);
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
             mapdata[index].templateNum = SDL_Swap16(tmpread);
 #else
@@ -524,13 +524,13 @@ void CnCMap::loadBin()
 void CnCMap::unMapPack(shared_ptr<INIFile> inifile)
 {
     int tmpval;
-    Uint32 curpos;
+    unsigned int curpos;
     int xtile, ytile;
     TileList *bindata;
-    Uint32 keynum;
+    unsigned int keynum;
     INIKey key;
-    Uint8 *mapdata1 = new Uint8[49152]; // 48k
-    Uint8 *mapdata2 = new Uint8[49152];
+    unsigned char *mapdata1 = new unsigned char[49152]; // 48k
+    unsigned char *mapdata2 = new unsigned char[49152];
 
     // read packed data into array
     mapdata1[0] = 0;
@@ -548,7 +548,7 @@ void CnCMap::unMapPack(shared_ptr<INIFile> inifile)
     for( tmpval = 0; tmpval < 6; tmpval++ ) {
         //printf("first vals in data is %x %x %x %x\n", mapdata2[curpos],
         //mapdata2[curpos+1], mapdata2[curpos+2], mapdata2[curpos+3]);
-        if( Compression::decode80((Uint8 *)mapdata2+4+curpos, mapdata1+8192*tmpval) != 8192 ) {
+        if( Compression::decode80((unsigned char *)mapdata2+4+curpos, mapdata1+8192*tmpval) != 8192 ) {
             logger->warning("A format80 chunk in the \"MapPack\" was of wrong size\n");
         }
         curpos = curpos + 4 + mapdata2[curpos] + (mapdata2[curpos+1]<<8) +
@@ -563,7 +563,7 @@ void CnCMap::unMapPack(shared_ptr<INIFile> inifile)
     for( ytile = 0; ytile < height; ytile++ ) {
         for( xtile = 0; xtile < width; xtile++ ) {
             /* Read template and tile */
-            bindata[curpos].templateNum = ((Uint16 *)mapdata1)[tmpval];
+            bindata[curpos].templateNum = ((unsigned short *)mapdata1)[tmpval];
             bindata[curpos].tileNum = mapdata1[tmpval+128*128*2];
             curpos++;
             tmpval++;
@@ -582,23 +582,23 @@ void CnCMap::unMapPack(shared_ptr<INIFile> inifile)
 
 void CnCMap::parseBin(TileList* bindata)
 {
-    Uint32 index;
+    unsigned int index;
 
-    Uint16 templ;
-    Uint8 tile;
-    Uint32 tileidx;
+    unsigned short templ;
+    unsigned char tile;
+    unsigned int tileidx;
     int xtile, ytile;
     shared_ptr<INIFile> templini;
 
     SDL_Surface *tileimg;
     SDL_Color palette[256];
 
-    std::map<Uint32, struct tiledata> tilelist;
-    std::map<Uint32, struct tiledata>::iterator imgpos;
-    //     char tempc[sizeof(Uint8)];
+    std::map<unsigned int, struct tiledata> tilelist;
+    std::map<unsigned int, struct tiledata>::iterator imgpos;
+    //     char tempc[sizeof(unsigned char)];
 
     struct tiledata tiledata;
-    Uint32 tiletype;
+    unsigned int tiletype;
     tilematrix.resize(width*height);
 
     loadPal(palette);
@@ -666,10 +666,10 @@ void CnCMap::parseBin(TileList* bindata)
 void CnCMap::loadOverlay(shared_ptr<INIFile> inifile)
 {
     INIKey key;
-    Uint32 linenum;
-    Uint16 tx, ty;
+    unsigned int linenum;
+    unsigned short tx, ty;
     try {
-        for (Uint32 keynum = 0;;keynum++) {
+        for (unsigned int keynum = 0;;keynum++) {
             key = inifile->readKeyValue("OVERLAY", keynum);
             if (sscanf(key->first.c_str(), "%u", &linenum) == 1) {
                 translateCoord(linenum, &tx, &ty);
@@ -690,12 +690,12 @@ const char* RAOverlayNames[] = { "SBAG", "CYCL", "BRIK", "FENC", "WOOD",
 
 void CnCMap::unOverlayPack(shared_ptr<INIFile> inifile)
 {
-    Uint32 curpos, tilepos;
-    Uint8 xtile, ytile;
-    Uint32 keynum;
+    unsigned int curpos, tilepos;
+    unsigned char xtile, ytile;
+    unsigned int keynum;
     INIKey key;
-    Uint8 mapdata[16384]; // 16k
-    Uint8 temp[16384];
+    unsigned char mapdata[16384]; // 16k
+    unsigned char temp[16384];
 
     // read packed data into array
     mapdata[0] = 0;
@@ -711,7 +711,7 @@ void CnCMap::unOverlayPack(shared_ptr<INIFile> inifile)
     /* decode the format80 coded data (2 chunks) */
     curpos = 0;
     for (int tmpval = 0; tmpval < 2; tmpval++) {
-        if (Compression::decode80((Uint8 *)temp+4+curpos, mapdata+8192*tmpval) != 8192) {
+        if (Compression::decode80((unsigned char *)temp+4+curpos, mapdata+8192*tmpval) != 8192) {
             logger->warning("A format80 chunk in the \"OverlayPack\" was of wrong size\n");
         }
         curpos = curpos + 4 + temp[curpos] + (temp[curpos+1]<<8) +
@@ -732,10 +732,10 @@ void CnCMap::unOverlayPack(shared_ptr<INIFile> inifile)
 }
 
 
-void CnCMap::parseOverlay(const Uint32& linenum, const string& name)
+void CnCMap::parseOverlay(const unsigned int& linenum, const string& name)
 {
-    Uint8 type, frame;
-    Uint16 res;
+    unsigned char type, frame;
+    unsigned short res;
 
     if (name == "BRIK" || name == "SBAG" || name == "FENC" || name == "WOOD" || name == "CYCL" || name == "BARB") {
         // Walls are structures.
@@ -764,7 +764,7 @@ void CnCMap::parseOverlay(const Uint32& linenum, const string& name)
     if (strncasecmp(name.c_str(),"TI",2) == 0 ||
             strncasecmp(name.c_str(),"GOLD",4) == 0 ||
             strncasecmp(name.c_str(),"GEM",3) == 0) {
-        Uint32 i = 0;
+        unsigned int i = 0;
         /* This is a hack to seed the map with semi-reasonable amounts of
          * resource growth.  This will hopefully become less ugly after the code
          * to manage resource growth has been written. */
@@ -778,7 +778,7 @@ void CnCMap::parseOverlay(const Uint32& linenum, const string& name)
             logger->error("Resource hack for \"%s\" failed.", name.c_str());
             throw LoadMapError();
         }
-        map<string, Uint8>::iterator t = resourcenames.find(name);
+        map<string, unsigned char>::iterator t = resourcenames.find(name);
         if (resourcenames.end() == t) {
             type = resourcebases.size();
             /* Encode the type and amount data into the resource matrix's new
@@ -846,7 +846,7 @@ void CnCMap::loadPal(SDL_Color *palette)
  * @param the tilenumber.
  * @returns a SDL_Surface containing the tile.
  */
-SDL_Surface *CnCMap::loadTile(shared_ptr<INIFile> templini, Uint16 templ, Uint8 tile, Uint32* tiletype)
+SDL_Surface *CnCMap::loadTile(shared_ptr<INIFile> templini, unsigned short templ, unsigned char tile, unsigned int* tiletype)
 {
     TemplateCache::iterator ti;
     TemplateImage *theaterfile;

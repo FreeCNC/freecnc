@@ -11,7 +11,7 @@ class UnitOrStructure;
 class UnitAnimEvent : public ActionEvent
 {
 public:
-    UnitAnimEvent(Uint32 p, Unit* un);
+    UnitAnimEvent(unsigned int p, Unit* un);
     virtual ~UnitAnimEvent();
     void setSchedule(UnitAnimEvent* e);
     void stopScheduled();
@@ -27,33 +27,33 @@ private:
 class MoveAnimEvent : public UnitAnimEvent
 {
 public:
-    MoveAnimEvent(Uint32 p, Unit* un);
+    MoveAnimEvent(unsigned int p, Unit* un);
     virtual ~MoveAnimEvent();
     virtual void stop();
     virtual void run();
     virtual void update();
-    virtual void setRange(Uint32 nr) {range = nr;}
+    virtual void setRange(unsigned int nr) {range = nr;}
 
 private:
     bool stopping;
     void startMoveOne(bool wasblocked);
     void moveDone();
-    Uint16 dest,newpos;
+    unsigned short dest,newpos;
     bool blocked, moved_half, pathinvalid, waiting;
-    Sint8 xmod, ymod;
+    char xmod, ymod;
     Unit* un;
     Path* path;
-    Uint8 istep,dir;
-    Uint32 range;
+    unsigned char istep,dir;
+    unsigned int range;
 };
 
 class WalkAnimEvent : public UnitAnimEvent {
 public:
-    WalkAnimEvent(Uint32 p, Unit* un, Uint8 dir, Uint8 layer);
+    WalkAnimEvent(unsigned int p, Unit* un, unsigned char dir, unsigned char layer);
     virtual ~WalkAnimEvent();
     virtual void stop() {stopping = true;}
     virtual void run();
-    virtual void changedir(Uint8 ndir) {
+    virtual void changedir(unsigned char ndir) {
         stopping = false;
         dir = ndir;
         calcbaseimage();
@@ -64,7 +64,7 @@ private:
     bool stopping;
     void calcbaseimage(void);
     Unit* un;
-    Uint8 dir, istep, layer, baseimage;
+    unsigned char dir, istep, layer, baseimage;
 };
 
 class TurnAnimEvent; // Cyclic dependency
@@ -72,28 +72,28 @@ class TurnAnimEvent; // Cyclic dependency
 class TurnAnimEvent : public UnitAnimEvent
 {
 public:
-    TurnAnimEvent(Uint32 p, Unit *un, Uint8 dir, Uint8 layer);
+    TurnAnimEvent(unsigned int p, Unit *un, unsigned char dir, unsigned char layer);
     virtual ~TurnAnimEvent();
     virtual void run();
     virtual void stop() {stopping = true;}
     void update() {}
-    virtual void changedir(Uint8 ndir) {
+    virtual void changedir(unsigned char ndir) {
         stopping = false;
         dir = ndir;
     }
 
 private:
     bool stopping,runonce;
-    Sint8 turnmod;
+    char turnmod;
     Unit *un;
-    Uint8 dir;
-    Uint8 layer;
+    unsigned char dir;
+    unsigned char layer;
 };
 
 class UAttackAnimEvent : public UnitAnimEvent
 {
 public:
-    UAttackAnimEvent(Uint32 p, Unit *un);
+    UAttackAnimEvent(unsigned int p, Unit *un);
     virtual ~UAttackAnimEvent();
     void stop();
     virtual void update();
@@ -102,7 +102,7 @@ public:
 private:
     Unit *un;
     bool stopping;
-    Uint8 waiting;
+    unsigned char waiting;
     UnitOrStructure* target;
 };
 

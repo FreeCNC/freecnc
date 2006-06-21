@@ -32,7 +32,7 @@ namespace Dispatcher
         }
     }
 
-    void Dispatcher::unitMove(Unit* un, Uint32 dest)
+    void Dispatcher::unitMove(Unit* un, unsigned int dest)
     {
         if (un == 0) {
             return;
@@ -100,7 +100,7 @@ namespace Dispatcher
         }
     }
 
-    bool Dispatcher::structurePlace(const StructureType* type, Uint32 pos, Uint8 owner) {
+    bool Dispatcher::structurePlace(const StructureType* type, unsigned int pos, unsigned char owner) {
         switch (logstate) {
             case RECORDING:
                 // deliberate fallthrough
@@ -116,7 +116,7 @@ namespace Dispatcher
         return true;
     }
 
-    bool Dispatcher::structurePlace(const char* tname, Uint32 pos, Uint8 owner) {
+    bool Dispatcher::structurePlace(const char* tname, unsigned int pos, unsigned char owner) {
         switch (logstate) {
             case RECORDING:
                 // deliberate fallthrough
@@ -131,7 +131,7 @@ namespace Dispatcher
         return true;
     }
 
-    bool Dispatcher::unitSpawn(UnitType* type, Uint8 owner) {
+    bool Dispatcher::unitSpawn(UnitType* type, unsigned char owner) {
         switch (logstate) {
             case RECORDING:
                 // deliberate fallthrough
@@ -146,7 +146,7 @@ namespace Dispatcher
         return true;
     }
 
-    bool Dispatcher::unitSpawn(const char* tname, Uint8 owner) {
+    bool Dispatcher::unitSpawn(const char* tname, unsigned char owner) {
         switch (logstate) {
             case RECORDING:
                 // deliberate fallthrough
@@ -161,7 +161,7 @@ namespace Dispatcher
         return true;
     }
 
-    bool Dispatcher::unitCreate(const char* tname, Uint32 pos, Uint8 subpos, Uint8 owner) {
+    bool Dispatcher::unitCreate(const char* tname, unsigned int pos, unsigned char subpos, unsigned char owner) {
         switch (logstate) {
             case RECORDING:
                 // deliberate fallthrough

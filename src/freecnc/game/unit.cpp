@@ -13,7 +13,7 @@
 #include "talkback.h"
 #include "weaponspool.h"
 
-const Sint8 InfantryGroup::unitoffsets[10] = {
+const char InfantryGroup::unitoffsets[10] = {
     /* Theses values have been heavily tested, do NOT change them unless you're
      *        _really_ sure of what you are doing */
     /* X value */
@@ -26,13 +26,13 @@ UnitType::UnitType(const char *typeName, shared_ptr<INIFile> unitini)
     : UnitOrStructureType(), shpnums(0), name(0), deploytarget(0)
 {
     SHPImage* shpimage;
-    Uint32 i;
+    unsigned int i;
     string shpname(typeName);
 #ifdef LOOPEND_TURN
     char* imagename;
 #endif
-    Uint32 shpnum;
-    Uint32 tmpspeed;
+    unsigned int shpnum;
+    unsigned int tmpspeed;
 
     deploytarget = NULL;
     // Ensure that there is a section in the ini file
@@ -61,7 +61,7 @@ UnitType::UnitType(const char *typeName, shared_ptr<INIFile> unitini)
 
     numlayers = unitini->readInt(tname, "layers", 1);
 
-    shpnums = new Uint32[numlayers];
+    shpnums = new unsigned int[numlayers];
 
     shpname += ".SHP";
     try {
@@ -71,7 +71,7 @@ UnitType::UnitType(const char *typeName, shared_ptr<INIFile> unitini)
         numlayers = 0;
         return;
     }
-    shpnum = static_cast<Uint32>(pc::imagepool->size());
+    shpnum = static_cast<unsigned int>(pc::imagepool->size());
     pc::imagepool->push_back(shpimage);
     shpnum <<= 16;
     for( i = 0; i < numlayers; i++ ) {
@@ -194,7 +194,7 @@ const char* UnitType::getRandTalk(TalkbackType type) const
 
 UnitType::~UnitType()
 {
-    Uint16 i;
+    unsigned short i;
     delete[] name;
     delete[] shpnums;
     delete[] deploytarget;
@@ -206,13 +206,13 @@ UnitType::~UnitType()
 
 /* note to self, pass owner, cellpos, facing and health to this
  (maybe subcellpos)*/
-Unit::Unit(UnitType *type, Uint16 cellpos, Uint8 subpos, InfantryGroupPtr group,
-        Uint8 owner, Uint16 rhealth, Uint8 facing) : UnitOrStructure()
+Unit::Unit(UnitType *type, unsigned short cellpos, unsigned char subpos, InfantryGroupPtr group,
+        unsigned char owner, unsigned short rhealth, unsigned char facing) : UnitOrStructure()
 {
     targetcell = cellpos;
-    Uint32 i;
+    unsigned int i;
     this->type = type;
-    imagenumbers = new Uint16[type->getNumLayers()];
+    imagenumbers = new unsigned short[type->getNumLayers()];
     for( i = 0; i < type->getNumLayers(); i++ ) {
         imagenumbers[i] = facing;
         if( owner != 0xff ) {
@@ -231,7 +231,7 @@ Unit::Unit(UnitType *type, Uint16 cellpos, Uint8 subpos, InfantryGroupPtr group,
     xoffset = 0;
     yoffset = 0;
     ratio = (double)rhealth/256.0f;
-    health = (Uint16)(ratio * type->getMaxHealth());
+    health = (unsigned short)(ratio * type->getMaxHealth());
     infgrp = group;
 
     if (infgrp) {
@@ -269,7 +269,7 @@ Unit::~Unit()
          */
         pc::sfxeng->PlaySound("constru2.aud");
         pc::sfxeng->PlaySound("hvydoor1.aud");
-        p::uspool->createStructure(type->getDeployTarget(),calcDeployPos(),owner,(Uint16)(ratio*256.0f),0,true);
+        p::uspool->createStructure(type->getDeployTarget(),calcDeployPos(),owner,(unsigned short)(ratio*256.0f),0,true);
     }
 }
 
@@ -279,16 +279,16 @@ void Unit::remove() {
 }
 
 
-Uint8 Unit::getImageNums(Uint32 **inums, Sint8 **xoffsets, Sint8 **yoffsets)
+unsigned char Unit::getImageNums(unsigned int **inums, char **xoffsets, char **yoffsets)
 {
     int i;
-    Uint32 *shpnums;
+    unsigned int *shpnums;
 
     shpnums = type->getSHPNums();
 
-    *inums = new Uint32[type->getNumLayers()];
-    *xoffsets = new Sint8[type->getNumLayers()];
-    *yoffsets = new Sint8[type->getNumLayers()];
+    *inums = new unsigned int[type->getNumLayers()];
+    *xoffsets = new char[type->getNumLayers()];
+    *yoffsets = new char[type->getNumLayers()];
     for(i = 0; i < type->getNumLayers(); i++ ) {
         (*inums)[i] = shpnums[i]+imagenumbers[i];
         (*xoffsets)[i] = xoffset-type->getOffset();
@@ -297,12 +297,12 @@ Uint8 Unit::getImageNums(Uint32 **inums, Sint8 **xoffsets, Sint8 **yoffsets)
     return type->getNumLayers();
 }
 
-void Unit::move(Uint16 dest)
+void Unit::move(unsigned short dest)
 {
     move(dest,true);
 }
 
-void Unit::move(Uint16 dest, bool stop)
+void Unit::move(unsigned short dest, bool stop)
 {
     targetcell = dest;
     if (stop && (attackanim != NULL)) {
@@ -344,7 +344,7 @@ void Unit::attack(UnitOrStructure* target, bool stop)
     }
 }
 
-void Unit::turn(Uint8 facing, Uint8 layer)
+void Unit::turn(unsigned char facing, unsigned char layer)
 {
     TurnAnimEvent** t;
     switch (layer) {
@@ -378,10 +378,10 @@ void Unit::stop()
     }
 }
 
-void Unit::applyDamage(Sint16 amount, Weapon* weap, UnitOrStructure* attacker)
+void Unit::applyDamage(short amount, Weapon* weap, UnitOrStructure* attacker)
 {
     //fprintf(stderr,"%i * %f = ",amount,weap->getVersus(type->getArmour()));
-    amount = (Sint16)((double)amount * weap->getVersus(type->getArmour()));
+    amount = (short)((double)amount * weap->getVersus(type->getArmour()));
     //fprintf(stderr,"%i (a == %i)\n",amount,type->getArmour());
     if ((health-amount) <= 0) {
         doRandTalk(TB_die);
@@ -428,14 +428,14 @@ void Unit::deploy()
     }
 }
 
-bool Unit::checkDeployTarget(Uint32 pos)
+bool Unit::checkDeployTarget(unsigned int pos)
 {
-    static Uint32 mapwidth = p::ccmap->getWidth();
-    static Uint32 mapheight = p::ccmap->getHeight();
-    Uint8 placexpos, placeypos;
-    Uint32 curpos;
-    Uint8 typewidth, typeheight;
-    if (pos == (Uint32)(-1)) {
+    static unsigned int mapwidth = p::ccmap->getWidth();
+    static unsigned int mapheight = p::ccmap->getHeight();
+    unsigned char placexpos, placeypos;
+    unsigned int curpos;
+    unsigned char typewidth, typeheight;
+    if (pos == (unsigned int)(-1)) {
         return false;
     }
     if (type->getDeployType() == NULL) {
@@ -463,15 +463,15 @@ bool Unit::checkDeployTarget(Uint32 pos)
     return true;
 }
 
-Uint32 Unit::calcDeployPos() const
+unsigned int Unit::calcDeployPos() const
 {
-    Uint32 deploypos;
-    Uint32 mapwidth = p::ccmap->getWidth();
-    Uint8 w,h;
+    unsigned int deploypos;
+    unsigned int mapwidth = p::ccmap->getWidth();
+    unsigned char w,h;
 
     if (type->getDeployType() == NULL) {
         if (cellpos%mapwidth == mapwidth) {
-            return (Uint32)-1;
+            return (unsigned int)-1;
         }
         deploypos = cellpos+1;
     } else {
@@ -479,24 +479,24 @@ Uint32 Unit::calcDeployPos() const
         h = type->getDeployType()->getYsize();
 
         deploypos = cellpos;
-        if ((Uint32)(w >> 1) > deploypos)
-            return (Uint32)-1; // large number
+        if ((unsigned int)(w >> 1) > deploypos)
+            return (unsigned int)-1; // large number
         else
             deploypos -= w >> 1;
         if ((mapwidth*(h >> 1)) > deploypos)
-            return (Uint32)-1;
+            return (unsigned int)-1;
         else
             deploypos -= mapwidth*(h >> 1);
     }
     return deploypos;
 }
 
-void Unit::setImageNum(Uint32 num, Uint8 layer)
+void Unit::setImageNum(unsigned int num, unsigned char layer)
 {
     imagenumbers[layer] = num | palettenum;
 }
 
-Sint8 Unit::getXoffset() const
+char Unit::getXoffset() const
 {
     if (l2o != NULL) {
         return l2o->xoffsets[0];
@@ -505,7 +505,7 @@ Sint8 Unit::getXoffset() const
     }
 }
 
-Sint8 Unit::getYoffset() const
+char Unit::getYoffset() const
 {
     if (l2o != NULL) {
         return l2o->yoffsets[0];
@@ -514,7 +514,7 @@ Sint8 Unit::getYoffset() const
     }
 }
 
-void Unit::setXoffset(Sint8 xo)
+void Unit::setXoffset(char xo)
 {
     if (l2o != NULL) {
         l2o->xoffsets[0] = xo;
@@ -523,7 +523,7 @@ void Unit::setXoffset(Sint8 xo)
     }
 }
 
-void Unit::setYoffset(Sint8 yo)
+void Unit::setYoffset(char yo)
 {
     if (l2o != NULL) {
         l2o->yoffsets[0] = yo;
@@ -532,9 +532,9 @@ void Unit::setYoffset(Sint8 yo)
     }
 }
 
-Uint16 Unit::getDist(Uint16 pos)
+unsigned short Unit::getDist(unsigned short pos)
 {
-    Uint16 x, y, nx, ny, xdiff, ydiff;
+    unsigned short x, y, nx, ny, xdiff, ydiff;
     x = cellpos%p::ccmap->getWidth();
     y = cellpos/p::ccmap->getWidth();
     nx = pos%p::ccmap->getWidth();
@@ -545,7 +545,7 @@ Uint16 Unit::getDist(Uint16 pos)
     return min(xdiff,ydiff)+abs(xdiff-ydiff);
 }
 
-Uint16 Unit::getTargetCell()
+unsigned short Unit::getTargetCell()
 {
     if (attackanim != NULL && target != NULL) {
         return target->getBPos(cellpos);

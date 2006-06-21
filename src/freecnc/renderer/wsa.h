@@ -12,20 +12,20 @@ public:
     void animate();
     class WSAError {};
 private:
-    SDL_Surface *decodeFrame(Uint16 framenum);
-    Uint8 *wsadata;
-    Uint8 *framedata;
+    SDL_Surface *decodeFrame(unsigned short framenum);
+    unsigned char *wsadata;
+    unsigned char *framedata;
     SDL_Color palette[256];
-    Uint8 loop; /* Whether WSA loops or not */
+    unsigned char loop; /* Whether WSA loops or not */
     char *sndfile;
     struct WSAHeader {
-        Uint16 NumFrames;
-        Uint16 xpos;
-        Uint16 ypos;
-        Uint16 width;
-        Uint16 height;
-        Uint32 delta;
-        Uint32 *offsets;
+        unsigned short NumFrames;
+        unsigned short xpos;
+        unsigned short ypos;
+        unsigned short width;
+        unsigned short height;
+        unsigned int delta;
+        unsigned int *offsets;
     };
     WSAHeader header;
 };

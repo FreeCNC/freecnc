@@ -18,14 +18,14 @@ TmpGFX::~TmpGFX()
 {
 }
 
-void TmpGFX::draw(TemplateData *data, TemplateImage *trans, Font *fnt, Uint32 curpos)
+void TmpGFX::draw(TemplateData *data, TemplateImage *trans, Font *fnt, unsigned int curpos)
 {
     SDL_Surface *image;
     SDL_Rect dest;
-    Uint32 i, width;
+    unsigned int i, width;
     TemplateImage *img;
-    Uint32 typeimg;
-    static Uint32 blackpix = SDL_MapRGB(screen->format,0, 0, 0);
+    unsigned int typeimg;
+    static unsigned int blackpix = SDL_MapRGB(screen->format,0, 0, 0);
 
     char textmsg[1024];
 

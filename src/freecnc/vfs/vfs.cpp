@@ -33,7 +33,7 @@ void VFS_Init(const char* binpath)
 {
     shared_ptr<INIFile> filesini;
     string tempstr;
-    Uint32 keynum;
+    unsigned int keynum;
 
     //logger->debug("Assuming binary is installed in \"%s\"\n", binpath);
 
@@ -53,7 +53,7 @@ void VFS_Init(const char* binpath)
         logger->error("Unable to locate files.ini.\n");
         return;
     }
-    for (Uint32 pathnum = 1;;++pathnum) {
+    for (unsigned int pathnum = 1;;++pathnum) {
         INIKey key;
         try {
             key = filesini->readIndexedKeyValue("GENERAL",pathnum,"PATH");
@@ -70,7 +70,7 @@ void VFS_Init(const char* binpath)
 
     mixfiles = new MIXFiles();
 
-    for (Uint32 gamenum = 1 ;; ++gamenum) {
+    for (unsigned int gamenum = 1 ;; ++gamenum) {
         INIKey key;
         try {
             key = filesini->readIndexedKeyValue("GENERAL",gamenum,"GAME");
@@ -132,9 +132,9 @@ void VFS_Destroy()
 
 VFile *VFS_Open(const char *fname, const char* mode)
 {
-    Uint32 fnum;
+    unsigned int fnum;
     fnum = externals->getFile(fname, mode);
-    if( fnum != (Uint32)-1 ) {
+    if( fnum != (unsigned int)-1 ) {
         return new VFile(fnum, externals);
     }
     // Won't attempt to write/create files in real archives
@@ -142,8 +142,8 @@ VFile *VFS_Open(const char *fname, const char* mode)
         return NULL;
     }
     if (mixfiles != NULL) {
-        Uint32 fnum = mixfiles->getFile(fname);
-        if (fnum != (Uint32)-1) {
+        unsigned int fnum = mixfiles->getFile(fname);
+        if (fnum != (unsigned int)-1) {
             return new VFile(fnum, mixfiles);
         }
     }
@@ -158,7 +158,7 @@ void VFS_Close(VFile *file)
 const char* VFS_getFirstExisting(const vector<const char*>& files)
 {
     VFile* tmp;
-    for (Uint32 i=0;i<files.size();++i) {
+    for (unsigned int i=0;i<files.size();++i) {
         tmp = VFS_Open(files[i],"r");
         if (tmp != NULL) {
             VFS_Close(tmp);
@@ -168,7 +168,7 @@ const char* VFS_getFirstExisting(const vector<const char*>& files)
     return NULL;
 }
 
-const char* VFS_getFirstExisting(Uint32 count, ...)
+const char* VFS_getFirstExisting(unsigned int count, ...)
 {
     VFile* tmp;
     va_list ap;

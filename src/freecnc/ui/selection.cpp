@@ -37,7 +37,7 @@ struct canAttackWalls : unary_function<UnitOrStructure*, bool> {
     }
 };
 
-void domove(Unit* un, Uint32 pos)
+void domove(Unit* un, unsigned int pos)
 {
     p::dispatcher->unitMove(un, pos);
 }
@@ -72,7 +72,7 @@ struct doattack<Structure> : unary_function<Structure*, void> {
 
 template<class T>
 struct postloadproc : unary_function<T*, void> {
-    postloadproc(Uint8 lplayernum, bool* enemysel, Uint32* numatk) :
+    postloadproc(unsigned char lplayernum, bool* enemysel, unsigned int* numatk) :
         lplayernum(lplayernum), enemysel(*enemysel), numattacking(*numatk) {}
     void operator()(T* uos) {
         uos->select();
@@ -83,7 +83,7 @@ struct postloadproc : unary_function<T*, void> {
             ++numattacking;
         }
     }
-    Uint8 lplayernum; bool& enemysel; Uint32& numattacking;
+    unsigned char lplayernum; bool& enemysel; unsigned int& numattacking;
 };
 
 void copySelection(const list<Unit*>& src_un, const list<Structure*>& src_st,
@@ -101,7 +101,7 @@ void copySelection(const list<Unit*>& src_un, const list<Structure*>& src_st,
 template<class T>
 void purgeImpl(T* sel, list<T*> (&saved)[10])
 {
-    Uint8 i;
+    unsigned char i;
     typename list<T*>::iterator r;
     for (i=0;i<10;++i) {
         r = find(saved[i].begin(), saved[i].end(), sel);
@@ -121,7 +121,7 @@ Selection::~Selection()
     for_each(sel_units.begin(), sel_units.end(), unref);
     for_each(sel_structs.begin(), sel_structs.end(), unref);
 
-    for (Uint8 i=0;i<10;++i) {
+    for (unsigned char i=0;i<10;++i) {
         for_each(saved_unitsel[i].begin(), saved_unitsel[i].end(), unref);
         for_each(saved_structsel[i].begin(), saved_structsel[i].end(), unref);
     }
@@ -211,7 +211,7 @@ void Selection::clearSelection()
     enemy_selected = false;
 }
 
-void Selection::moveUnits(Uint32 pos)
+void Selection::moveUnits(unsigned int pos)
 {
     checkSelection();
     for_each(sel_units.begin(), sel_units.end(), bind2nd(ptr_fun(domove), pos));
@@ -254,8 +254,8 @@ void Selection::checkSelection()
 
 Unit* Selection::getRandomUnit()
 {
-    Uint8 rnd,sze;
-    sze = static_cast<Uint8>(sel_units.size());
+    unsigned char rnd,sze;
+    sze = static_cast<unsigned char>(sel_units.size());
     if (sze > 0) {
         rnd = (int) ((double)sze*rand()/(RAND_MAX+1.0));
         list<Unit*>::const_iterator i = sel_units.begin();
@@ -277,7 +277,7 @@ bool Selection::getWall() const
     return (find_if(sel_structs.begin(), sel_structs.end(), canAttackWalls()) != sel_structs.end());
 }
 
-bool Selection::saveSelection(Uint8 savepos)
+bool Selection::saveSelection(unsigned char savepos)
 {
     if (savepos > 10)
         return false;
@@ -287,7 +287,7 @@ bool Selection::saveSelection(Uint8 savepos)
     return true;
 }
 
-bool Selection::loadSelection(Uint8 savepos)
+bool Selection::loadSelection(unsigned char savepos)
 {
     if (savepos > 10) {
         return false;
@@ -301,7 +301,7 @@ bool Selection::loadSelection(Uint8 savepos)
     }
     copySelection(targetsel_units, targetsel_structs, sel_units, sel_structs);
 
-    Uint32 lplayernum = p::ppool->getLPlayerNum();
+    unsigned int lplayernum = p::ppool->getLPlayerNum();
     for_each(sel_units.begin(), sel_units.end(), postloadproc<Unit>(lplayernum, &enemy_selected, &numattacking));
     for_each(sel_structs.begin(), sel_structs.end(), postloadproc<Structure>(lplayernum, &enemy_selected, &numattacking));
 
@@ -315,7 +315,7 @@ void Selection::stop()
     for_each(sel_structs.begin(), sel_structs.end(), mem_fun(&Structure::stop));
 }
 
-bool Selection::mergeSelection(Uint8 loadpos)
+bool Selection::mergeSelection(unsigned char loadpos)
 {
     if (enemy_selected) {
         return false;
@@ -333,7 +333,7 @@ bool Selection::mergeSelection(Uint8 loadpos)
     return true;
 }
 
-Uint8 Selection::getOwner() const
+unsigned char Selection::getOwner() const
 {
     if (sel_units.empty()) {
         assert(!sel_structs.empty());

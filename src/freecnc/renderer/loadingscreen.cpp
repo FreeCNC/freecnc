@@ -6,7 +6,7 @@
 class ImageNotFound;
 
 namespace {
-    Uint32 oldwidth;
+    unsigned int oldwidth;
 }
 
 /** @TODO Abstract away the dependencies on video stuff so we can use

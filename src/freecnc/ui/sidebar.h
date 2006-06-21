@@ -16,7 +16,7 @@ enum createmode_t {
 
 class Sidebar {
 public:
-    Sidebar(Player *pl, Uint16 height, const char* theatre);
+    Sidebar(Player *pl, unsigned short height, const char* theatre);
     ~Sidebar();
 
     bool getVisChanged();
@@ -32,18 +32,18 @@ public:
     SDL_Surface* getSidebarImage(SDL_Rect location);
     bool isOriginalType() {return isoriginaltype;}
 
-    Uint8 getButton(Uint16 x, Uint16 y);
-    void ClickButton(Uint8 index, char* unitname, createmode_t* createmode);
+    unsigned char getButton(unsigned short x, unsigned short y);
+    void ClickButton(unsigned char index, char* unitname, createmode_t* createmode);
     void ResetButton();
     void ScrollSidebar(bool scrollup);
     void UpdateSidebar();
 
-    void StartRadarAnim(Uint8 mode, bool* minienable);
+    void StartRadarAnim(unsigned char mode, bool* minienable);
 
     /// @TODO Continue almighty jihad against naked pointers
     Font* getFont() {return gamefnt.get();}
 
-    Uint8 getSteps() const {return steps;}
+    unsigned char getSteps() const {return steps;}
 
     class SidebarError {};
 
@@ -51,7 +51,7 @@ public:
         sbo_structure = 8, sbo_up = 16, sbo_down = 32};
 
     struct SidebarGeometry {
-        Uint16 bw,bh;
+        unsigned short bw,bh;
     };
     const SidebarGeometry& getGeom() {return geom;}
 private:
@@ -61,39 +61,39 @@ private:
 
     class RadarAnimEvent : public ActionEvent {
     public:
-        RadarAnimEvent(Uint8 mode, bool* minienable, Uint32 radar);
+        RadarAnimEvent(unsigned char mode, bool* minienable, unsigned int radar);
         void run();
     private:
-        Uint8 mode, frame, framend;
+        unsigned char mode, frame, framend;
         bool* minienable;
-        Uint32 radar;
+        unsigned int radar;
     };
 
     friend class RadarAnimEvent;
 
     class SidebarButton {
     public:
-        SidebarButton(Sint16 x, Sint16 y, const char* fname, Uint8 f,
-                const char* theatre, Uint8 palnum);
+        SidebarButton(short x, short y, const char* fname, unsigned char f,
+                const char* theatre, unsigned char palnum);
         ~SidebarButton();
         void ChangeImage(const char* fname);
-        void ChangeImage(const char* fname, Uint8 number);
+        void ChangeImage(const char* fname, unsigned char number);
         SDL_Surface* getSurface() const {
             return pic;
         }
         SDL_Rect getRect() const {
             return picloc;
         }
-        Uint8 getFunction() const {
+        unsigned char getFunction() const {
             return function;
         }
         SDL_Surface* Fallback(const char* fname);
 
         void ReloadImage();
     private:
-        Uint32 picnum;
+        unsigned int picnum;
         SDL_Surface *pic;
-        Uint8 function, palnum;
+        unsigned char function, palnum;
         const char* theatre;
 
         bool using_fallback;
@@ -105,22 +105,22 @@ private:
     // True: DOS, False: GOLD
     bool isoriginaltype;
     // Palette offset for structures (Nod's buildings are red)
-    Uint8 spalnum;
+    unsigned char spalnum;
 
-    void SetupButtons(Uint16 height);
-    void ScrollBuildList(Uint8 dir, Uint8 type);
-    void Build(Uint8 index, Uint8 type, char* unitname, createmode_t* createmode);
+    void SetupButtons(unsigned short height);
+    void ScrollBuildList(unsigned char dir, unsigned char type);
+    void Build(unsigned char index, unsigned char type, char* unitname, createmode_t* createmode);
     void UpdateIcons();
     void UpdateAvailableLists();
-    void DownButton(Uint8 index);
-    void AddButton(Uint16 x, Uint16 y, const char* fname, Uint8 f, Uint8 pal);
-    void DrawButton(Uint8 index);
-    void DrawClock(Uint8 index, Uint8 imgnum);
+    void DownButton(unsigned char index);
+    void AddButton(unsigned short x, unsigned short y, const char* fname, unsigned char f, unsigned char pal);
+    void DrawButton(unsigned char index);
+    void DrawClock(unsigned char index, unsigned char imgnum);
 
-    Uint32 radarlogo;
+    unsigned int radarlogo;
     SDL_Rect radarlocation;
 
-    Uint32 tab;
+    unsigned int tab;
     SDL_Rect tablocation;
 
     SDL_Surface* sbar;
@@ -132,10 +132,10 @@ private:
 
     const char* theatre;
 
-    Uint8 buttondown;
+    unsigned char buttondown;
     bool bd;
 
-    Uint8 buildbut;
+    unsigned char buildbut;
     std::vector<shared_ptr<SidebarButton> > buttons;
 
     std::vector<char*> uniticons;
@@ -145,17 +145,17 @@ private:
     RadarAnimEvent* radaranim;
     bool radaranimating;
 
-    Uint8 unitoff,structoff; // For scrolling
+    unsigned char unitoff,structoff; // For scrolling
 
     Player* player;
     int scaleq;
 
-    Uint8 steps;
+    unsigned char steps;
 
     SidebarGeometry geom;
 
     bool greyFixed[256];
-    void FixGrey(SDL_Surface* gr, Uint8 num);
+    void FixGrey(SDL_Surface* gr, unsigned char num);
 };
 
 #endif

@@ -11,44 +11,44 @@ class Weapon;
 class ExplosionAnim : public ActionEvent
 {
 public:
-    ExplosionAnim(Uint32 p, Uint16 pos, Uint32 startimage, Uint8 animsteps,
-                  Sint8 xoff, Sint8 yoff);
+    ExplosionAnim(unsigned int p, unsigned short pos, unsigned int startimage, unsigned char animsteps,
+                  char xoff, char yoff);
     ~ExplosionAnim();
     void run();
 private:
     ExplosionAnim() : ActionEvent(1) {};
 
     L2Overlay *l2o;
-    Uint16 pos;
-    Uint8 animsteps;
-    std::multimap<Uint16, L2Overlay*>::iterator l2entry;
+    unsigned short pos;
+    unsigned char animsteps;
+    std::multimap<unsigned short, L2Overlay*>::iterator l2entry;
 };
 
 class ProjectileAnim : public ActionEvent
 {
 public:
-    ProjectileAnim(Uint32 p, Weapon *weap, UnitOrStructure* owner, Uint16 dest, Uint8 subdest);
+    ProjectileAnim(unsigned int p, Weapon *weap, UnitOrStructure* owner, unsigned short dest, unsigned char subdest);
     ~ProjectileAnim();
     void run();
 private:
     Weapon* weap;
     UnitOrStructure* owner;
     UnitOrStructure* target;
-    Uint16 dest;
-    Uint8 subdest;
+    unsigned short dest;
+    unsigned char subdest;
     // Fuel - how many ticks left until projectile is removed.
     // Seekfuel - how many ticks left until this projectile change course
     // to track its target before falling back to flying in a straight line.
-    Uint8 fuel, seekfuel;
-    Sint8 xoffset;
-    Sint8 yoffset;
-    //Sint32 xmod, ymod;
+    unsigned char fuel, seekfuel;
+    char xoffset;
+    char yoffset;
+    //int xmod, ymod;
     L2Overlay *l2o;
-    std::multimap<Uint16, L2Overlay*>::iterator l2entry;
+    std::multimap<unsigned short, L2Overlay*>::iterator l2entry;
     double xdiff, ydiff;
     double xmod, ymod, rxoffs, ryoffs;
     bool heatseek,inaccurate,fuelled;
-    Uint8 facing;
+    unsigned char facing;
 };
 
 #endif /* PROJECTILEANIM_H */

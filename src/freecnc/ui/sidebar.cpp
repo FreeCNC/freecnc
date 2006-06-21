@@ -35,13 +35,13 @@ using std::replace;
  *      TD: desert, temperate and winter
  *      RA: temperate and snow
  */
-Sidebar::Sidebar(Player *pl, Uint16 height, const char *theatre)
+Sidebar::Sidebar(Player *pl, unsigned short height, const char *theatre)
     : radarlogo(0), tab(0), sbar(0), gamefnt(new Font("scorefnt.fnt")), visible(true),
     vischanged(true), theatre(theatre), buttondown(0), bd(false),
     radaranimating(false), unitoff(0), structoff(0), player(pl), scaleq(-1)
 {
     const char* tmpname;
-    Uint8 side;
+    unsigned char side;
     SDL_Surface *tmp;
 
     // If we can't load these files, there's no point in proceeding, thus we let
@@ -136,7 +136,7 @@ Sidebar::Sidebar(Player *pl, Uint16 height, const char *theatre)
 
 Sidebar::~Sidebar()
 {
-    Uint32 i;
+    unsigned int i;
 
     SDL_FreeSurface(sbar);
 
@@ -208,7 +208,7 @@ SDL_Surface *Sidebar::getSidebarImage(SDL_Rect location)
     } else {
         try {
             // Get the index of the btexture
-            Uint32 idx = pc::imgcache->loadImage("btexture.shp", scaleq);
+            unsigned int idx = pc::imgcache->loadImage("btexture.shp", scaleq);
 
             // Get the SDL_Surface for this texture
             SDL_Surface* texture = pc::imgcache->getImage(idx).image;
@@ -236,27 +236,27 @@ SDL_Surface *Sidebar::getSidebarImage(SDL_Rect location)
         SDL_BlitSurface(radar, NULL, sbar, &radarlocation);
     }
 
-    for (Sint8 x = buttons.size()-1;x>=0;--x) {
+    for (char x = buttons.size()-1;x>=0;--x) {
         DrawButton(x);
     }
 
     return sbar;
 }
 
-void Sidebar::AddButton(Uint16 x, Uint16 y, const char* fname, Uint8 f, Uint8 pal)
+void Sidebar::AddButton(unsigned short x, unsigned short y, const char* fname, unsigned char f, unsigned char pal)
 {
     shared_ptr<SidebarButton> t(new SidebarButton(x, y, fname, f, theatre, pal));
     buttons.push_back(t);
     vischanged = true;
 }
 
-void Sidebar::SetupButtons(Uint16 height)
+void Sidebar::SetupButtons(unsigned short height)
 {
     const char* tmpname;
-    Uint16 scrollbase;
-    Uint8 t;
+    unsigned short scrollbase;
+    unsigned char t;
 
-    Uint32 startoffs = tablocation.h + radarlocation.h;
+    unsigned int startoffs = tablocation.h + radarlocation.h;
 
     SHPImage *strip;
 
@@ -311,11 +311,11 @@ void Sidebar::SetupButtons(Uint16 height)
     }
 }
 
-Uint8 Sidebar::getButton(Uint16 x,Uint16 y)
+unsigned char Sidebar::getButton(unsigned short x,unsigned short y)
 {
     SDL_Rect tmp;
 
-    for (Uint8 i=0;i<buttons.size();++i) {
+    for (unsigned char i=0;i<buttons.size();++i) {
         tmp = buttons[i]->getRect();
         if (x>=tmp.x && y>=tmp.y && x<(tmp.x+tmp.w) && y<(tmp.y+tmp.h)) {
             return i;
@@ -324,7 +324,7 @@ Uint8 Sidebar::getButton(Uint16 x,Uint16 y)
     return 255;
 }
 
-void Sidebar::DrawButton(Uint8 index)
+void Sidebar::DrawButton(unsigned char index)
 {
     if (sbar == 0) {
         /// @TODO Ensure we don't actually get called when this is the case
@@ -332,7 +332,7 @@ void Sidebar::DrawButton(Uint8 index)
     }
     SDL_Rect dest = buttons[index]->getRect();
     SDL_FillRect(sbar, &dest, 0x0);
-    Uint8 func = buttons[index]->getFunction();
+    unsigned char func = buttons[index]->getFunction();
 
     // Blit the button's image onto the sidebar surface
     SDL_Surface *temp = buttons[index]->getSurface();
@@ -344,7 +344,7 @@ void Sidebar::DrawButton(Uint8 index)
         return;
     }
     // Calculate which icon was clicked on
-    Uint8 offset = index - 4 + // First four buttons are scroll buttons
+    unsigned char offset = index - 4 + // First four buttons are scroll buttons
                    ((func&sbo_unit)
                     ? unitoff  // Unit buttons are created first
                     : (structoff-buildbut) // See comment around line 265
@@ -358,7 +358,7 @@ void Sidebar::DrawButton(Uint8 index)
     }
 
     // Extract type name from icon name, e.g. NUKE from NUKEICON.SHP
-    Uint32 length = strlen(icons[offset])-8; if (length>13) length = 13;
+    unsigned int length = strlen(icons[offset])-8; if (length>13) length = 13;
     string name(icons[offset], length);
 
     static const char* stat_mesg[] = {
@@ -368,10 +368,10 @@ void Sidebar::DrawButton(Uint8 index)
         "hold", // BQ_PAUSED
         "ready" // BQ_READY
     };
-    static struct {Uint32 x,y;} stat_pos[5];
+    static struct {unsigned int x,y;} stat_pos[5];
     static bool posinit = false;
     if (!posinit) {
-        for (Uint8 i = 0; i < 5; ++i) {
+        for (unsigned char i = 0; i < 5; ++i) {
             // Here we assume that all sidebar icons are the same size
             // (which is pretty safe)
             stat_pos[i].x = (dest.w - getFont()->calcTextWidth(stat_mesg[i])) >> 1;
@@ -380,7 +380,7 @@ void Sidebar::DrawButton(Uint8 index)
         posinit = true;
     }
     ConStatus status;
-    Uint8 quantity, progress, imgnum;
+    unsigned char quantity, progress, imgnum;
 
     UnitOrStructureType* type;
     if (func&sbo_unit) {
@@ -414,7 +414,7 @@ void Sidebar::DrawButton(Uint8 index)
     }
 }
 
-void Sidebar::FixGrey(SDL_Surface* gr, Uint8 num)
+void Sidebar::FixGrey(SDL_Surface* gr, unsigned char num)
 {
     if (greyFixed[num]) {
         return;
@@ -422,20 +422,20 @@ void Sidebar::FixGrey(SDL_Surface* gr, Uint8 num)
 
     SDL_LockSurface(gr);
     if(gr->format->BytesPerPixel == 4) {
-        Uint32 *pixels = (Uint32 *)gr->pixels;
-        Uint32 size = ((gr->h-1) * (gr->pitch >> 2)) + gr->w-1;
+        unsigned int *pixels = (unsigned int *)gr->pixels;
+        unsigned int size = ((gr->h-1) * (gr->pitch >> 2)) + gr->w-1;
         replace(pixels, pixels+size, 0xa800U, 0x10101U);
     } else if(gr->format->BytesPerPixel == 2) {
-        Uint16 *pixels = (Uint16 *)gr->pixels;
-        Uint32 size = ((gr->h-1) * (gr->pitch >> 1)) + gr->w-1;
+        unsigned short *pixels = (unsigned short *)gr->pixels;
+        unsigned int size = ((gr->h-1) * (gr->pitch >> 1)) + gr->w-1;
         replace(pixels, pixels+size, 0x540U, 0x21U);
     }
     SDL_UnlockSurface(gr);
     greyFixed[num] = true;
 }
 
-void Sidebar::DrawClock(Uint8 index, Uint8 imgnum) {
-    Uint32 num = 0;
+void Sidebar::DrawClock(unsigned char index, unsigned char imgnum) {
+    unsigned int num = 0;
     try {
         // @TODO Move this check to config object
         if (getConfig().gamenum == GAME_RA || isoriginaltype) {
@@ -465,8 +465,8 @@ void Sidebar::DrawClock(Uint8 index, Uint8 imgnum) {
  * @bug This is an evil hack that should be replaced by something more flexible.
  */
 /// @TODO Bleh, this function needs loving.
-void Sidebar::ClickButton(Uint8 index, char* unitname, createmode_t* createmode) {
-    Uint8 f = buttons[index]->getFunction();
+void Sidebar::ClickButton(unsigned char index, char* unitname, createmode_t* createmode) {
+    unsigned char f = buttons[index]->getFunction();
     *createmode = CM_INVALID;
     switch (f&0x3) {
     case 0:
@@ -486,8 +486,8 @@ void Sidebar::ClickButton(Uint8 index, char* unitname, createmode_t* createmode)
 }
 
 /// @TODO Bleh, this function needs loving.
-void Sidebar::Build(Uint8 index, Uint8 type, char* unitname, createmode_t* createmode) {
-    Uint8* offptr;
+void Sidebar::Build(unsigned char index, unsigned char type, char* unitname, createmode_t* createmode) {
+    unsigned char* offptr;
     std::vector<char*>* vecptr;
 
     if (type) {
@@ -516,8 +516,8 @@ void Sidebar::Build(Uint8 index, Uint8 type, char* unitname, createmode_t* creat
     }
 }
 
-void Sidebar::ScrollBuildList(Uint8 dir, Uint8 type) {
-    Uint8* offptr;
+void Sidebar::ScrollBuildList(unsigned char dir, unsigned char type) {
+    unsigned char* offptr;
     std::vector<char*>* vecptr;
 
     if (type) {
@@ -555,8 +555,8 @@ void Sidebar::UpdateAvailableLists() {
     std::vector<const char*> units_avail, structs_avail;
     char* nametemp;
     bool played_sound;
-    Uint8 prev_units_avail, prev_structs_avail;
-    Uint32 i;
+    unsigned char prev_units_avail, prev_structs_avail;
+    unsigned int i;
     played_sound = false;
     units_avail = p::uspool->getBuildableUnits(player);
     structs_avail = p::uspool->getBuildableStructures(player);
@@ -607,7 +607,7 @@ void Sidebar::UpdateAvailableLists() {
  * @TODO Provide a way to only update certain icons
  */
 void Sidebar::UpdateIcons() {
-    Uint8 i;
+    unsigned char i;
 
     for (i=0;i<buildbut;++i) {
         if ((unsigned)(i+unitoff)>=(unsigned)uniticons.size()) {
@@ -626,12 +626,12 @@ void Sidebar::UpdateIcons() {
         }
     }
 
-    for (Sint8 x=buttons.size()-1;x>=0;--x) {
+    for (char x=buttons.size()-1;x>=0;--x) {
         DrawButton(x);
     }
 }
 
-void Sidebar::DownButton(Uint8 index)
+void Sidebar::DownButton(unsigned char index)
 {
     if (index>3)
         return; // not a scroll button
@@ -661,7 +661,7 @@ void Sidebar::ResetButton()
     UpdateIcons();
 }
 
-void Sidebar::StartRadarAnim(Uint8 mode, bool* minienable)
+void Sidebar::StartRadarAnim(unsigned char mode, bool* minienable)
 {
     if (radaranimating == false && radaranim == NULL && sbar != NULL) {
         radaranimating = true;
@@ -675,8 +675,8 @@ void Sidebar::ScrollSidebar(bool scrollup)
     ScrollBuildList(scrollup, 1);
 }
 
-Sidebar::SidebarButton::SidebarButton(Sint16 x, Sint16 y, const char* picname,
-        Uint8 f, const char* theatre, Uint8 pal)
+Sidebar::SidebarButton::SidebarButton(short x, short y, const char* picname,
+        unsigned char f, const char* theatre, unsigned char pal)
  : pic(0), function(f), palnum(pal), theatre(theatre), using_fallback(false)
 {
     picloc.x = x;
@@ -692,8 +692,8 @@ void Sidebar::SidebarButton::ChangeImage(const char* fname)
 SDL_Surface* Sidebar::SidebarButton::Fallback(const char* fname)
 {
     SDL_Surface* ret;
-    Uint32 width, height;
-    Uint32 slen = strlen(fname);
+    unsigned int width, height;
+    unsigned int slen = strlen(fname);
     char* iname = new char[slen-7];
 
     using_fallback = true; // Ensures that the surface created gets destroyed later.
@@ -710,11 +710,11 @@ SDL_Surface* Sidebar::SidebarButton::Fallback(const char* fname)
     return ret;
 }
 
-void Sidebar::SidebarButton::ChangeImage(const char* fname, Uint8 number)
+void Sidebar::SidebarButton::ChangeImage(const char* fname, unsigned char number)
 {
     const char* name;
     char goldname[32];
-    Uint32 slen = strlen(fname);
+    unsigned int slen = strlen(fname);
 
     if (using_fallback) {
         SDL_FreeSurface(pic);
@@ -782,7 +782,7 @@ Sidebar::SidebarButton::~SidebarButton()
 }
 
 
-Sidebar::RadarAnimEvent::RadarAnimEvent(Uint8 mode, bool* minienable, Uint32 radar)
+Sidebar::RadarAnimEvent::RadarAnimEvent(unsigned char mode, bool* minienable, unsigned int radar)
     : ActionEvent(1), mode(mode), minienable(minienable), radar(radar)
 {
     switch (mode) {

@@ -24,7 +24,7 @@ Talkback::Talkback()
 
 void Talkback::load(string talkback, shared_ptr<INIFile> tbini)
 {
-    Uint32 keynum;
+    unsigned int keynum;
     INIKey key;
 
     //logger->debug("Loading %s\n", talkback.c_str());

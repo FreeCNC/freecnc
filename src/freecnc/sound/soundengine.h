@@ -40,9 +40,9 @@ public:
     void NextTrack(); // Selects the next track in the playlist
     void PrevTrack(); // Selects the previous track in the playlist
 
-    static void MusicHook(void* userdata, Uint8* stream, int len);
+    static void MusicHook(void* userdata, unsigned char* stream, int len);
 
-    typedef void (*MixFunc)(void*, Uint8*, int);
+    typedef void (*MixFunc)(void*, unsigned char*, int);
     void SetMusicHook(MixFunc mixfunc, void *arg);
 
     bool NoSound() const { return nosound; }

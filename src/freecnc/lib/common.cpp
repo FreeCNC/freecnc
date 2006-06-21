@@ -55,7 +55,7 @@ std::vector<char*> splitList(char* line, char delim)
 {
     std::vector<char*> retval;
     char* tmp;
-    Uint32 i,i2;
+    unsigned int i,i2;
     tmp = NULL;
     if (line != NULL) {
         tmp = new char[16];
@@ -80,7 +80,7 @@ std::vector<char*> splitList(char* line, char delim)
 char* stripNumbers(const char* src)
 {
     char* dest;
-    Uint16 i;
+    unsigned short i;
     for (i=0;i<strlen(src);++i) {
         if (src[i] <= '9') {
             break;

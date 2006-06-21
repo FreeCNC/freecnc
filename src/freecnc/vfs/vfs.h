@@ -15,6 +15,6 @@ VFile *VFS_Open(const char *fname, const char* mode="rb");
 void VFS_Close(VFile *file);
 
 const char* VFS_getFirstExisting(const vector<const char*>& files);
-const char* VFS_getFirstExisting(Uint32 count, ...);
+const char* VFS_getFirstExisting(unsigned int count, ...);
 
 #endif
