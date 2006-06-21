@@ -19,16 +19,6 @@
 #include "lib/fcncendian.h"
 #include "lib/logger.h"
 
-// ----------------------------------------------------------------------------
-// New
-// ----------------------------------------------------------------------------
-
-// TODO: Migrate FreeCNC to use these instead of any libs (currently SDL)
-typedef unsigned char  uchar;
-typedef unsigned short ushort;
-typedef unsigned int   uint;
-typedef unsigned long  ulong;
-
 using std::map;
 using std::string;
 using std::vector;
@@ -125,10 +115,9 @@ private:
 extern GameEngine game;
 */
 
-// Ideally, after the big refactoring, everything below here will be gone
-
 // ----------------------------------------------------------------------------
 // Old
+// Ideally, after the big refactoring, everything below here will be gone
 // ----------------------------------------------------------------------------
 
 extern Logger *logger;
