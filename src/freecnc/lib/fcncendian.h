@@ -1,9 +1,9 @@
 #ifndef _LIB_ENDIANUTILS_H
 #define _LIB_ENDIANUTILS_H
 //
-// Defines various useful constants for endianness. 
+// Defines various useful constants and inline functions for endianness. 
 //
-// TODO: Replace macros with inline functions
+// TODO: Get rid of read* macros and fread* functions
 
 #include <cstdio>
 #include "SDL_endian.h"
@@ -24,6 +24,74 @@
 #define readthree(x,y) SDL_Swap32((x[y] << 24) ^ (x[y+1] << 16) ^ (x[y+2] << 8))
 #define readlong(x,y) SDL_Swap32((x[y] << 24) ^ (x[y+1] << 16) ^ (x[y+2] << 8) ^ (x[y+3]))
 #endif
+
+// Byteswaps endianness of a short (16 bit integer).
+// x: The short to swap.
+// returns: The swapped short.
+inline unsigned short SwapEndian(unsigned short x)
+{
+    return (x << 8) | (x >> 8);
+}
+
+// Byteswaps endianness of an int (32 bit integer).
+// x: The int to swap.
+// returns: The swapped int.
+inline unsigned int SwapEndian(unsigned int x)
+{
+    return (x << 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x >> 24);
+}
+
+// Byteswaps a little-endian short (16 bit integer) to system endianness.
+// This has no effect on a little-endian system.
+// x: The short to swap.
+// returns: The swapped short.
+inline unsigned short SwapLittleEndian(unsigned short x)
+{
+    #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
+    return x;
+    #else 
+    return SwapEndian(x);
+    #endif
+}
+
+// Byteswaps a little-endian int (32 bit integer) to system endianness.
+// This has no effect on a little-endian system.
+// x: The int to swap.
+// returns: The swapped int.
+inline unsigned int SwapLittleEndian(unsigned int x)
+{
+    #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
+    return x;
+    #else 
+    return SwapEndian(x);
+    #endif
+}
+
+// Byteswaps a big-endian short (16 bit integer) to system endianness.
+// This has no effect on a big-endian system.
+// x: The short to swap.
+// returns: The swapped short.
+inline unsigned short SwapBigEndian(unsigned short x)
+{
+    #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
+    return x;
+    #else 
+    return SwapEndian(x);
+    #endif
+}
+
+// Byteswaps a big-endian int (16 bit integer) to system endianness.
+// This has no effect on a big-endian system.
+// x: The int to swap.
+// returns: The swapped int.
+inline unsigned int SwapBigEndian(unsigned int x)
+{
+    #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
+    return x;
+    #else 
+    return SwapEndian(x);
+    #endif
+}
 
 inline unsigned char freadbyte(FILE *fptr)
 {
