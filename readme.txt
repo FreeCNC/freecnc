@@ -219,16 +219,30 @@ located.
 7.1. Team
 =========
 
-  Euan MacGregor - euan@freecnc.org
+  Bernd Ritter (comrad) - email unknown
+  webmaster, former developer
+
+  Euan MacGregor (zx64) - euan@freecnc.org
   developer
   
-  Thomas Johansson - thomas@freecnc.org
+  Thomas Johansson (prencher) - thomas@freecnc.org
   developer
 
 7.2. Previous team members
 ==========================
 
-  Still TODO
+  Jonas Jermann (g0th) - email uknown
+  developer
+
+  Kareem Dana (kareemy) - email unknown
+  developer
+
+  Sander van Geloven (Pander) - email uknown
+  not sure
+
+  Tim Johansson (Tim^) - email unknown
+  project starter, developer
+
 
 7.3. Thanks
 ===========
