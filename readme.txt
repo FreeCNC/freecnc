@@ -220,17 +220,20 @@ located.
 7.1. Team
 =========
 
-  Bernd Ritter (comrad) - email unknown
-  webmaster, former developer
-
   Euan MacGregor (zx64) - euan@freecnc.org
   developer
   
+  Stijn Gijsen (gonewacko) - stijn@freecnc.org
+  website developer
+
   Thomas Johansson (prencher) - thomas@freecnc.org
-  developer
+  developer, svn/trac admin, email admin
 
 7.2. Previous team members
 ==========================
+
+  Bernd Ritter (comrad) - email unknown
+  old website
 
   Jonas Jermann (g0th) - email uknown
   developer
@@ -242,8 +245,7 @@ located.
   not sure
 
   Tim Johansson (Tim^) - email unknown
-  project starter, developer
-
+  started the project, developer
 
 7.3. Thanks
 ===========
