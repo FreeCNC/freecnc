@@ -21,6 +21,7 @@
 7. Credits
   7.1. Team
   7.2. Previous team members
+  7.3. Thanks
 
 -------------------------------------------------------------------------------
 2. Introduction
@@ -250,8 +251,11 @@ located.
   Thanks to everybody who have contributed patches and insights over the years,
   especially the people who reverse engineered the file formats.
 
-  Also thanks to SourceForge for hosting us in the past, even when things got a
-  bit ugly with EA.
+  Thanks to James Crasta for providing website & trac hosting, and Lasse Hjorth
+  for hosting our email.
 
-  And thanks to anybody else we may have forgotten - do contact us if you 
-  belong here :)
+  Thanks to SourceForge for hosting us in the past, even when things got a bit
+  ugly with EA.
+
+  And finally thanks to anybody else we may have forgotten - do contact us if
+  you belong here :)
