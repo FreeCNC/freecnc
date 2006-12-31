@@ -253,7 +253,7 @@ bool parse_options(int argc, char** argv)
         return false;
     }
 
-    const string config_path(config.basedir + "/freecnc.cfg");
+    const string config_path(config.basedir + "/data/settings/freecnc.cfg");
     std::ifstream cfgfile(config_path.c_str());
 
     po::store(po::parse_config_file(cfgfile, config_file_options), vm);
