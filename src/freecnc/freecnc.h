@@ -3,7 +3,6 @@
 //
 // Defines the common types and the global variables
 //
-// TODO: Get rid of everything below OLD, implement GameEngine
 
 #include <map>
 #include <string>
@@ -30,6 +29,11 @@ using boost::scoped_ptr;
 using boost::shared_ptr;
 
 /*
+
+// ----------------------------------------------------------------------------
+// Prototype stuff, do not remove
+// ----------------------------------------------------------------------------
+
 class InputEngine;
 class NetworkClient;
 class NetworkServer;
@@ -110,13 +114,53 @@ private:
     // The current GameModes.
     std::stack<shared_ptr<GameMode> > modes;
 };
-
-extern GameEngine game;
 */
 
 // ----------------------------------------------------------------------------
+// Game Engine
+// ----------------------------------------------------------------------------
+
+struct GameConfig
+{
+    // ...    
+}
+
+class GameEngine
+{
+public:
+    GameEngine() {}
+    ~GameEngine() {}
+    
+    GameConfig config;
+}
+
+extern GameEngine game;
+
+// Remove this when the above works
+
+struct ConfigType
+{
+    unsigned int videoflags;
+    unsigned short width, height, bpp, serverport;
+    unsigned char intro, gamemode, totalplayers, playernum,
+        scrollstep, scrolltime, maxscroll, finaldelay, dispatch_mode;
+    bool nosound, playvqa, allowsandbagging, debug;
+    gametypes gamenum;
+    SDL_GrabMode grabmode;
+    static const unsigned char NUMBINDABLE = 3;
+    SDLKey bindablekeys[NUMBINDABLE];
+    unsigned char bindablemods[NUMBINDABLE];
+    unsigned char buildable_radius;
+    std::string mapname, vqamovie, nick, side_colour, mside, serveraddr; // ,disp_logname;
+    double buildable_ratio;
+};
+
+const ConfigType& getConfig();
+
+// -- End Remove
+
+// ----------------------------------------------------------------------------
 // Old
-// Ideally, after the big refactoring, everything below here will be gone
 // ----------------------------------------------------------------------------
 
 extern Logger *logger;
@@ -250,10 +294,6 @@ std::vector<char*> splitList(char* line, char delim);
 /// @TODO Stringify this funciton
 char* stripNumbers(const char* src);
 
-const std::string& determineBinaryLocation(const std::string& launchcmd);
-
-const std::string& getBinaryLocation();
-
 /** What each state means:
  * INVALID: Build Queue in an inconsistent state, expect "undefined behaviour".
  * EMPTY: Nothing to construct.
@@ -272,24 +312,5 @@ typedef shared_ptr<InfantryGroup> InfantryGroupPtr;
 enum KEY_TYPE {
     KEY_SIDEBAR = 0, KEY_STOP, KEY_ALLY
 };
-
-struct ConfigType
-{
-    unsigned int videoflags;
-    unsigned short width, height, bpp, serverport;
-    unsigned char intro, gamemode, totalplayers, playernum,
-        scrollstep, scrolltime, maxscroll, finaldelay, dispatch_mode;
-    bool nosound, playvqa, allowsandbagging, debug;
-    gametypes gamenum;
-    SDL_GrabMode grabmode;
-    static const unsigned char NUMBINDABLE = 3;
-    SDLKey bindablekeys[NUMBINDABLE];
-    unsigned char bindablemods[NUMBINDABLE];
-    unsigned char buildable_radius;
-    std::string mapname, vqamovie, nick, side_colour, mside, serveraddr; // ,disp_logname;
-    double buildable_ratio;
-};
-
-const ConfigType& getConfig();
 
 #endif
