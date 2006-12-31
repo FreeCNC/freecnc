@@ -95,7 +95,7 @@ void GameEngine::reconfigure()
         temp << "GameEngine: Graphics engine init failed";
         throw runtime_error(temp.str());
     }
-throw runtime_error("penis");
+
     // Initialise Sound
     try {
         log << "GameEngine: Initialising sound engine..." << endl;
@@ -182,8 +182,6 @@ void GameEngine::shutdown()
 
 bool GameEngine::parse_options(int argc, char** argv)
 {
-    GameConfig& config(game.config);
-
     po::options_description generic("Generic options");
     generic.add_options()
         ("help,h", "show this message")
