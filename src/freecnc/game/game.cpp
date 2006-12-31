@@ -88,7 +88,7 @@ void Game::play()
         string mov_name;
         if (p::ppool->hasWon()) {
             mov_name = p::ccmap->getMissionData().winmov;
-        } else {
+        } else if (p::ppool->hasLost()) {
             mov_name = p::ccmap->getMissionData().losemov;
         }
         VQAMovie mov(mov_name.c_str());
