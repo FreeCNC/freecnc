@@ -131,6 +131,7 @@ struct GameConfig
     string map;
     bool fullscreen;
     int width, height;
+    int bpp;
     GameType gametype;
 
     // Config only options
@@ -138,6 +139,9 @@ struct GameConfig
     bool scale_movies;
     int scaler_quality;
     int scrollstep, scrolltime, maxscroll;
+    int final_delay;
+    int buildable_radius;
+    double buildable_ratio;
 
     // Debug flags
     bool nosound;
@@ -163,26 +167,6 @@ private:
 };
 
 extern GameEngine game;
-
-// Remove this when the above works
-
-struct ConfigType
-{
-    unsigned int videoflags;
-    unsigned short width, height, bpp, serverport;
-    unsigned char intro, gamemode, totalplayers, playernum,
-        scrollstep, scrolltime, maxscroll, finaldelay, dispatch_mode;
-    bool nosound, playvqa, allowsandbagging, debug;
-    SDL_GrabMode grabmode;
-    static const unsigned char NUMBINDABLE = 3;
-    SDLKey bindablekeys[NUMBINDABLE];
-    unsigned char bindablemods[NUMBINDABLE];
-    unsigned char buildable_radius;
-    std::string mapname, vqamovie, nick, side_colour, mside, serveraddr; // ,disp_logname;
-    double buildable_ratio;
-};
-
-const ConfigType& getConfig();
 
 // -- End Remove
 

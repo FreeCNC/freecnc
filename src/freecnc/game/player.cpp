@@ -533,13 +533,13 @@ void Player::addSoB(unsigned int pos, unsigned char width, unsigned char height,
     unsigned int curpos, xsize, ysize, cpos;
     int xstart, ystart;
     std::vector<bool>* mapVoB = NULL;
-    static unsigned char brad = getConfig().buildable_radius;
+    static unsigned char buildable_radius = game.config.buildable_radius;
 
     if (mode == SOB_SIGHT) {
         mapVoB = &mapVisible;
     } else if (mode == SOB_BUILD) {
         mapVoB = &mapBuildable;
-        sight  = brad;
+        sight  = buildable_radius;
     } else {
         logger->error("addSoB was given an invalid mode: %i\n", mode);
         return;
@@ -578,10 +578,10 @@ void Player::removeSoB(unsigned int pos, unsigned char width, unsigned char heig
     unsigned int curpos, xsize, ysize, cpos;
     int xstart, ystart;
     static unsigned short mwid = p::ccmap->getWidth();
-    static unsigned char brad = getConfig().buildable_radius;
+    static unsigned char buildable_radius = game.config.buildable_radius;
 
     if (mode == SOB_BUILD) {
-        sight = brad;
+        sight = buildable_radius;
     }
 
     xstart = pos%mwid - sight;

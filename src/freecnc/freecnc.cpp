@@ -52,7 +52,6 @@ private:
 
 // Legacy
 Logger *logger;
-bool parse(int argc, char** argv);
 
 int main(int argc, char** argv)
 {
@@ -140,11 +139,7 @@ void GameEngine::startup(int argc, char** argv)
 
         string legacy_logfile = game.config.basedir + "/freecnc-legacy.log";
         logger = new Logger(legacy_logfile.c_str(),0);
-        if (!parse(argc, argv)) {
-            throw runtime_error("GameEngine: parse parsing error");
-        }
 
-        const ConfigType& legacy_config = getConfig();
         VFS_Init(config.basedir.c_str());
         VFS_LoadGame(game.config.gametype);
 
@@ -215,7 +210,9 @@ void GameEngine::parse_options(int argc, char** argv)
         ("width,w", po::value<int>(&config.width)->default_value(640),
             "use this value for screen width")
         ("height,h", po::value<int>(&config.height)->default_value(480),
-            "use this value for screen height");
+            "use this value for screen height")
+        ("bpp", po::value<int>(&config.bpp)->default_value(16),
+            "colour depth in bits per pixel");
 
     po::options_description config_only("Config only options");
     config_only.add_options()
@@ -268,4 +265,9 @@ void GameEngine::parse_options(int argc, char** argv)
 
     // This is ugly, but not sure how permanent gametype will be.
     config.gametype = static_cast<GameType>(vm["gametype"].as<int>());
+
+    // Values that are now no longer configurable
+    config.buildable_ratio = 0.7;
+    config.buildable_radius = 2;
+    config.final_delay = 100;
 }

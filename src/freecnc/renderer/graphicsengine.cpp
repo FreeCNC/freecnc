@@ -7,44 +7,20 @@
 
 using pc::imgcache;
 
-/** Constructor, inits the sdl graphics and prepares to render maps
- * and draw vqaframes.
- * @param commandline arguments regarding video.
- */
 GraphicsEngine::GraphicsEngine()
 {
-    ConfigType config;
-    char* tmp;
-    config = getConfig();
-    width = config.width;
-    height = config.height;
+    width = game.config.width;
+    height = game.config.height;
 
-    /* Set the caption, not nessesary but nice =) */
-    tmp = new char[128];
-    switch (config.gamemode) {
-    case 0:
-        sprintf(tmp,"FreeCNC - %s",config.mapname.c_str());
-        break;
-    case 1:
-        sprintf(tmp,"FreeCNC - skirmish on %s with %i bots",config.mapname.c_str(), config.totalplayers-1);
-        break;
-    case 2:
-        sprintf(tmp,"FreeCNC - multiplayer on %s as %s (%i/%i)",config.mapname.c_str(),
-                config.nick.c_str(),config.playernum,config.totalplayers);
-        break;
-    default:
-        sprintf(tmp,"THIS IS A BUG. (unknown mode: %i)",config.gamemode);
-        break;
-    };
-    SDL_WM_SetCaption(tmp, NULL);
-    delete[] tmp;
-    SDL_WM_GrabInput(config.grabmode);
+    string window_title("FreeCNC - " + game.config.map);
 
-    // Init the screen
+    SDL_WM_SetCaption(window_title.c_str(), NULL);
+
     icon = SDL_LoadBMP("data/gfx/icon.bmp");
     if (icon != 0)
         SDL_WM_SetIcon(icon, NULL);
-    screen = SDL_SetVideoMode(width, height, config.bpp, config.videoflags);
+
+    screen = SDL_SetVideoMode(width, height, game.config.bpp, SDL_SWSURFACE);
 
     if (screen == NULL) {
         logger->error("Unable to set %dx%d video: %s\n",
@@ -100,7 +76,7 @@ void GraphicsEngine::setupCurrentGame()
     }
     p::ccmap->setMaxScroll(maparea.w/tilewidth, maparea.h/tilewidth,
                       maparea.w%tilewidth, maparea.h%tilewidth, tilewidth);
-    if (getConfig().bpp == 8) {
+    if (game.config.bpp == 8) {
         // This doesn't work, but the cursors look nicer so leaving it in to
         // remind me to look at cursor rendering again.
         SDL_SetColors(screen, SHPBase::getPalette(0), 0, 256);

@@ -19,7 +19,7 @@ SDL_Rect Input::markrect;
  */
 Input::Input(unsigned short screenwidth, unsigned short screenheight, SDL_Rect *maparea) :
     width(screenwidth), height(screenheight), done(0), donecount(0),
-    finaldelay(getConfig().finaldelay), gamemode(p::ccmap->getGameMode()),
+    finaldelay(game.config.final_delay), gamemode(0),
     maparea(maparea), tabwidth(pc::sidebar->getTabLocation()->w),
     tilewidth(p::ccmap->getMapTile(0)->w), lplayer(p::ppool->getLPlayer()),
     kbdmod(k_none), lmousedown(m_none), rmousedown(m_none),
@@ -49,7 +49,6 @@ void Input::handle()
     int mx, my;
     unsigned char sdir, radarstat;
     unsigned char* keystate;
-    static ConfigType config = getConfig();
 
     while ( SDL_PollEvent(&event) ) {
         switch (event.type) {
@@ -125,11 +124,11 @@ void Input::handle()
             /* If it wasn't a press, ignore this event */
             if( event.key.state != SDL_PRESSED )
                 break;
-            if (event.key.keysym.sym == config.bindablekeys[KEY_SIDEBAR]) {
+            if (event.key.keysym.sym == SDLK_TAB) {
                 pc::sidebar->ToggleVisible();
-            } else if (event.key.keysym.sym == config.bindablekeys[KEY_STOP]) {
+            } else if (event.key.keysym.sym == SDLK_s) {
                 selected.stop();
-            } else if (event.key.keysym.sym == config.bindablekeys[KEY_ALLY]) {
+            } else if (event.key.keysym.sym == SDLK_a) {
                 if (gamemode == 0) {
                     break;
                 }
@@ -1027,7 +1026,7 @@ unsigned short Input::checkPlace(int mx, int my)
             }
         }
     }
-    if (rangecount/blockedcount < getConfig().buildable_ratio) {
+    if (rangecount/blockedcount < game.config.buildable_ratio) {
         placeposvalid = false;
     }
     pc::cursor->setPlaceCursor(placetype->getXsize(), placetype->getYsize(), placemat);
