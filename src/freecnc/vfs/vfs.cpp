@@ -35,8 +35,6 @@ void VFS_Init(const char* binpath)
     string tempstr;
     unsigned int keynum;
 
-    //logger->debug("Assuming binary is installed in \"%s\"\n", binpath);
-
     if (strcasecmp(".",binpath)!=0) {
         externals->loadArchive("./");
     }
@@ -50,8 +48,8 @@ void VFS_Init(const char* binpath)
     try {
         filesini = GetConfig("files.ini");
     } catch(runtime_error&) {
-        logger->error("Unable to locate files.ini.\n");
-        return;
+        game.log << "Unable to locate files.ini." << endl;
+        throw runtime_error("Unable to locate files.ini");
     }
     for (unsigned int pathnum = 1;;++pathnum) {
         INIKey key;
@@ -77,7 +75,9 @@ void VFS_Init(const char* binpath)
         } catch(int) {
             break;
         }
-        logger->note("Trying to load \"%s\"...\n",key->second.c_str());
+
+        game.log << "Trying to load \"" << key->second << "\"" << endl;
+
         try {
             // First check we have all the required mixfiles.
             for (keynum = 1; ;keynum++) {
@@ -89,8 +89,7 @@ void VFS_Init(const char* binpath)
                     break;
                 }
                 if( !mixfiles->loadArchive(key2->second.c_str()) ) {
-                    logger->warning("Missing required file \"%s\"\n",
-                            key2->second.c_str());
+                    game.log << "Missing required file " << key2->second << endl;
                     throw 0;
                 }
 
@@ -113,15 +112,8 @@ void VFS_Init(const char* binpath)
         return;
     }
 
-    logger->error("Unable to find mixes for any of the supported games!\n"
+    throw runtime_error("Unable to find mixes for any of the supported games!\n"
                   "Check your configuration and try again.\n");
-    
-    #ifdef _WIN32
-    MessageBox(0,"Unable to find mixes for any of the supported games!\n"
-                 "Check your configuration and try again.","Error",0);
-    #endif
-
-    exit(1);
 }
 
 void VFS_Destroy()
@@ -197,8 +189,8 @@ void VFS_LoadGame(GameType gt)
         externals->loadArchive("data/settings/ra/");
         break;
     default:
-        logger->error("Unknown gametype %i specified\n", gt);
-        break;
+        game.log << "Unknown gametype " << gt << " specified" << endl;
+        throw runtime_error("Unknown gametype specified");
     }
 }
 

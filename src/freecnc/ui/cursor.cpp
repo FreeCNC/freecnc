@@ -169,7 +169,9 @@ void Cursor::setPlaceCursor(unsigned char stw, unsigned char sth, unsigned char 
                 tile = &transr;
                 break;
             default:
-                logger->error("Possible memory corruption detected in %s: icn[%i*%i+%i] = %i\n",__FUNCTION__,y,stw,x,icn[y*stw+x]);
+                game.log << "Possible memory corruption detected in "
+                         << __FUNCTION__ << ": icn[" << y << "*" << stw
+                         << "+" << x << "] = " << icn[y*stw+x] << endl;
                 //throw InvalidValue();
                 throw 0;
                 break;

@@ -10,6 +10,8 @@
 #include "unitanimations.h"
 #include "weaponspool.h"
 
+using std::runtime_error;
+
 UnitAnimEvent::UnitAnimEvent(unsigned int p, Unit* un) : ActionEvent(p)
 {
     //logger->debug("UAE cons: this:%p un:%p\n",this,un);
@@ -435,8 +437,7 @@ void UAttackAnimEvent::update()
 void UAttackAnimEvent::stop()
 {
     if (un == NULL) {
-        logger->error("UAttackAnimEvent::stop: un is NULL!?\n");
-        abort();
+        throw runtime_error("UAttackAnimEvent::stop Unit pointer is NULL");
     }
     stopping = true;
 }

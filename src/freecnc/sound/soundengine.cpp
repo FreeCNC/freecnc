@@ -39,7 +39,7 @@ SoundEngine::SoundEngine(bool disableSound) : nosound(disableSound), musicFinish
     /// @TODO Setting the chunksize parameter to 1024 eliminates choppiness in
     // music playback on my laptop.  Try this value on other systems.
     if (Mix_OpenAudio(SOUND_FREQUENCY, SOUND_FORMAT, SOUND_CHANNELS, 4096) < 0) {
-        logger->error("Unable to open sound: %s\n", Mix_GetError());
+        game.log << "Unable to open sound: " << Mix_GetError() << endl;
         nosound = true;
     } else {
         // Set volumes to half of max by default; this should be a fallback, real setting should be read from config
@@ -205,7 +205,7 @@ void SoundEngine::MusicHook(void* userdata, unsigned char* stream, int len)
             musicDecoder.Close();
             *musicFinished = true;
         } else if (ret == SOUND_DECODE_ERROR) {
-            logger->error("Sound: Error during music decoding, stopping playback of current track.\n");
+            game.log << "Sound: Error during music decoding, stopping playback of current track." << endl;
             *musicFinished = true;
             return;
         }

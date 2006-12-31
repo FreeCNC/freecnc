@@ -7,6 +7,8 @@
 #include "input.h"
 #include "sidebar.h"
 
+using std::runtime_error;
+
 bool Input::drawing = false;
 bool Input::minimapEnabled = false;
 SDL_Rect Input::markrect;
@@ -363,8 +365,8 @@ void Input::handle()
         pc::sidebar->StartRadarAnim(1,&minimapEnabled);
         break;
     default:
-        logger->error("BUG: unexpected value returned from PlayerPool::statRadar: %i\n",
-                      radarstat);
+        game.log << "Unexpected value returned from PlayerPool::statRadar: " << radarstat << endl;
+        throw runtime_error("Unexpected value returned from PlayerPool::statRadar");
         break;
     }
 
@@ -916,7 +918,8 @@ void Input::clickSidebar(int mx, int my, bool rightbutton)
         } else if (BQ_CANCELLED == status) {
             pc::sfxeng->PlaySound("CANCEL1.AUD");
         } else {
-            logger->error("Recieved an unknown status from stopBuilding: %i\n", status);
+            game.log << "Recieved an unknown status from stopBuilding: " << status << endl;
+            throw runtime_error("Recieved an unknown status from stopBuilding");
         }
         return;
     }
