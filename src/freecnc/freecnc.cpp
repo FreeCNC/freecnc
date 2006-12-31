@@ -49,8 +49,7 @@ int main(int argc, char** argv)
     atexit(cleanup);
     set_terminate(fcnc_terminate_handler);
 
-    if (!parse_options(argc, argv))
-    {
+    if (!parse_options(argc, argv)) {
         return 1;
     }
     string lf(game.config.basedir);
@@ -224,24 +223,24 @@ bool parse_options(int argc, char** argv)
     try {
         po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
     } catch (po::error& e) {
-#if _WIN32
+        #if _WIN32
         MessageBox(0, e.what(), "Fatal error", MB_ICONERROR|MB_OK);
-#else
+        #else
         cerr << e.what() << "\n";
-#endif
+        #endif
         return false;
     }
 
     po::notify(vm);
 
     if (vm.count("help")) {
-#if _WIN32
+        #if _WIN32
         std::ostringstream s;
         s << cmdline_options;
         MessageBox(0, s.str().c_str(), "Usage", MB_ICONINFORMATION|MB_OK);
-#else
+        #else
         cout << cmdline_options << "\n";
-#endif
+        #endif
         return false;
     }
 
