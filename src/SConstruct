@@ -44,7 +44,7 @@ try:
 except: # No mingw env variable
     env["CXXFLAGS"] += ["-std=c++98", "-Wconversion", "-Wno-unused-parameter"]
 
-env["LIBS"] += ["SDL_mixer"]
+env["LIBS"] += ["SDL_mixer", "boost_program_options"]
 
 release = env.Copy()
 release["CXXFLAGS"] += ["-Os"]

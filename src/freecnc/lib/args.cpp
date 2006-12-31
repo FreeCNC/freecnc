@@ -17,32 +17,6 @@ namespace {
     ConfigType config;
 }
 
-/** Print the help message */
-void PrintUsage()
-{
-    printf("FreeCNC - %s\n\n", VERSION);
-    printf("Usage: freecnc [OPTIONS]\n");
-    printf("  -basedir dirname   - Specify the location of the data directory\n");
-    printf("  -map mapname       - Name of mission to load\n");
-    printf("  -w width           - Width of screen\n");
-    printf("  -h height          - Height of screen\n");
-    printf("  -bpp bpp           - Video Depth\n");
-    printf("  -fullscreen        - Use fullscreen mode\n");
-    printf("  -window            - Use windowed mode\n");
-    printf("  -nosound           - Play without sound\n");
-    printf("  -playvqa vqaname   - Plays a VQA\n");
-    printf("  -grab              - Grabs mouse input (locks mouse inside freecnc window)\n\n");
-    printf("The following options are for features that are in development:\n");
-    printf("  -skirmish N        - Starts up in skirmish mode with N players\n");
-    printf("  -multi X Y         - Starts up in multiplayer mode as player X of Y\n");
-    printf("  -nick nickname     - Sets your nick for multiplayer\n");
-    printf("  -colour colourname - Sets your side colour for multiplayer\n");
-    printf("allowed colours: red, orange, yellow, green, blue and turquoise\n");
-    printf("  -side <GDI or NOD> - sets your side for multiplayer\n");
-    printf("  -server address    - Address of the server for multiplayer.\n");
-    printf("  -port number       - Port to which a connection should be made.\n\n");
-}
-
 const ConfigType& getConfig()
 {
     return config;
@@ -110,7 +84,7 @@ bool parse(int argc, char **argv)
     config.grabmode = SDL_GRAB_OFF;
 
     for (i = 1; i < argc; i++) {
-        if ( strcmp(argv[i], "-basedir") == 0 ) {
+        if ( strcmp(argv[i], "--basedir") == 0 ) {
             ++i;
             continue;
         }
@@ -273,7 +247,7 @@ bool parse(int argc, char **argv)
 
         if ( strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0)  {
             /* -help prints the help message and returns -1 to stop execution*/
-            PrintUsage();
+            //PrintUsage();
             return false;
         }
         logger->error("Unknown argument: %s, exiting\n",argv[i]);

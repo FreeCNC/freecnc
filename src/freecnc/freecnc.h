@@ -122,8 +122,20 @@ private:
 
 struct GameConfig
 {
-    // ...    
-}
+    string basedir, homedir;
+    // Game options
+    string map;
+    bool fullscreen;
+    int width, height;
+    // Config only options
+    bool play_intro;
+    bool scale_movies;
+    int scaler_quality;
+    int scrollstep, scrolltime, maxscroll;
+    // Debug flags
+    bool nosound;
+    bool debug;
+};
 
 class GameEngine
 {
@@ -132,11 +144,12 @@ public:
     ~GameEngine() {}
     
     GameConfig config;
-}
+};
 
 extern GameEngine game;
 
 // Remove this when the above works
+enum gametypes {GAME_TD = 1, GAME_RA = 2};
 
 struct ConfigType
 {
@@ -225,8 +238,6 @@ shared_ptr<INIFile> GetConfig(std::string name);
 
 // Bounded by colours.  This will change later
 const unsigned char MAXPLAYERS = 6;
-
-enum gametypes {GAME_TD = 1, GAME_RA = 2};
 
 const unsigned short FULLHEALTH = 256;
 

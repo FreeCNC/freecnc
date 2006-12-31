@@ -3,6 +3,8 @@
 //
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
@@ -14,7 +16,12 @@
 #include "renderer/renderer_public.h"
 #include "sound/sound_public.h"
 #include "vfs/vfs_public.h"
+#include <boost/program_options.hpp>
 
+namespace po = boost::program_options;
+
+using std::cout;
+using std::cerr;
 using std::abort;
 using std::set_terminate;
 using std::runtime_error;
@@ -22,50 +29,41 @@ using std::runtime_error;
 #if defined _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <sstream>
 #else
 #include <unistd.h>
 #include <sys/types.h>
 #endif
 
 Logger *logger;
+GameEngine game;
 
-void PrintUsage(); // In args.cpp
-bool parse(int argc, char** argv); // In args.cpp
-
-// Below main
 void cleanup();
 void fcnc_terminate_handler();
+bool parse_options(int argc, char** argv);
+// TEMP
+bool parse(int argc, char** argv);
 
 int main(int argc, char** argv)
 {
     atexit(cleanup);
     set_terminate(fcnc_terminate_handler);
 
-    if (argc > 1) {
-        if ((strcasecmp(argv[1],"-help") == 0) || (strcasecmp(argv[1],"--help") == 0)) {
-            PrintUsage();
-            return 1;
-        }
+    if (!parse_options(argc, argv))
+    {
+        return 1;
     }
-
-    string basedir(".");
-    if (argc > 2) {
-        if (strcasecmp(argv[1],"-basedir") == 0) {
-            basedir = argv[2];
-        }
-    }
-
-    string lf(basedir);
+    string lf(game.config.basedir);
     lf += "/freecnc.log";
 
-    VFS_PreInit(basedir.c_str());
+    VFS_PreInit(game.config.basedir.c_str());
     // Log level is so that only errors are shown on stdout by default
     logger = new Logger(lf.c_str(),0);
     if (!parse(argc, argv)) {
         return 1;
     }
     const ConfigType& config = getConfig();
-    VFS_Init(basedir.c_str());
+    VFS_Init(game.config.basedir.c_str());
     VFS_LoadGame(config.gamenum);
     logger->note("Please wait, FreeCNC %s is starting\n", VERSION);
 
@@ -150,6 +148,15 @@ int main(int argc, char** argv)
     return 0;
 }
 
+void cleanup()
+{
+    delete pc::gfxeng;
+    delete pc::sfxeng;
+    delete logger;
+
+    VFS_Destroy();
+    SDL_Quit();
+}
 // Wraps around a more verbose terminate handler and cleans up better
 void fcnc_terminate_handler()
 {
@@ -163,12 +170,88 @@ void fcnc_terminate_handler()
     #endif
 }
 
-void cleanup()
+bool parse_options(int argc, char** argv)
 {
-    delete pc::gfxeng;
-    delete pc::sfxeng;
-    delete logger;
+    GameConfig& config(game.config);
 
-    VFS_Destroy();
-    SDL_Quit();
+    po::options_description generic("Generic options");
+    generic.add_options()
+        ("help,h", "show this message")
+        ("version,v", "print version")
+        ("basedir", po::value<string>(&config.basedir)->default_value("."),
+            "use this location to find the data files")
+    ;
+
+    po::options_description game("Game options");
+    game.add_options()
+        ("map", po::value<string>(&config.map)->default_value("SCG01EA"),
+            "start on this mission")
+        ("fullscreen", "start fullscreen")
+        ("width,w", po::value<int>(&config.width)->default_value(640),
+            "use this value for screen width")
+        ("height,h", po::value<int>(&config.height)->default_value(480),
+            "use this value for screen height")
+    ;
+
+    po::options_description config_only("Config only options");
+    config_only.add_options()
+        ("play_intro", po::value<bool>(&config.play_intro)->default_value(true),
+            "enable/disable the intro")
+        ("scale_movies", po::value<bool>(&config.scale_movies)->default_value(true),
+            "enable/disable the scaler in video playback")
+        ("scaler_quality", po::value<int>(&config.scaler_quality),
+            "change which algorithm to use to scale the video")
+        ("scrollstep", po::value<int>(&config.scrollstep)->default_value(1),
+            "how many pixels to scroll in one step")
+        ("scrolltime", po::value<int>(&config.scrolltime)->default_value(5),
+            "how many ticks after releasing a scrollkey before slowing down")
+        ("maxscroll", po::value<int>(&config.maxscroll)->default_value(24),
+            "maximum speed for scrolling")
+    ;
+
+    po::options_description debug("Debug options");
+    debug.add_options()
+        ("nosound", "disable sound")
+        ("debug", "turn on various internal debugging features")
+    ;
+
+    po::options_description cmdline_options, config_file_options;
+
+    cmdline_options.add(generic).add(game).add(debug);
+    config_file_options.add(game).add(config_only).add(debug);
+
+    po::variables_map vm;
+    try {
+        po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
+    } catch (po::error& e) {
+#if _WIN32
+        MessageBox(0, e.what(), "Fatal error", MB_ICONERROR|MB_OK);
+#else
+        cerr << e.what() << "\n";
+#endif
+        return false;
+    }
+
+    po::notify(vm);
+
+    if (vm.count("help")) {
+#if _WIN32
+        std::ostringstream s;
+        s << cmdline_options;
+        MessageBox(0, s.str().c_str(), "Usage", MB_ICONINFORMATION|MB_OK);
+#else
+        cout << cmdline_options << "\n";
+#endif
+        return false;
+    }
+
+    const string config_path(config.basedir + "/freecnc.cfg");
+    std::ifstream cfgfile(config_path.c_str());
+
+    po::store(po::parse_config_file(cfgfile, config_file_options), vm);
+    po::notify(vm);
+
+    config.fullscreen = vm.count("fullscreen");
+
+    return true;
 }
