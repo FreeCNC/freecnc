@@ -40,6 +40,16 @@ using std::runtime_error;
 
 GameEngine game;
 
+class UsageMessage : public exception
+{
+public:
+    UsageMessage(const string& message) : message(message) {}
+    ~UsageMessage() throw() {}
+    const char* what() const throw() {return message.c_str();}
+private:
+    string message;
+};
+
 // Legacy
 Logger *logger;
 bool parse(int argc, char** argv);
@@ -49,12 +59,20 @@ int main(int argc, char** argv)
     try {
         game.startup(argc, argv);
         game.mainloop();
+    } catch (UsageMessage& usage) {
+        #if _WIN32
+        MessageBox(0, usage.what(), "FreeCNC command line options", MB_ICONINFORMATION|MB_OK);
+        #else
+        cout << usage.what() << endl;
+        #endif
+        return 1;
     } catch (exception& e) {
         #if _WIN32
         MessageBox(0, e.what(), "Fatal error - FreeCNC", MB_ICONERROR|MB_OK);
         #else
-        cerr << "Fatal Error: " << message << endl;
+        cerr << "Fatal Error: " << e.what() << endl;
         #endif
+        return 1;
     }
     return 0;
 }
@@ -109,9 +127,8 @@ void GameEngine::reconfigure()
 
 void GameEngine::startup(int argc, char** argv)
 {
-    if (!parse_options(argc, argv)) {
-        throw runtime_error("GameEngine: parse_options parsing error");
-    }    
+    parse_options(argc, argv);
+
     string logfile = game.config.basedir + "/freecnc.log";
     log.open(logfile.c_str());
     
@@ -180,7 +197,7 @@ void GameEngine::shutdown()
 }
 
 
-bool GameEngine::parse_options(int argc, char** argv)
+void GameEngine::parse_options(int argc, char** argv)
 {
     po::options_description generic("Generic options");
     generic.add_options()
@@ -229,8 +246,8 @@ bool GameEngine::parse_options(int argc, char** argv)
     try {
         po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
     } catch (po::error& e) {
-        //fcnc_error(e.what());
-        return false;
+        log << e.what() << endl;
+        throw;
     }
 
     po::notify(vm);
@@ -238,8 +255,7 @@ bool GameEngine::parse_options(int argc, char** argv)
     if (vm.count("help")) {
         std::ostringstream s;
         s << cmdline_options;
-        //fcnc_info(s.str().c_str());
-        return false;
+        throw UsageMessage(s.str());
     }
 
     const string config_path(config.basedir + "/data/settings/freecnc.cfg");
@@ -247,6 +263,4 @@ bool GameEngine::parse_options(int argc, char** argv)
 
     po::store(po::parse_config_file(cfgfile, config_file_options), vm);
     po::notify(vm);
-
-    return true;
 }

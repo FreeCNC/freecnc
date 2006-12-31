@@ -156,7 +156,7 @@ public:
     GameConfig config;
 
 private:
-    bool parse_options(int argc, char** argv);
+    void parse_options(int argc, char** argv);
 };
 
 extern GameEngine game;
