@@ -250,8 +250,8 @@ bool parse(int argc, char **argv)
             //PrintUsage();
             return false;
         }
-        logger->error("Unknown argument: %s, exiting\n",argv[i]);
-        return false;
+        logger->error("Unknown argument: %s (ignored)\n",argv[i]);
+        //return false;
     }
     config.videoflags |= (fullscreen?SDL_FULLSCREEN:0);
 
