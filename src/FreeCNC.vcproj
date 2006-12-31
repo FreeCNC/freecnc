@@ -333,10 +333,6 @@
 			Name="lib"
 			>
 			<File
-				RelativePath=".\freecnc\lib\args.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\freecnc\lib\common.cpp"
 				>
 			</File>
@@ -605,12 +601,52 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="screens"
+			>
+			<File
+				RelativePath=".\freecnc\screens\mainmenu.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\screens\mainmenu.h"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\screens\playing.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\screens\playing.h"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\screens\splash.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\screens\splash.h"
+				>
+			</File>
+		</Filter>
+		<File
+			RelativePath=".\freecnc\basictypes.h"
+			>
+		</File>
 		<File
 			RelativePath=".\freecnc\freecnc.cpp"
 			>
 		</File>
 		<File
 			RelativePath=".\freecnc\freecnc.h"
+			>
+		</File>
+		<File
+			RelativePath=".\freecnc\gameengine.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\freecnc\gameengine.h"
 			>
 		</File>
 		<File
