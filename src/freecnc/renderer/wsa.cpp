@@ -25,62 +25,60 @@ WSA::WSA(const char* fname)
     wsadata = new unsigned char[wfile->fileSize()];
     wfile->readByte(wsadata, wfile->fileSize());
     VFS_Close(wfile);
-    //wsadata = mixes->extract(fname);
 
-    /* Read which sound needs to be played */
+    if (!wsadata) {
+        game.log << "WSA: no data for " << fname << endl;
+        throw WSAError();
+    }
+
     try {
         wsa_ini = GetConfig("wsa.ini");
     } catch(runtime_error&) {
-        logger->error("wsa.ini not found.\n");
+        game.log << "WSA: wsa.ini not found." << endl;
         throw WSAError();
     }
 
     sndfile = wsa_ini->readString(fname, "sound");
 
-    if (wsadata != NULL) {
-        /* Lets get the header */
-        header.NumFrames = readword(wsadata, 0);
-        header.xpos = readword(wsadata, 2);
-        header.ypos = readword(wsadata, 4);
-        header.width = readword(wsadata, 6);
-        header.height = readword(wsadata, 8);
-        header.delta = readlong(wsadata, 10);
-        header.offsets = new unsigned int[header.NumFrames + 2];
-        memset(header.offsets, 0, (header.NumFrames + 2) * sizeof(unsigned int));
-        j = 14; /* start of offsets */
-        for (i = 0; i < header.NumFrames + 2; i++) {
-            header.offsets[i] = readlong(wsadata, j) + 0x300;
-            j += 4;
-        }
-
-        /* Read the palette */
-        for (i = 0; i < 256; i++) {
-            palette[i].r = readbyte(wsadata, j);
-            palette[i].g = readbyte(wsadata, j+1);
-            palette[i].b = readbyte(wsadata, j+2);
-            palette[i].r <<= 2;
-            palette[i].g <<= 2;
-            palette[i].b <<= 2;
-            j += 3;
-        }
-
-        /* framedata contains the raw frame data
-         * the first frame has to be decoded over a zeroed frame
-         * and then each subsequent frame, decoded over the previous one
-         */
-        framedata = new unsigned char[header.height * header.width];
-        memset(framedata, 0, header.height * header.width);
-
-        if (header.offsets[header.NumFrames + 1] - 0x300) {
-            loop = 1;
-            header.NumFrames += 1; /* Add loop frame */
-        } else {
-            loop = 0;
-        }
-    } else {
-        throw WSAError();
+    /* Lets get the header */
+    header.NumFrames = readword(wsadata, 0);
+    header.xpos = readword(wsadata, 2);
+    header.ypos = readword(wsadata, 4);
+    header.width = readword(wsadata, 6);
+    header.height = readword(wsadata, 8);
+    header.delta = readlong(wsadata, 10);
+    header.offsets = new unsigned int[header.NumFrames + 2];
+    memset(header.offsets, 0, (header.NumFrames + 2) * sizeof(unsigned int));
+    j = 14; /* start of offsets */
+    for (i = 0; i < header.NumFrames + 2; i++) {
+        header.offsets[i] = readlong(wsadata, j) + 0x300;
+        j += 4;
     }
 
+    /* Read the palette */
+    for (i = 0; i < 256; i++) {
+        palette[i].r = readbyte(wsadata, j);
+        palette[i].g = readbyte(wsadata, j+1);
+        palette[i].b = readbyte(wsadata, j+2);
+        palette[i].r <<= 2;
+        palette[i].g <<= 2;
+        palette[i].b <<= 2;
+        j += 3;
+    }
+
+    /* framedata contains the raw frame data
+     * the first frame has to be decoded over a zeroed frame
+     * and then each subsequent frame, decoded over the previous one
+     */
+    framedata = new unsigned char[header.height * header.width];
+    memset(framedata, 0, header.height * header.width);
+
+    if (header.offsets[header.NumFrames + 1] - 0x300) {
+        loop = 1;
+        header.NumFrames += 1; /* Add loop frame */
+    } else {
+        loop = 0;
+    }
 }
 
 WSA::~WSA()

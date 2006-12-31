@@ -345,10 +345,12 @@ void SHPImage::getImageAsAlpha(unsigned short imgnum, SDL_Surface **img)
 void SHPImage::DecodeSprite(unsigned char *imgdst, unsigned short imgnum)
 {
     if (imgnum >= header.NumImages) {
-        logger->error("%s: Invalid SHP imagenumber (%i >= %i)\n", name.c_str(), imgnum,header.NumImages);
+        game.log << "DecodeSprite (" << name << "): Invalid SHP imagenumber (" << imgnum
+                 << " >= " << header.NumImages << endl;
+        /// @TODO Throw something
         return;
     }
-    
+
     unsigned int len;
     unsigned char* imgsrc;
     switch (header.Format[imgnum]) {
@@ -380,7 +382,9 @@ void SHPImage::DecodeSprite(unsigned char *imgdst, unsigned short imgnum)
             Compression::decode40(imgsrc, imgdst);
             break;
         default:
-            logger->error("Possible memory corruption detected: unknown header format in %s at frame %i/%i.\n",name.c_str(),imgnum,header.NumImages);
+            game.log << "DecodeSprite: Possible memory corruption detected: "
+                     << "unknown header format in " << name << " at frame "
+                     << imgnum << "/" << header.NumImages << endl;
             return;
     }
     delete[] imgsrc;
@@ -400,7 +404,7 @@ Dune2Image::Dune2Image(const char *fname, char scaleq) : SHPBase(fname,scaleq)
 
     imgfile = VFS_Open(fname);
     if( imgfile == NULL ) {
-        logger->error("(Dune2Image) File \"%s\" not found.\n", fname);
+        game.log << "(Dune2Image) File " << fname << " not found" << endl;
         shpdata = NULL;
         throw ImageNotFound();
     }
@@ -481,8 +485,8 @@ unsigned int Dune2Image::getD2Header(unsigned short imgnum)
     imgs = readword(shpdata, 0);
 
     if (imgnum >= imgs) {
-        logger->error("%s: getD2Header called with invalid param: %i (>= %i)\n",
-                name.c_str(), imgnum, imgs);
+        game.log << name << ": getD2Header called with invalid param: " << imgnum
+                 << " (>= " << imgs << ")" << endl;
         return 0;
     }
 

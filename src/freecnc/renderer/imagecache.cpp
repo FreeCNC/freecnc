@@ -39,7 +39,7 @@ ImageCacheEntry& ImageCache::getImage(unsigned int imgnum)
         throw ImageNotFound();
     }
 
-    //logger->debug("%d %d\n", imgnum, cache.size());
+    //game.log << "Debug: ImageCache::getImage " << imgnum << " " << cache.size();
 
     cachepos = cache.find(imgnum);
     if (cachepos != cache.end()) {

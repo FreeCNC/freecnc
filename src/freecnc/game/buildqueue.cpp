@@ -63,11 +63,11 @@ namespace BuildQueue
     {
         switch (status) {
         case BQ_INVALID:
-            logger->error("Queue %p in invalid state\n", this);
+            game.log << "BQueue: Queue " << this << " in invalid state" << endl;
             break;
         case BQ_EMPTY:
             if (0 == (left = type->getCost())) {
-                logger->error("Type \"%s\" has no cost\n", type->getTName());
+                game.log << "BQueue: Type \"" << type->getTName() << "\" has no cost" << endl;
             }
             last = p::aequeue->getCurtick();
             production.insert(Production::value_type(type, 1));
@@ -90,7 +90,7 @@ namespace BuildQueue
                 if (p::dispatcher->unitSpawn((UnitType*)type, player->getPlayerNum())) {
                     Placed();
                 } else {
-                    logger->debug("Didn't spawn %s...\n", type->getTName());
+                    game.log << "BQueue: Did not spawn \"" << type->getTName() << endl;
                 }
             }
             return false;
@@ -106,7 +106,7 @@ namespace BuildQueue
                 // This type is new to the queue
                 if (0 == type->getCost()) {
                     // We divide by cost, so must not be zero.
-                    logger->error("Type \"%s\" has no cost\n", type->getTName());
+                    game.log << "BQueue: Type \"" << type->getTName() << "\" has no cost" << endl;
                     return false;
                 }
                 production.insert(Production::value_type(type,1));
@@ -117,7 +117,7 @@ namespace BuildQueue
             return false;
             break;
         default:
-            logger->error("Queue %p in /really/ invalid state (%i)\n", this, status);
+            game.log << "BQueue: Queue " << this << " in invalid state " << status << endl;
             break;
         }
         return false;

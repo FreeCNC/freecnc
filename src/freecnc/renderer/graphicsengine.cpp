@@ -23,8 +23,9 @@ GraphicsEngine::GraphicsEngine()
     screen = SDL_SetVideoMode(width, height, game.config.bpp, SDL_SWSURFACE);
 
     if (screen == NULL) {
-        logger->error("Unable to set %dx%d video: %s\n",
-                      width, height, SDL_GetError());
+        game.log << "GraphicsEngine: Unable to set mode " << width << "x" << height << ", "
+                 << game.config.bpp << "bpp. " << SDL_GetError() << endl;
+
         throw VideoError();
     }
 
@@ -34,7 +35,7 @@ GraphicsEngine::GraphicsEngine()
         pc::msg = new MessagePool();
         pc::msg->setWidth(width);
     } catch(int) {
-        logger->error("Unable to create message pool (missing font?)\n");
+        game.log << "GraphicsEngine: Unable to create message pool (missing font?)" << endl;
         throw VideoError();
     }
     logger->renderGameMsg(true);

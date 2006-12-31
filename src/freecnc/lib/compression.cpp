@@ -240,7 +240,7 @@ namespace Compression
             length--;
         }
         if( bits_to_skip >= 6 ) {
-            logger->warning("Error in base64 (too many '=')\n");
+            game.log << "dec_base64: Expecting less than six bits to skip, got " << bits_to_skip << endl;
             return -1;
         }
 
@@ -268,7 +268,8 @@ namespace Compression
             d = dtable[src[3]];
             if( a == 0x80 || b == 0x80 ||
                     c == 0x80 || d == 0x80 ) {
-                logger->warning("Illegal character\n");
+                game.log << "dec_base64: Read illegal character (0x80)" << endl;
+                return -1;
             }
             target[0] = a << 2 | b >> 4;
             target[1] = b << 4 | c >> 2;
@@ -291,8 +292,9 @@ namespace Compression
                 target[0] = a << 2 | b >> 4;
                 target[1] = b << 4 | c >> 2;
             } else {
-                logger->warning("Error in base64. #bits to skip doesn't match length\n");
-                logger->warning("skip %d bits, %d chars left\n\"%s\"\n", bits_to_skip, (unsigned int)length, src);
+                game.log << "Error in base64. number of bits to skip doesn't match length: "
+                         << "to skip " << bits_to_skip << " bit(s) but "
+                         << (unsigned int)length << " char(s) left\nData: " << src << endl;
                 return -1;
             }
         }

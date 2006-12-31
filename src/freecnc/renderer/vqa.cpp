@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cctype>
+#include <iomanip>
 #include <stdexcept>
 
 #include "../lib/compression.h"
@@ -70,7 +71,7 @@ VQAMovie::VQAMovie(const char* filename) : vqafile(0), CBF_LookUp(0),
     // Get header information for the vqa.  If the header is corrupt, we can die now.
     vqafile->seekSet(0);
     if (!DecodeFORMChunk()) {
-        logger->error("VQA: Invalid FORM chunk\n");
+        game.log << "VQA: Invalid FORM chunk" << endl;
         throw runtime_error("VQA: Invalid FORM chunk\n");
     }
 
@@ -78,7 +79,7 @@ VQAMovie::VQAMovie(const char* filename) : vqafile(0), CBF_LookUp(0),
     offsets = new unsigned int[header.NumFrames];
     if (!DecodeFINFChunk()) {
         delete[] offsets;
-        logger->error("VQA: Invalid FINF chunk\n");
+        game.log << "VQA: Invalid FINF chunk" << endl;
         throw runtime_error("VQA: Invalid FINF chunk\n");
     }
 
@@ -95,7 +96,7 @@ VQAMovie::VQAMovie(const char* filename) : vqafile(0), CBF_LookUp(0),
     //logger->debug("Video is %dfps %d %d %d\n", header.FrameRate, header.Freq, header.Channels, header.Bits);
 
     if (SDL_BuildAudioCVT(&cvt, AUDIO_S16SYS, header.Channels, header.Freq, SOUND_FORMAT, SOUND_CHANNELS, SOUND_FREQUENCY) < 0) {
-        logger->error("Could not build SDL_BuildAudioCVT filter\n");
+        game.log << "Could not build SDL_BuildAudioCVT filter" << endl;
         return;
     }
 
@@ -149,7 +150,7 @@ void VQAMovie::AudioHook(void* udata, unsigned char* stream, int len)
     vqa->cvt.len = len;
 
     if (SDL_ConvertAudio(&vqa->cvt) < 0) {
-        logger->warning("Could not run conversion filter: %s\n", SDL_GetError());
+        game.log << "Could not run conversion filter: " << SDL_GetError() << endl;
         return;
     }
 
@@ -237,7 +238,7 @@ void VQAMovie::play()
         SDL_UnlockMutex(sndBufLock);
 
         if (!DecodeVQFRChunk(frame)) {
-            logger->error("VQA: Decoding VQA frame\n");
+            game.log << "VQA: Decoding VQA frame" << endl;
             break;
         }
 
@@ -271,13 +272,14 @@ void VQAMovie::play()
 
 bool VQAMovie::DecodeFORMChunk()
 {
-    char chunkid[4];
+    char chunkid[5];
 
     vqafile->readByte((unsigned char*)chunkid, 4);
+    chunkid[4] = 0;
 
     if (strncmp(chunkid, "FORM", 4)) {
-        logger->error("VQA: Decoding FORM Chunk - Expected \"FORM\", got \"%c%c%c%c\"\n",
-                chunkid[0], chunkid[1], chunkid[2], chunkid[3]);
+        game.log << "VQA: Decoding FORM Chunk - Expected \"FORM\", got \"" << chunkid <<"\""
+                 << endl;
         return false;
     }
 
@@ -310,14 +312,13 @@ bool VQAMovie::DecodeFORMChunk()
     // readDWord probably swaps back on BE.
     header.RStartPos = SDL_Swap32(header.RStartPos);
     if (strncmp((const char*)header.Signature, "WVQAVQHD", 8) == 1) {
-        logger->error("VQA: Invalid header: Expected \"WVQAVQHD\", got \"%c%c%c%c%c%c%c%c\"\n",
-                header.Signature[0], header.Signature[1], header.Signature[2],
-                header.Signature[3], header.Signature[4], header.Signature[5],
-                header.Signature[6], header.Signature[7]);
+        string sig((const char*)header.Signature, 8);
+        game.log << "VQA: Invalid header: Expected \"WVQAVQHD\", got \""
+                 << sig << "\"" << endl;
         return false;
     }
     if (header.Version != 2) {
-        logger->error("VQA: Unsupported version: Expected 2, got %i\n", header.Version);
+        game.log << "VQA: Unsupported version: Expected 2, got " << header.Version << endl;
         return false;
     }
     // Set some constants based on the header
@@ -328,13 +329,14 @@ bool VQAMovie::DecodeFORMChunk()
 
 bool VQAMovie::DecodeFINFChunk()
 {
-    unsigned char chunkid[4];
+    unsigned char chunkid[5];
 
     vqafile->readByte(chunkid, 4);
+    chunkid[4] = 0;
 
     if (strncmp((const char*)chunkid, "FINF", 4)) {
-        logger->error("VQA: Decoding FINF chunk - Expected \"FINF\", got \"%c%c%c%c\"\n",
-                chunkid[0], chunkid[1], chunkid[2], chunkid[3]);
+        game.log << "VQA: Decoding FINF chunk - Expected \"FINF\", got \"" << chunkid << "\""
+                 << endl;
         return false;
     }
 
@@ -342,7 +344,8 @@ bool VQAMovie::DecodeFINFChunk()
     vqafile->readDWord(&chunklen, 1);
     chunklen = SDL_Swap32(chunklen);
     if (static_cast<unsigned int>(header.NumFrames << 2) != chunklen) {
-        logger->error("VQA: Invalid chunk length (%i != %i)\n", header.NumFrames << 2, chunklen);
+        game.log << "VQA: Invalid chunk length (" << (header.NumFrames << 2) 
+                 << " != " << chunklen << endl;
         return false;
     }
 
@@ -379,8 +382,9 @@ unsigned int VQAMovie::DecodeSNDChunk(unsigned char *outbuf)
 
     vqafile->readDWord(&chunkid, 1);
     if ((chunkid & vqa_t_mask) != vqa_snd_id) {
-        logger->error("VQA: Decoding SND chunk - Expected 0x%X, got 0x%X\n",
-                vqa_snd_id, chunkid & vqa_t_mask);
+        game.log << "VQA: Decoding SND chunk - Expected 0x"
+                 << std::hex << vqa_snd_id << ", got 0x" << (chunkid & vqa_t_mask)
+                 << std::dec << endl;
         return 0; // Returning zero here, to set length of sound chunk to zero
     }
 
@@ -397,7 +401,7 @@ unsigned int VQAMovie::DecodeSNDChunk(unsigned char *outbuf)
         break;
     case '1': // Westwoods own algorithm
         // TODO: Add support for this algorithm
-        logger->error("VQA: Decoding SND chunk - sound compressed using unsupported westwood algorithm\n");
+        game.log << "VQA: Decoding SND chunk - sound compressed using unsupported westwood algorithm" << endl;
         //Sound::WSADPCM_Decode(outbuf, inbuf, chunklen, uncompressed_size)
         chunklen = 0;
         break;
@@ -406,7 +410,7 @@ unsigned int VQAMovie::DecodeSNDChunk(unsigned char *outbuf)
         chunklen <<= 2; // IMA ADPCM decompresses sound to a size 4 times larger than the compressed size 
         break;
     default:
-        logger->error("VQA: Decoding SND chunk - sound in unknown format\n");
+        game.log << "VQA: Decoding SND chunk - sound in unknown format" << endl;
         chunklen = 0;
         break;
     }
@@ -435,8 +439,9 @@ bool VQAMovie::DecodeVQFRChunk(SDL_Surface *frame)
 
     vqafile->readDWord(&chunkid, 1);
     if (chunkid != vqa_vqfr_id) {
-        logger->error("VQA: Decoding VQFR Chunk - Expected 0x%X, got 0x%X\n",
-                vqa_vqfr_id, chunkid);
+        game.log << "VQA: Decoding VQFR chunk - Expected 0x"
+                 << std::hex << vqa_vqfr_id << ", got 0x" << chunkid
+                 << std::dec << endl;
         return false;
     }
 
@@ -581,7 +586,8 @@ inline void VQAMovie::DecodeUnknownChunk()
 
     vqafile->readDWord(&chunklen, 1);
     chunklen = SDL_Swap32(chunklen);
-    logger->debug("Unknown chunk at %0x for %i bytes.\n", vqafile->tell(), chunklen);
+    game.log << "Unknown chunk at " << std::hex << vqafile->tell() << " for "
+             << std::dec << chunklen << " bytes." << endl;
 
     vqafile->seekCur(chunklen);
 }

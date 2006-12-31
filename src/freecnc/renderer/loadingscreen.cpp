@@ -22,7 +22,7 @@ LoadingScreen::LoadingScreen()
         logo = new CPSImage("title.cps",1);
         pc::msg->setWidth(logo->getImage()->w / 4);
     } catch (ImageNotFound&) {
-        logger->error("Couldn't load startup graphic\n");
+        game.log << "Could not load startup graphic" << endl;
         logo = 0;
     }
     renderThread = SDL_CreateThread(LoadingScreen::runRenderThread, this);
@@ -32,13 +32,13 @@ LoadingScreen::~LoadingScreen()
 {
     int stat;
     while(SDL_mutexP(lsmutex)==-1) {
-        logger->warning("Couldn't lock mutex\n");
+        game.log << "Could not lock mutex" << endl;
     }
 
     done = true;
 
     while(SDL_mutexV(lsmutex)==-1) {
-        logger->warning("Couldn't unlock mutex\n");
+        game.log << "Could not unlock mutex" << endl;
     }
     SDL_WaitThread(renderThread, &stat);
     SDL_DestroyMutex(lsmutex);
@@ -54,7 +54,7 @@ int LoadingScreen::runRenderThread(void* inst)
 
     while( !isDone ) {
         while(SDL_mutexP(instance->lsmutex)==-1) {
-            logger->warning("Couldn't lock mutex\n");
+            game.log << "Could not lock mutex" << endl;
         }
 
         //render the frame here
@@ -67,7 +67,7 @@ int LoadingScreen::runRenderThread(void* inst)
         isDone = instance->done;
 
         while(SDL_mutexV(instance->lsmutex)==-1) {
-            logger->warning("Couldn't unlock mutex\n");
+            game.log << "Could not unlock mutex" << endl;
         }
         // Limit fps to ~10
         while ( SDL_PollEvent(&event) ) {}
@@ -79,11 +79,11 @@ int LoadingScreen::runRenderThread(void* inst)
 void LoadingScreen::setCurrentTask(const std::string& task)
 {
     while(SDL_mutexP(lsmutex)==-1) {
-        logger->warning("Couldn't lock mutex\n");
+        game.log << "Could not lock mutex" << endl;
     }
     task_ = task;
     while(SDL_mutexV(lsmutex)==-1) {
-        logger->warning("Couldn't unlock mutex\n");
+        game.log << "Could not unlock mutex" << endl;
     }
 }
 

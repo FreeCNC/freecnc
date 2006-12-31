@@ -66,7 +66,7 @@ ProjectileAnim::ProjectileAnim(unsigned int p, Weapon *weap, UnitOrStructure* ow
     }
     if (seekfuel == 0) {
         // Specifying seekfuel is mandatory if you want a projectile to heatseek.
-        logger->warning("Zero fuel specified for seekfuel for \"%s\", disabling heatseeking.\n",weap->getName());
+        game.log << "Zero fuel specified for seekfuel for \"" << weap->getName() << "\", disabling heatseeking." << endl;
         heatseek = false;
     }
 
