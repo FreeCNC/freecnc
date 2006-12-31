@@ -38,6 +38,8 @@ using std::runtime_error;
 Logger *logger;
 GameEngine game;
 
+void fcnc_error(const char* message);
+void fcnc_info(const char* message);
 void cleanup();
 void fcnc_terminate_handler();
 bool parse_options(int argc, char** argv);
@@ -139,12 +141,27 @@ int main(int argc, char** argv)
         } catch (Game::GameError&) {
         }
     } catch (runtime_error& e) {
-        logger->error("%s\n",e.what());
-        #if _WIN32
-        MessageBox(0, e.what(), "Fatal error", MB_ICONERROR|MB_OK);
-        #endif
+        fcnc_error(e.what());
     }
     return 0;
+}
+
+void fcnc_error(const char* message)
+{
+    #if _WIN32
+    MessageBox(0, message, "Fatal error", MB_ICONERROR|MB_OK);
+    #else
+    cerr << "Fatal Error: " << message << "\n";
+    #endif
+}
+
+void fcnc_info(const char* message)
+{
+    #if _WIN32
+    MessageBox(0, message, "FreeCNC", MB_ICONINFORMATION|MB_OK);
+    #else
+    cout << message << "\n";
+    #endif
 }
 
 void cleanup()
@@ -223,24 +240,16 @@ bool parse_options(int argc, char** argv)
     try {
         po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
     } catch (po::error& e) {
-        #if _WIN32
-        MessageBox(0, e.what(), "Fatal error", MB_ICONERROR|MB_OK);
-        #else
-        cerr << e.what() << "\n";
-        #endif
+        fcnc_error(e.what());
         return false;
     }
 
     po::notify(vm);
 
     if (vm.count("help")) {
-        #if _WIN32
         std::ostringstream s;
         s << cmdline_options;
-        MessageBox(0, s.str().c_str(), "Usage", MB_ICONINFORMATION|MB_OK);
-        #else
-        cout << cmdline_options << "\n";
-        #endif
+        fcnc_info(s.str().c_str());
         return false;
     }
 
