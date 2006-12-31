@@ -5,7 +5,7 @@ from glob import glob
 from sys import platform
 
 # Source files
-source = ["freecnc/freecnc.cpp"]
+source = glob("freecnc/*.cpp")
 source += glob("freecnc/*/*.cpp")
 source += glob("freecnc/*/*/*.cpp")
 #luasource += glob("#/lua/*.c")
