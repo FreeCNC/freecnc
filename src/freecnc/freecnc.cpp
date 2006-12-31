@@ -161,7 +161,7 @@ void GameEngine::startup(int argc, char** argv)
         srand(static_cast<unsigned int>(time(0)));
 
         // Play the intro if requested
-        if (legacy_config.intro) {
+        if (config.play_intro) {
             log << "GameEngine: Playing intro..." << endl;
             try {
                 VQAMovie mov(legacy_config.gamenum != GAME_RA ? "logo" : "prolog");
