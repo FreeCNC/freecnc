@@ -8,9 +8,6 @@
 using std::cout;
 
 int mapscaleq = -1;
-namespace {
-    string binloc;
-}
 
 namespace p {
     ActionEventQueue* aequeue = 0;
@@ -90,28 +87,4 @@ char* stripNumbers(const char* src)
     strncpy(dest,src,i);
     dest[i] = 0;
     return dest;
-}
-
-char normalise_delim(char c) {
-    if ('\\' == c) {
-        return '/';
-    }
-    return c;
-}
-
-/// @TODO Something's not right, but this works better.
-const string& determineBinaryLocation(const string& launchcmd) {
-    string path(launchcmd);
-
-    transform(path.begin(), path.end(), path.begin(), normalise_delim);
-    string::size_type delim = path.find_last_of('/');
-
-    if (string::npos == delim) {
-        return binloc = ".";
-    }
-    return binloc = path.substr(0, delim);
-}
-
-const string& getBinaryLocation() {
-    return binloc;
 }

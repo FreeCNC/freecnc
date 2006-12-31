@@ -41,23 +41,31 @@ int main(int argc, char** argv)
     atexit(cleanup);
     set_terminate(fcnc_terminate_handler);
 
-    if ((argc > 1) && ( (strcasecmp(argv[1],"-help")==0) || (strcasecmp(argv[1],"--help")==0)) ) {
-        PrintUsage();
-        return 1;
+    if (argc > 1) {
+        if ((strcasecmp(argv[1],"-help") == 0) || (strcasecmp(argv[1],"--help") == 0)) {
+            PrintUsage();
+            return 1;
+        }
     }
 
-    const string& binpath = determineBinaryLocation(argv[0]);
-    string lf(binpath);
+    string basedir(".");
+    if (argc > 2) {
+        if (strcasecmp(argv[1],"-basedir") == 0) {
+            basedir = argv[2];
+        }
+    }
+
+    string lf(basedir);
     lf += "/freecnc.log";
 
-    VFS_PreInit(binpath.c_str());
+    VFS_PreInit(basedir.c_str());
     // Log level is so that only errors are shown on stdout by default
     logger = new Logger(lf.c_str(),0);
     if (!parse(argc, argv)) {
         return 1;
     }
     const ConfigType& config = getConfig();
-    VFS_Init(binpath.c_str());
+    VFS_Init(basedir.c_str());
     VFS_LoadGame(config.gamenum);
     logger->note("Please wait, FreeCNC %s is starting\n", VERSION);
 

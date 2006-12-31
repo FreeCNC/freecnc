@@ -22,6 +22,7 @@ void PrintUsage()
 {
     printf("FreeCNC - %s\n\n", VERSION);
     printf("Usage: freecnc [OPTIONS]\n");
+    printf("  -basedir dirname   - Specify the location of the data directory\n");
     printf("  -map mapname       - Name of mission to load\n");
     printf("  -w width           - Width of screen\n");
     printf("  -h height          - Height of screen\n");
@@ -109,6 +110,10 @@ bool parse(int argc, char **argv)
     config.grabmode = SDL_GRAB_OFF;
 
     for (i = 1; i < argc; i++) {
+        if ( strcmp(argv[i], "-basedir") == 0 ) {
+            ++i;
+            continue;
+        }
         if ( strcmp(argv[i], "-nosound") == 0) {
             config.nosound = true;
             continue;
