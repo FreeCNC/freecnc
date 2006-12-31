@@ -9,7 +9,7 @@ MainMenuScreen::~MainMenuScreen()
 {
 }
 
-void MainMenuScreen::mainloop()
+void MainMenuScreen::run()
 {
     // Does nothing for the moment
     game.setscreen(new PlayingScreen());

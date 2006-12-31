@@ -44,7 +44,7 @@ class GameScreen
 {
 public:
     virtual ~GameScreen() {}
-    virtual void mainloop() = 0;
+    virtual void run() = 0;
 };
 
 class GameEngine
@@ -53,8 +53,8 @@ public:
     GameEngine() {}
     ~GameEngine() { shutdown(); }
    
-    void mainloop();
     void reconfigure();
+    void run();
     void startup(int argc, char** argv);
     void shutdown();
     

@@ -19,11 +19,11 @@ using std::runtime_error;
 
 namespace po = boost::program_options;
 
-void GameEngine::mainloop()
+void GameEngine::run()
 {
     try {
         while (screen != 0) {
-            screen->mainloop();
+            screen->run();
         }
     } catch (exception& e) {
         log << "GameEngine: Fatal error: " << e.what() << endl;

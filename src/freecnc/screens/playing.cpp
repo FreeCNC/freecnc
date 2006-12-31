@@ -9,11 +9,9 @@ PlayingScreen::~PlayingScreen()
 {
 }
 
-void PlayingScreen::mainloop()
+void PlayingScreen::run()
 {
-    game.log << "GameEngine: Entering main loop..." << endl;
     Game gsession;
-    game.log << "GameEngine: Starting game..." << endl;
     gsession.play();
     game.setscreen();
 }

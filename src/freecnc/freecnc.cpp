@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 {
     try {
         game.startup(argc, argv);
-        game.mainloop();
+        game.run();
     } catch (GameOptionsUsageMessage& usage) {
         #if _WIN32
         MessageBox(0, usage.what(), "Command line options - FreeCNC", MB_ICONINFORMATION|MB_OK);

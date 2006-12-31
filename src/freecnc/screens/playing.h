@@ -8,7 +8,7 @@ class PlayingScreen : public GameScreen
 public:
     PlayingScreen();
     ~PlayingScreen();
-    void mainloop();
+    void run();
 };
 
 #endif

@@ -10,7 +10,7 @@ SplashScreen::~SplashScreen()
 {
 }
 
-void SplashScreen::mainloop()
+void SplashScreen::run()
 {
     VQAMovie mov(game.config.gametype != GAME_RA ? "logo" : "prolog");
     mov.play();

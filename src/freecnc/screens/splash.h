@@ -8,7 +8,7 @@ class SplashScreen : public GameScreen
 public:
     SplashScreen();
     ~SplashScreen();
-    void mainloop();
+    void run();
 };
 
 #endif

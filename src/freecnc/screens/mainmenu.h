@@ -8,7 +8,7 @@ class MainMenuScreen : public GameScreen
 public:
     MainMenuScreen();
     ~MainMenuScreen();
-    void mainloop();
+    void run();
 };
 
 #endif
