@@ -3,10 +3,13 @@
 //
 #include <cstdlib>
 #include <ctime>
-#include <fstream>
+#include <exception>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <sstream>
+
+#include <boost/program_options.hpp>
 
 #include "SDL.h"
 
@@ -16,14 +19,14 @@
 #include "renderer/renderer_public.h"
 #include "sound/sound_public.h"
 #include "vfs/vfs_public.h"
-#include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
 
 using std::cout;
 using std::cerr;
-using std::abort;
-using std::set_terminate;
+using std::exception;
+using std::ofstream;
+using std::ostringstream;
 using std::runtime_error;
 
 #if defined _WIN32
@@ -35,88 +38,116 @@ using std::runtime_error;
 #include <sys/types.h>
 #endif
 
-Logger *logger;
 GameEngine game;
 
-void fcnc_error(const char* message);
-void fcnc_info(const char* message);
-void cleanup();
-void fcnc_terminate_handler();
-bool parse_options(int argc, char** argv);
-// TEMP
+// Legacy
+Logger *logger;
 bool parse(int argc, char** argv);
 
 int main(int argc, char** argv)
 {
-    atexit(cleanup);
-    set_terminate(fcnc_terminate_handler);
-
-    if (!parse_options(argc, argv)) {
-        return 1;
-    }
-    string lf(game.config.basedir);
-    lf += "/freecnc.log";
-
-    VFS_PreInit(game.config.basedir.c_str());
-    // Log level is so that only errors are shown on stdout by default
-    logger = new Logger(lf.c_str(),0);
-    if (!parse(argc, argv)) {
-        return 1;
-    }
-    const ConfigType& config = getConfig();
-    VFS_Init(game.config.basedir.c_str());
-    VFS_LoadGame(config.gamenum);
-    logger->note("Please wait, FreeCNC %s is starting\n", VERSION);
-
-
     try {
-        if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_TIMER) < 0) {
-            logger->error("Couldn't initialize SDL: %s\n", SDL_GetError());
-            exit(1);
+        game.startup(argc, argv);
+        game.mainloop();
+    } catch (exception& e) {
+        #if _WIN32
+        MessageBox(0, e.what(), "Fatal error - FreeCNC", MB_ICONERROR|MB_OK);
+        #else
+        cerr << "Fatal Error: " << message << endl;
+        #endif
+    }
+    return 0;
+}
+
+//-----------------------------------------------------------------------------
+// GameEngine
+//-----------------------------------------------------------------------------
+
+void GameEngine::mainloop()
+{
+    try {
+        log << "GameEngine: Entering main loop..." << endl;
+        Game gsession;
+        log << "GameEngine: Starting game..." << endl;
+        gsession.play();
+    } catch (exception& e) {
+        log << "GameEngine: Fatal error: " << e.what() << endl;
+        throw;
+    }
+}
+
+void GameEngine::reconfigure()
+{
+    // Initialise SDL
+    log << "GameEngine: Initialising SDL..." << endl;   
+    if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_TIMER) < 0) {
+        ostringstream temp;
+        temp << "GameEngine: SDL init failed: " << SDL_GetError();
+        throw runtime_error(temp.str());
+    }
+    
+    // Initialise Video
+    try {
+        log << "GameEngine: Initialising graphics engine..." << endl;
+        pc::gfxeng = new GraphicsEngine();
+    } catch (GraphicsEngine::VideoError&) {
+        ostringstream temp;
+        temp << "GameEngine: Graphics engine init failed";
+        throw runtime_error(temp.str());
+    }
+throw runtime_error("penis");
+    // Initialise Sound
+    try {
+        log << "GameEngine: Initialising sound engine..." << endl;
+        pc::sfxeng = new SoundEngine(config.nosound);
+    } catch (exception& e) {
+        ostringstream temp;
+        temp << "GameEngine: Sound engine init failed: " << e.what();
+        throw runtime_error(temp.str());
+    }
+}
+
+void GameEngine::startup(int argc, char** argv)
+{
+    if (!parse_options(argc, argv)) {
+        throw runtime_error("GameEngine: parse_options parsing error");
+    }    
+    string logfile = game.config.basedir + "/freecnc.log";
+    log.open(logfile.c_str());
+    
+    log << "GameEngine: Bootstrapping engine..." << endl;
+    
+    try { 
+        // Legacy VFS / logging / conf parsing
+        VFS_PreInit(config.basedir.c_str());
+
+        string legacy_logfile = game.config.basedir + "/freecnc-legacy.log";
+        logger = new Logger(legacy_logfile.c_str(),0);
+        if (!parse(argc, argv)) {
+            throw runtime_error("GameEngine: parse parsing error");
         }
 
+        const ConfigType& legacy_config = getConfig();
+        VFS_Init(config.basedir.c_str());
+        VFS_LoadGame(legacy_config.gamenum);
+
+        reconfigure();
+
         if (config.debug) {
-            // Don't hide if we're debugging as the lag when running inside
-            // valgrind is really irritating.
-            logger->debug("Debug mode is enabled\n");
+            log << "GameEngine: Debugging mode enabled" << endl;
         } else {
             // Hide the cursor since we have our own.
             SDL_ShowCursor(0);
         }
-
-        // Initialise Video
-        try {
-            logger->note("Initialising the graphics engine...");
-            pc::gfxeng = new GraphicsEngine();
-            logger->note("done\n");
-        } catch (GraphicsEngine::VideoError&) {
-            logger->note("failed.  exiting\n");
-            throw runtime_error("Unable to initialise the graphics engine");
-        }
-
-        // Initialise Sound
-        logger->note("Initialising the sound engine...");
-        pc::sfxeng = new SoundEngine(config.nosound);
-        logger->note("done\n");
-
-
-        // "Standalone" VQA Player
-        if (config.playvqa) {
-            logger->note("Now playing %s\n", config.vqamovie.c_str());
-            unsigned char ret = 0;
-            try {
-                VQAMovie mov(config.vqamovie.c_str());
-                mov.play();
-            } catch (runtime_error&) {
-                ret = 1;
-            }
-            exit(ret);
-        }
+        
+        // Init the rand functions
+        srand(static_cast<unsigned int>(time(0)));
 
         // Play the intro if requested
-        if (config.intro) {
+        if (legacy_config.intro) {
+            log << "GameEngine: Playing intro..." << endl;
             try {
-                VQAMovie mov(config.gamenum != GAME_RA ? "logo" : "prolog");
+                VQAMovie mov(legacy_config.gamenum != GAME_RA ? "logo" : "prolog");
                 mov.play();
             } catch (runtime_error&) {
             }
@@ -127,66 +158,29 @@ int main(int argc, char** argv)
             } catch (WSA::WSAError&) {
             }
         }
-
-        // Init the rand functions
-        srand(static_cast<unsigned int>(time(0)));
-
-        // Initialise game engine
-        try {
-            logger->note("Initialising game engine:\n");
-            Game gsession;
-            logger->note("Starting game\n");
-            gsession.play();
-            logger->note("Shutting down\n");
-        } catch (Game::GameError&) {
-        }
-    } catch (runtime_error& e) {
-        fcnc_error(e.what());
+    } catch (exception& e) {
+        log << "GameEngine: Startup error: " << e.what() << endl;
+        throw;
     }
-    return 0;
 }
 
-void fcnc_error(const char* message)
+void GameEngine::shutdown()
 {
-    #if _WIN32
-    MessageBox(0, message, "Fatal error", MB_ICONERROR|MB_OK);
-    #else
-    cerr << "Fatal Error: " << message << "\n";
-    #endif
-}
-
-void fcnc_info(const char* message)
-{
-    #if _WIN32
-    MessageBox(0, message, "FreeCNC", MB_ICONINFORMATION|MB_OK);
-    #else
-    cout << message << "\n";
-    #endif
-}
-
-void cleanup()
-{
+    log << "GameEngine: Shutting down..." << endl;
+    
+    // Legacy
     delete pc::gfxeng;
     delete pc::sfxeng;
     delete logger;
 
     VFS_Destroy();
     SDL_Quit();
-}
-// Wraps around a more verbose terminate handler and cleans up better
-void fcnc_terminate_handler()
-{
-    cleanup();
-    #if __GNUC__ == 3 && __GNUC_MINOR__ >= 1
-    // GCC 3.1+ feature, and is turned on by default for 3.4.
-    using __gnu_cxx::__verbose_terminate_handler;
-    __verbose_terminate_handler();
-    #else
-    abort();
-    #endif
+
+    log.flush();   
 }
 
-bool parse_options(int argc, char** argv)
+
+bool GameEngine::parse_options(int argc, char** argv)
 {
     GameConfig& config(game.config);
 
@@ -195,19 +189,18 @@ bool parse_options(int argc, char** argv)
         ("help,h", "show this message")
         ("version,v", "print version")
         ("basedir", po::value<string>(&config.basedir)->default_value("."),
-            "use this location to find the data files")
-    ;
+            "use this location to find the data files");
 
     po::options_description game("Game options");
     game.add_options()
         ("map", po::value<string>(&config.map)->default_value("SCG01EA"),
             "start on this mission")
-        ("fullscreen", "start fullscreen")
+        ("fullscreen", po::bool_switch(&config.fullscreen)->default_value(false),
+            "start fullscreen")
         ("width,w", po::value<int>(&config.width)->default_value(640),
             "use this value for screen width")
         ("height,h", po::value<int>(&config.height)->default_value(480),
-            "use this value for screen height")
-    ;
+            "use this value for screen height");
 
     po::options_description config_only("Config only options");
     config_only.add_options()
@@ -222,14 +215,12 @@ bool parse_options(int argc, char** argv)
         ("scrolltime", po::value<int>(&config.scrolltime)->default_value(5),
             "how many ticks after releasing a scrollkey before slowing down")
         ("maxscroll", po::value<int>(&config.maxscroll)->default_value(24),
-            "maximum speed for scrolling")
-    ;
+            "maximum speed for scrolling");
 
     po::options_description debug("Debug options");
     debug.add_options()
         ("nosound", "disable sound")
-        ("debug", "turn on various internal debugging features")
-    ;
+        ("debug", "turn on various internal debugging features");
 
     po::options_description cmdline_options, config_file_options;
 
@@ -240,7 +231,7 @@ bool parse_options(int argc, char** argv)
     try {
         po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
     } catch (po::error& e) {
-        fcnc_error(e.what());
+        //fcnc_error(e.what());
         return false;
     }
 
@@ -249,7 +240,7 @@ bool parse_options(int argc, char** argv)
     if (vm.count("help")) {
         std::ostringstream s;
         s << cmdline_options;
-        fcnc_info(s.str().c_str());
+        //fcnc_info(s.str().c_str());
         return false;
     }
 
@@ -258,8 +249,6 @@ bool parse_options(int argc, char** argv)
 
     po::store(po::parse_config_file(cfgfile, config_file_options), vm);
     po::notify(vm);
-
-    config.fullscreen = vm.count("fullscreen");
 
     return true;
 }

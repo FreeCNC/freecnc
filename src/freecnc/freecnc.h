@@ -4,6 +4,7 @@
 // Defines the common types and the global variables
 //
 
+#include <fstream>
 #include <map>
 #include <string>
 #include <vector>
@@ -17,12 +18,12 @@
 #include "version.h"
 #include "lib/logger.h"
 
+using std::endl;
 using std::map;
-using std::string;
-using std::vector;
-
 using std::max;
 using std::min;
+using std::string;
+using std::vector;
 
 using boost::array;
 using boost::scoped_ptr;
@@ -144,9 +145,18 @@ class GameEngine
 {
 public:
     GameEngine() {}
-    ~GameEngine() {}
+    ~GameEngine() { shutdown(); }
+   
+    void mainloop();
+    void reconfigure();
+    void startup(int argc, char** argv);
+    void shutdown();
     
+    std::ofstream log;
     GameConfig config;
+
+private:
+    bool parse_options(int argc, char** argv);
 };
 
 extern GameEngine game;
