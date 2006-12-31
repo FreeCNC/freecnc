@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cctype>
+#include <algorithm>
 
 #include "../lib/inifile.h"
 #include "../renderer/renderer_public.h"
@@ -98,9 +99,8 @@ Weapon::Weapon(const char* wname) : name(wname)
     unsigned char additional, i;
     string projname, warheadname;
     string weapname = (string)wname;
-    string::iterator p = weapname.begin();
-    while (p!=weapname.end())
-        *p++ = toupper(*p);
+    
+    std::transform(weapname.begin(), weapname.end(), weapname.begin(), toupper);
 
     pname = weapini->readString(wname, "projectile");
     if( pname == NULL ) {
@@ -108,9 +108,8 @@ Weapon::Weapon(const char* wname) : name(wname)
         throw 0;
     }
     projname = (string)pname;
-    p = projname.begin();
-    while (p!=projname.end())
-        *p++ = toupper(*p);
+    
+    std::transform(projname.begin(), projname.end(), projname.begin(), toupper);
 
     projentry = p::weappool->projectilepool.find(projname);
     if( projentry == p::weappool->projectilepool.end() ) {
