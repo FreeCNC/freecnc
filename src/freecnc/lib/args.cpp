@@ -58,7 +58,7 @@ bool parse(int argc, char **argv)
     config.bpp = freecnc_ini->readInt("Video", "Bpp", 16);
     fullscreen = freecnc_ini->readInt("Video","fullscreen",0);
     config.intro = freecnc_ini->readInt("Options", "PlayIntro", 1);
-    config.gamenum = (gametypes)freecnc_ini->readInt("Options", "Game", GAME_TD);
+    config.gamenum = (GameTypes)freecnc_ini->readInt("Options", "Game", GAME_TD);
     config.nosound = (freecnc_ini->readInt("Options", "Nosound",0) != 0);
     config.playvqa = false;
     config.gamemode = 0;

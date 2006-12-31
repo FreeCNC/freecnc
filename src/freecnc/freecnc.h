@@ -149,7 +149,7 @@ public:
 extern GameEngine game;
 
 // Remove this when the above works
-enum gametypes {GAME_TD = 1, GAME_RA = 2};
+enum GameTypes {GAME_TD = 1, GAME_RA = 2};
 
 struct ConfigType
 {
@@ -158,7 +158,7 @@ struct ConfigType
     unsigned char intro, gamemode, totalplayers, playernum,
         scrollstep, scrolltime, maxscroll, finaldelay, dispatch_mode;
     bool nosound, playvqa, allowsandbagging, debug;
-    gametypes gamenum;
+    GameTypes gamenum;
     SDL_GrabMode grabmode;
     static const unsigned char NUMBINDABLE = 3;
     SDLKey bindablekeys[NUMBINDABLE];
