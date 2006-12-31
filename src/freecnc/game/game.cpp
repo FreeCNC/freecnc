@@ -14,13 +14,10 @@ using std::runtime_error;
 using std::endl;
 
 Game::Game() {
-    string tmp;
-    ConfigType legacy_config = getConfig();
-
     /// @TODO We've already loaded files.ini in the vfs.
     shared_ptr<INIFile> fileini = GetConfig("files.ini");
 
-    INIKey key = fileini->readIndexedKeyValue("general", legacy_config.gamenum, "PLAY");
+    INIKey key = fileini->readIndexedKeyValue("general", game.config.gametype, "PLAY");
 
     /// @TODO This should throw on its own accord
     if (!pc::sfxeng->CreatePlaylist(key->second.c_str())) {

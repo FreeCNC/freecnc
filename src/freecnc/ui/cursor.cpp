@@ -16,7 +16,7 @@ Cursor::Cursor() : currentcursor(0xffff), x(0), y(0), curimg(0), nimgs(0), ci(0)
                    transw(0), transy(0), transr(0)
 {
     cursorimg = new Dune2Image("mouse.shp", -1);
-    if (getConfig().gamenum == GAME_RA) {
+    if (game.config.gametype == GAME_RA) {
         transicn = new TemplateImage("trans.icn", mapscaleq, 1);
         nsoff = CUR_RA_NOSCROLL_OFFSET;
     } else {

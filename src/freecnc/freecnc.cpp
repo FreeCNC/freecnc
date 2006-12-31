@@ -146,7 +146,7 @@ void GameEngine::startup(int argc, char** argv)
 
         const ConfigType& legacy_config = getConfig();
         VFS_Init(config.basedir.c_str());
-        VFS_LoadGame(legacy_config.gamenum);
+        VFS_LoadGame(game.config.gametype);
 
         reconfigure();
 
@@ -164,7 +164,7 @@ void GameEngine::startup(int argc, char** argv)
         if (config.play_intro) {
             log << "GameEngine: Playing intro..." << endl;
             try {
-                VQAMovie mov(legacy_config.gamenum != GAME_RA ? "logo" : "prolog");
+                VQAMovie mov(game.config.gametype != GAME_RA ? "logo" : "prolog");
                 mov.play();
             } catch (runtime_error&) {
             }
@@ -219,6 +219,8 @@ void GameEngine::parse_options(int argc, char** argv)
 
     po::options_description config_only("Config only options");
     config_only.add_options()
+        ("gametype", po::value<int>()->default_value(GAME_TD),
+            "Specify if the game is TD or RA")
         ("play_intro", po::value<bool>(&config.play_intro)->default_value(true),
             "enable/disable the intro")
         ("scale_movies", po::value<bool>(&config.scale_movies)->default_value(true),
@@ -263,4 +265,7 @@ void GameEngine::parse_options(int argc, char** argv)
 
     po::store(po::parse_config_file(cfgfile, config_file_options), vm);
     po::notify(vm);
+
+    // This is ugly, but not sure how permanent gametype will be.
+    config.gametype = static_cast<GameType>(vm["gametype"].as<int>());
 }

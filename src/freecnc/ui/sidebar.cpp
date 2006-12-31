@@ -46,7 +46,7 @@ Sidebar::Sidebar(Player *pl, unsigned short height, const char *theatre)
 
     // If we can't load these files, there's no point in proceeding, thus we let
     // the default handler for runtime_error in main() catch.
-    if (getConfig().gamenum == GAME_TD) {
+    if (game.config.gametype == GAME_TD) {
         tmpname = VFS_getFirstExisting(2,"htabs.shp","tabs.shp");
         if (tmpname == NULL) {
             throw runtime_error("Unable to find the tab images! (Missing updatec.mix?)");
@@ -90,7 +90,7 @@ Sidebar::Sidebar(Player *pl, unsigned short height, const char *theatre)
         side = isoriginaltype?5:2;
     }
 
-    if (getConfig().gamenum == GAME_RA) {
+    if (game.config.gametype == GAME_RA) {
         // RA follows (Gold names) * 3 and (DOS names) * 3
         side += 6;
     }
@@ -124,7 +124,7 @@ Sidebar::Sidebar(Player *pl, unsigned short height, const char *theatre)
     radarlocation.w = radar->w;  radarlocation.h = radar->h;
 
     /// @TODO Move these values into config
-    steps = ((getConfig().gamenum == GAME_RA)?54:108);
+    steps = ((game.config.gametype == GAME_RA)?54:108);
 
     sbarlocation.x = sbarlocation.y = sbarlocation.w = sbarlocation.h = 0;
 
@@ -203,7 +203,7 @@ SDL_Surface *Sidebar::getSidebarImage(SDL_Rect location)
     location.y = 0;
 
     /// @TODO HACK
-    if (isoriginaltype || getConfig().gamenum == GAME_RA) {
+    if (isoriginaltype || game.config.gametype == GAME_RA) {
         SDL_FillRect(sbar, &location, SDL_MapRGB(sbar->format, 0xa0, 0xa0, 0xa0));
     } else {
         try {
@@ -295,11 +295,11 @@ void Sidebar::SetupButtons(unsigned short height)
     // are grouped contiguously (4,5,6,7,...) compared to (4,6,8,10,...)
 
     for (t=0;t<buildbut;++t) {
-        if (getConfig().gamenum == GAME_RA) AddButton(10+geom.bw,startoffs+geom.bh*t,"stripna.shp",sbo_build|sbo_unit,0);
+        if (game.config.gametype == GAME_RA) AddButton(10+geom.bw,startoffs+geom.bh*t,"stripna.shp",sbo_build|sbo_unit,0);
           else AddButton(10+geom.bw,startoffs+geom.bh*t,"strip.shp",sbo_build|sbo_unit,0);
     }
     for (t=0;t<buildbut;++t) {
-        if (getConfig().gamenum == GAME_RA) AddButton(10,startoffs+geom.bh*t,"stripna.shp",sbo_build|sbo_structure,spalnum);
+        if (game.config.gametype == GAME_RA) AddButton(10,startoffs+geom.bh*t,"stripna.shp",sbo_build|sbo_structure,spalnum);
           else AddButton(10,startoffs+geom.bh*t,"strip.shp",sbo_build|sbo_structure,spalnum);
     }
 
@@ -438,7 +438,7 @@ void Sidebar::DrawClock(unsigned char index, unsigned char imgnum) {
     unsigned int num = 0;
     try {
         // @TODO Move this check to config object
-        if (getConfig().gamenum == GAME_RA || isoriginaltype) {
+        if (game.config.gametype == GAME_RA || isoriginaltype) {
             num = pc::imgcache->loadImage("clock.shp");
         } else {
             num = pc::imgcache->loadImage("hclock.shp");
@@ -611,7 +611,7 @@ void Sidebar::UpdateIcons() {
 
     for (i=0;i<buildbut;++i) {
         if ((unsigned)(i+unitoff)>=(unsigned)uniticons.size()) {
-            if (getConfig().gamenum == GAME_RA) buttons[4+i]->ChangeImage("stripna.shp");
+            if (game.config.gametype == GAME_RA) buttons[4+i]->ChangeImage("stripna.shp");
             else buttons[4+i]->ChangeImage("strip.shp");
         } else {
             buttons[4+i]->ChangeImage(uniticons[i+unitoff]);
@@ -619,7 +619,7 @@ void Sidebar::UpdateIcons() {
     }
     for (i=0;i<buildbut;++i) {
         if ((unsigned)(i+structoff)>=(unsigned)structicons.size()) {
-            if (getConfig().gamenum == GAME_RA) buttons[buildbut+4+i]->ChangeImage("stripna.shp");
+            if (game.config.gametype == GAME_RA) buttons[buildbut+4+i]->ChangeImage("stripna.shp");
             else buttons[buildbut+4+i]->ChangeImage("strip.shp");
         } else {
             buttons[buildbut+4+i]->ChangeImage(structicons[i+structoff]);
@@ -721,7 +721,7 @@ void Sidebar::SidebarButton::ChangeImage(const char* fname, unsigned char number
         using_fallback = false;
     }
 
-    if (pc::sidebar->isOriginalType() || getConfig().gamenum == GAME_RA) {
+    if (pc::sidebar->isOriginalType() || game.config.gametype == GAME_RA) {
         name = fname;
     } else {
         if (slen>8 && strcasecmp("icon.shp", fname+slen-8)==0) {

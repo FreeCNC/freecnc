@@ -56,16 +56,13 @@ unsigned int CnCMap::getTerrain(unsigned int pos, short* xoff, short* yoff)
  */
 CnCMap::CnCMap()
 {
-    ConfigType config;
     loaded  = false;
-    config = getConfig();
     pc::imagepool = new std::vector<SHPImage*>();
     pc::imgcache->setImagePool(pc::imagepool);
-    this->maptype = config.gamenum;
-    this->gamemode = config.gamemode;
-    scrollstep = config.scrollstep;
-    scrolltime = config.scrolltime;
-    maxscroll  = config.maxscroll;
+    this->maptype = game.config.gametype;
+    scrollstep = game.config.scrollstep;
+    scrolltime = game.config.scrolltime;
+    maxscroll  = game.config.maxscroll;
     /* start at top right corner of map. */
     // the startpos for the map is stored in position 0
     scrollpos.curx = 0;
@@ -86,7 +83,7 @@ CnCMap::CnCMap()
     minimap = NULL;
     oldmmap = NULL;
     loading = false;
-    translate_64 = (getConfig().gamenum == GAME_TD);
+    translate_64 = (game.config.gametype == GAME_TD);
 }
 
 /** Destructor, free up some memory */

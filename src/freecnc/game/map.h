@@ -127,7 +127,7 @@ public:
 
     // C/S: Not sure about this one
     unsigned char getGameMode() const {
-        return gamemode;
+        return 0;
     }
 
     // C/S: These functions are client only
@@ -350,7 +350,6 @@ private:
 
     /// @TODO We get this from the game loader part, investigate if there's a better approach.
     unsigned char maptype;
-    unsigned char gamemode; // 0 - single player, 1 - skirmish, 2 - multiplayer
 
     /// @TODO These need a better (client side only) home, (ui related)
     SDL_Surface *minimap, *oldmmap;

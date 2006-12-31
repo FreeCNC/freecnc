@@ -24,20 +24,20 @@ using boost::lexical_cast;
 
 void CnCMap::loadIni()
 {
-    ConfigType config;
+    string map_filename(missionData.mapname);
+    map_filename += ".INI";
+
     shared_ptr<INIFile> inifile;
-    string tmpname = missionData.mapname;
-    config = getConfig();
-    tmpname += ".INI";
+
     // Load the INIFile
     try {
-        inifile = GetConfig(tmpname);
+        inifile = GetConfig(map_filename);
     } catch (runtime_error&) {
-        logger->error("Map \"%s\" not found.  Check your installation.\n", tmpname.c_str());
+        logger->error("Map \"%s\" not found.  Check your installation.\n", map_filename.c_str());
         throw LoadMapError();
     }
 
-    p::ppool = new PlayerPool(inifile, gamemode);
+    p::ppool = new PlayerPool(inifile, 0);
 
     if (inifile->readInt("basic", "newiniformat", 0) != 0) {
         logger->error("Red Alert maps not fully supported yet\n");
@@ -51,9 +51,8 @@ void CnCMap::loadIni()
         throw LoadMapError();
     }
 
-    if (gamemode == 0) {
-        p::ppool->setLPlayer(missionData.player);
-    }
+    p::ppool->setLPlayer(missionData.player);
+
     terraintypes.resize(width*height, 0);
     resourcematrix.resize(width*height, 0);
 
@@ -62,17 +61,6 @@ void CnCMap::loadIni()
     if (maptype == GAME_RA)
         unMapPack(inifile);
 
-    // spawn player starts.
-    if (gamemode > 0) {
-        for (unsigned char i=0;i<config.totalplayers;++i) {
-            tmpname = "multi" + lexical_cast<string>(i+1);
-            p::ppool->getPlayerNum(tmpname.c_str());
-            if ((i+1) == config.playernum) {
-                p::ppool->setLPlayer(config.playernum,config.nick.c_str(),config.side_colour.c_str(),config.mside.c_str());
-            }
-        }
-        p::ppool->placeMultiUnits();
-    }
     try {
         pips = new SHPImage("hpips.shp",mapscaleq);
     } catch(ImageNotFound&) {
@@ -85,6 +73,7 @@ void CnCMap::loadIni()
     }
     pipsnum = pc::imagepool->size()<<16;
     pc::imagepool->push_back(pips);
+
     if (maptype == GAME_RA) {
         try {
             char moveflsh[13] = "moveflsh.";
