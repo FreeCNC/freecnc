@@ -1,7 +1,9 @@
 0.3 - "The reckoning"
 * New VFS (really)
 * Fix 64bit issues
+* Command line argument parsing
 * ???
+* Profit!
 
 Unassigned, unsorted, incomplete:
 * Music playlists
