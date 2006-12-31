@@ -55,7 +55,7 @@ Player::Player(const char *pname, shared_ptr<INIFile> mapini) {
     } else if( !strncasecmp(playername, "multi", 5) ) {
         playerside = PS_MULTI;
         if (playername[5] < 49 || playername[5] > 57) {
-            logger->error("Invalid builtin multi name: %s\n",playername);
+            game.log << "Invalid builtin multi name: " << playername << "" << endl;
             /// @TODO Nicer error handling here
             multiside = 9;
         } else {
@@ -73,7 +73,7 @@ Player::Player(const char *pname, shared_ptr<INIFile> mapini) {
             playerstart = p::ccmap->normaliseCoord(playerstart);
         }
     } else {
-        logger->warning("Player Side \"%s\" not recognised, using gdi instead\n",pname);
+        game.log << "Player Side \"" << pname << "\" not recognised, using gdi instead" << endl;
         playerside = PS_GOOD;
         unitpalnum = 0;
         structpalnum = 0;
@@ -246,8 +246,7 @@ ConStatus Player::getStatus(UnitOrStructureType* type, unsigned char* quantity, 
 {
     BQueue* queue = getQueue(type->getPQueue());
     if (0 == queue) {
-        logger->error("No possible status for type \"%s\" as we have no primary building\n",
-                type->getTName());
+        game.log << "No possible status for type \"" << type->getTName() << "\" as we have no primary building"  << endl;
         return BQ_INVALID;
     }
     return queue->getStatus(type, quantity, progress);
@@ -257,8 +256,7 @@ bool Player::startBuilding(UnitOrStructureType *type)
 {
     BQueue* queue = getQueue(type->getPQueue());
     if (0 == queue) {
-        logger->error("Didn't find build queue for \"%s\" (pqueue: %i)\n",
-                type->getTName(), type->getPQueue());
+        game.log << "Didn't find build queue for \"" << type->getTName() << "\" (pqueue: " << type->getPQueue() << ")" << endl;
         return false;
     }
     return queue->Add(type);
@@ -268,8 +266,7 @@ ConStatus Player::stopBuilding(UnitOrStructureType *type)
 {
     BQueue* queue = getQueue(type->getPQueue());
     if (0 == queue) {
-        logger->error("Didn't find build queue for \"%s\" (pqueue: %i)\n",
-                type->getTName(), type->getPQueue());
+        game.log << "Didn't find build queue for \"" << type->getTName() << "\" (pqueue: " << type->getPQueue() << ")" << endl;
         return BQ_EMPTY;
     }
     return queue->PauseCancel(type);
@@ -279,8 +276,7 @@ void Player::placed(UnitOrStructureType *type)
 {
     BQueue* queue = getQueue(type->getPQueue());
     if (0 == queue) {
-        logger->error("Didn't find build queue for \"%s\" (pqueue: %i) - especially weird as we've just built it\n",
-                type->getTName(), type->getPQueue());
+        game.log << "Didn't find build queue for \"" << type->getTName() << "\" (pqueue: " << type->getPQueue() << ")" << endl;
         return;
     }
     queue->Placed();
@@ -541,7 +537,7 @@ void Player::addSoB(unsigned int pos, unsigned char width, unsigned char height,
         mapVoB = &mapBuildable;
         sight  = buildable_radius;
     } else {
-        logger->error("addSoB was given an invalid mode: %i\n", mode);
+        game.log << "addSoB was given an invalid mode: " << mode << endl;
         return;
     }
     xstart = pos%p::ccmap->getWidth() - sight;

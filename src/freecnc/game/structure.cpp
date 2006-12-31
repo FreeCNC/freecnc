@@ -50,7 +50,7 @@ StructureType::StructureType(const char* typeName, shared_ptr<INIFile> structini
         delete[] tmp;
     }
     if (owners.empty()) {
-        logger->warning("%s has no owners\n",tname);
+        game.log << "StructureType: " << tname << " has no owners" << endl;
     }
 
     if( !strcasecmp(tname, "BRIK") || !strcasecmp(tname, "SBAG") ||
@@ -88,7 +88,7 @@ StructureType::StructureType(const char* typeName, shared_ptr<INIFile> structini
     buildlevel = structini->readInt(tname,"buildlevel",100);
     techlevel = structini->readInt(tname,"techlevel",99);
     if (buildlevel == 100) {
-        logger->warning("%s does not have a buildlevel\n",tname);
+        game.log << "StructureType: " << tname << " does not have a buildlevel" << endl;
     }
 
     powerinfo.power = structini->readInt(tname,"power",0);
@@ -114,7 +114,7 @@ StructureType::StructureType(const char* typeName, shared_ptr<INIFile> structini
             try {
                 shpimage = new SHPImage(shpname, mapscaleq);
             } catch (ImageNotFound&) {
-                logger->warning("Image not found: \"%s\"\n", shpname);
+                game.log << "Image not found: \"" << shpname << "\""  << endl;
                 numshps = 0;
                 return;
             }
@@ -148,7 +148,7 @@ StructureType::StructureType(const char* typeName, shared_ptr<INIFile> structini
             strncpy(shpname, tname, 13);
             strncat(shpname, "make.shp", 13);
         } else
-            logger->warning("%s is nonstandard!\n",tname);
+            game.log << "StructureType: \"" << tname << "\" is a non standard typename" << endl;
         try {
             makeimage = new SHPImage(shpname, mapscaleq);
             makeimg = pc::imagepool->size();
@@ -185,7 +185,7 @@ StructureType::StructureType(const char* typeName, shared_ptr<INIFile> structini
     }
     cost = structini->readInt(tname, "cost", 0);
     if (0 == cost) {
-        logger->error("\"%s\" has no cost, resetting to 1\n", tname);
+        game.log << "StructureType: \"" << tname << "\" has no cost, resetting to 1"  << endl;
         cost = 1;
     }
     miscnames = structini->readString(tname,"armour","none");
@@ -309,7 +309,7 @@ unsigned short Structure::getBPos(unsigned short pos) const
         }
         ++dy;
         if (dy >= type->getYsize()) {
-            logger->error("ERROR: could not find anywhere to shoot at %s!\n",type->getTName());
+            game.log << "Structure: ERROR: could not find anywhere to shoot at " << type->getTName() << endl;
         }
         retpos = (x+dx)+(y+dy)*mwid;
     }

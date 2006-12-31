@@ -480,7 +480,7 @@ SDL_Surface* CnCMap::getMiniMap(unsigned char pixsize) {
     SDL_Surface *cminitile;
     if (pixsize == 0) {
         // Argh
-        logger->error("CnCMap::getMiniMap: pixsize is zero, resetting to one\n");
+        game.log << "CnCMap::getMiniMap: pixsize is zero, resetting to one" << endl;
         pixsize = 1;
     }
     if(minimap != NULL) {

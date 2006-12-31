@@ -33,14 +33,14 @@ void CnCMap::loadIni()
     try {
         inifile = GetConfig(map_filename);
     } catch (runtime_error&) {
-        logger->error("Map \"%s\" not found.  Check your installation.\n", map_filename.c_str());
+        game.log << "Map \"" << map_filename << "\" not found.  Check your installation." << endl;
         throw LoadMapError();
     }
 
     p::ppool = new PlayerPool(inifile, 0);
 
     if (inifile->readInt("basic", "newiniformat", 0) != 0) {
-        logger->error("Red Alert maps not fully supported yet\n");
+        game.log << "Red Alert maps not fully supported yet" << endl;
     }
 
     simpleSections(inifile);
@@ -67,7 +67,7 @@ void CnCMap::loadIni()
         try {
             pips = new SHPImage("pips.shp", mapscaleq);
         } catch(ImageNotFound&) {
-            logger->error("Unable to load the pips graphics!\n");
+            game.log << "Unable to load the pips graphics!" << endl;
             throw LoadMapError();
         }
     }
@@ -80,14 +80,14 @@ void CnCMap::loadIni()
             strncat( moveflsh, missionData.theater, 3 );
             moveflash = new SHPImage(moveflsh,mapscaleq);
         } catch (ImageNotFound&) {
-            logger->error("Unable to load the movement acknowledgement pulse graphic\n");
+            game.log << "Unable to load the movement acknowledgement pulse graphic" << endl;
             throw LoadMapError();
         }
     } else {
         try {
             moveflash = new SHPImage("moveflsh.shp",mapscaleq);
         } catch (ImageNotFound&) {
-            logger->error("Unable to load the movement acknowledgement pulse graphic\n");
+            game.log << "Unable to load the movement acknowledgement pulse graphic" << endl;
             throw LoadMapError();
         }
     }
@@ -122,7 +122,7 @@ void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
         variable = strvars[iter];
         *variable = inifile->readString("BASIC", key);
         if (0 == *variable) {
-            logger->error("Error loading map: missing \"%s\"\n", key);
+            game.log << "Error loading map: missing \"" << key << "\"" << endl;
             throw LoadMapError();
         }
         ++iter;
@@ -137,7 +137,7 @@ void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
 
         temp = inifile->readInt("MAP", key);
         if (INIERROR == temp) {
-            logger->error("Error loading map: unable to find \"%s\"\n",key);
+            game.log << "Error loading map: unable to find \"" << key << "\"" << endl;
             throw LoadMapError();
         }
 
@@ -147,7 +147,7 @@ void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
 
     missionData.theater = inifile->readString("MAP", "THEATER");
     if (0 == missionData.theater) {
-        logger->error("Error loading map: unable to find \"THEATER\"\n");
+        game.log << "Error loading map: unable to find \"THEATER\"" << endl;
         throw LoadMapError();
     }
 
@@ -209,7 +209,7 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
         }
         delete image;
     } catch(ImageNotFound&) {
-        logger->warning("Unable to load \"shadow.shp\"\n");
+        game.log << "Unable to load \"shadow.shp\"" << endl;
         numShadowImg = 0;
     }
     /* load the smudge marks and the tiberium to the imagepool */
@@ -220,7 +220,7 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
         } else if (maptype == GAME_RA) {
             sname = "GOLD01";
         } else {
-            logger->error("Unsuported maptype\n");
+            game.log << "Unsuported maptype" << endl;
             throw LoadMapError();
         }
 
@@ -231,7 +231,7 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
             resourcebases.push_back(pc::imagepool->size());
             pc::imagepool->push_back(image);
         } catch (ImageNotFound&) {
-            logger->error("Could not load \"%s\"\n",sname.c_str());
+            game.log << "Could not load \"" << sname << "\"" << endl;
             throw LoadMapError();
         }
         // No craters or scorch marks for interior?
@@ -294,7 +294,7 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
                 linenum = xsize*ysize;
                 do {
                     if (linenum == 0) {
-                        logger->error("BUG: Could not find an entry in art.ini for %s\n",shpname);
+                        game.log << "BUG: Could not find an entry in art.ini for " << shpname << "" << endl;
                         bad = true;
                         break;
                     }
@@ -340,7 +340,7 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
                     try {
                         image = new SHPImage(shpname, mapscaleq);
                     } catch (ImageNotFound&) {
-                        logger->error("Could not load \"%s\"\n", shpname);
+                        game.log << "Could not load \"" << shpname << "\""  << endl;
                         throw LoadMapError();
                     }
                     pc::imagepool->push_back(image);
@@ -475,7 +475,7 @@ void CnCMap::loadBin()
     delete[] binname;
 
     if(binfile == NULL) {
-        logger->error("Unable to locate BIN file!\n");
+        game.log << "Unable to locate BIN file!" << endl;
         throw LoadMapError();
     }
 
@@ -538,7 +538,7 @@ void CnCMap::unMapPack(shared_ptr<INIFile> inifile)
         //printf("first vals in data is %x %x %x %x\n", mapdata2[curpos],
         //mapdata2[curpos+1], mapdata2[curpos+2], mapdata2[curpos+3]);
         if( Compression::decode80((unsigned char *)mapdata2+4+curpos, mapdata1+8192*tmpval) != 8192 ) {
-            logger->warning("A format80 chunk in the \"MapPack\" was of wrong size\n");
+            game.log << "A format80 chunk in the \"MapPack\" was of wrong size" << endl;
         }
         curpos = curpos + 4 + mapdata2[curpos] + (mapdata2[curpos+1]<<8) +
                  (mapdata2[curpos+2]<<16);
@@ -629,7 +629,7 @@ void CnCMap::parseBin(TileList* bindata)
                 tileimg = loadTile(templini, templ, tile, &tiletype);
 
                 if( tileimg == NULL ) {
-                    logger->error("Error loading tiles\n");
+                    game.log << "Error loading tiles" << endl;
                     throw LoadMapError();
                 }
 
@@ -701,7 +701,7 @@ void CnCMap::unOverlayPack(shared_ptr<INIFile> inifile)
     curpos = 0;
     for (int tmpval = 0; tmpval < 2; tmpval++) {
         if (Compression::decode80((unsigned char *)temp+4+curpos, mapdata+8192*tmpval) != 8192) {
-            logger->warning("A format80 chunk in the \"OverlayPack\" was of wrong size\n");
+            game.log << "A format80 chunk in the \"OverlayPack\" was of wrong size" << endl;
         }
         curpos = curpos + 4 + temp[curpos] + (temp[curpos+1]<<8) +
             (temp[curpos+2]<<16);
@@ -743,8 +743,7 @@ void CnCMap::parseOverlay(const unsigned int& linenum, const string& name)
         try {
             frame = pc::imgcache->loadImage(shpname.c_str()) >> 16;
         } catch (ImageNotFound&) {
-            logger->error("Unable to load overlay \"%s\" (or \"%s.SHP\")\n",
-                    shpname.c_str(), name.c_str());
+            game.log << "Unable to load overlay \"" << shpname << "\" (or \"" << name << ".SHP\")" << endl;
             throw LoadMapError();
         }
     }
@@ -764,7 +763,7 @@ void CnCMap::parseOverlay(const unsigned int& linenum, const string& name)
             if ('E' == name[1]) i = 3;
         }
         if (0 == i) {
-            logger->error("Resource hack for \"%s\" failed.", name.c_str());
+            game.log << "Resource hack for \"" << name << "\" failed." << endl;
             throw LoadMapError();
         }
         map<string, unsigned char>::iterator t = resourcenames.find(name);
@@ -810,7 +809,7 @@ void CnCMap::loadPal(SDL_Color *palette)
     palfile = VFS_Open(palname.c_str());
 
     if (palfile == NULL) {
-        logger->error("Unable to locate palette (\"%s\").\n", palname.c_str());
+        game.log << "Unable to locate palette (\"" << palname << "\")." << endl;
         throw LoadMapError();
     }
 
@@ -857,7 +856,7 @@ SDL_Surface *CnCMap::loadTile(shared_ptr<INIFile> templini, unsigned short templ
     temname = templini->readString(tilefilename, "NAME");
 
     if( temname == NULL ) {
-        logger->warning("Error in templates.ini! (can't find \"%s\")\n", tilefilename);
+        game.log << "Error in templates.ini! (can't find \"" << tilefilename << "\")"  << endl;
         strcpy(tilefilename, "CLEAR1");
     } else {
         strcpy(tilefilename, temname);
@@ -878,9 +877,9 @@ SDL_Surface *CnCMap::loadTile(shared_ptr<INIFile> templini, unsigned short templ
                 theaterfile = new TemplateImage(tilefilename, mapscaleq);
             }
         } catch(ImageNotFound&) {
-            logger->warning("Unable to locate template %d, %d (\"%s\") in mix! using tile 0, 0 instead\n", templ, tile, tilefilename);
+            game.log << "Unable to locate template " << templ << ", " << tile << " (\"" << tilefilename << "\") in mix! using tile 0, 0 instead" << endl;
             if (templ == 0 && tile == 0) {
-                logger->error("Unable to load tile 0,0.  Can't proceed\n");
+                game.log << "Unable to load tile 0,0.  Can't proceed" << endl;
                 return NULL;
             }
             return loadTile( templini, 0, 0, tiletype );
@@ -895,7 +894,7 @@ SDL_Surface *CnCMap::loadTile(shared_ptr<INIFile> templini, unsigned short templ
     //Now return this SDL_Surface
     retimage = theaterfile->getImage(tile);
     if( retimage == NULL ) {
-        logger->warning("Illegal template %d, %d (\"%s\")! using tile 0, 0 instead\n", templ, tile, tilefilename);
+        game.log << "Illegal template " << templ << ", " << tile << " (\"" << tilefilename << "\")! using tile 0, 0 instead" << endl;
         if( templ == 0 && tile == 0 )
             return NULL;
         return loadTile( templini, 0, 0, tiletype );

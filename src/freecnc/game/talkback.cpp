@@ -27,12 +27,10 @@ void Talkback::load(string talkback, shared_ptr<INIFile> tbini)
     unsigned int keynum;
     INIKey key;
 
-    //logger->debug("Loading %s\n", talkback.c_str());
-    //logger->indent();
     try {
         tbini->readKeyValue(talkback.c_str(), 0);
     } catch(int) {
-        logger->warning("Could not find talkback \"%s\", reverting to default\n",talkback.c_str());
+        game.log << "Could not find talkback \"" << talkback << "\", reverting to default" << endl;
         talkback = "Generic";
     }
 
@@ -46,7 +44,7 @@ void Talkback::load(string talkback, shared_ptr<INIFile> tbini)
                 if (strcasecmp(key->second.c_str(),talkback.c_str()) != 0) {
                     merge(p::uspool->getTalkback(key->second.c_str()));
                 } else {
-                    logger->warning("skipping self-referential include in %s\n",talkback.c_str());
+                    game.log << "skipping self-referential include in \"" << talkback << "\"" << endl;
                 }
             } else {
                 if (strcasecmp(first,"delete") == 0) {
@@ -62,14 +60,11 @@ void Talkback::load(string talkback, shared_ptr<INIFile> tbini)
                     continue;
                 }
                 pc::sfxeng->LoadSound(key->second.c_str());
-                //logger->debug("Pushing back %s\n", key->second.c_str());
                 talkstore[tbt].push_back(key->second);
             }
             delete[] first;
         }
     } catch(int) {}
-    //logger->unindent();
-    //logger->debug("report is %i big\n", talkstore[TB_report].size());
 }
 
 const char* Talkback::getRandTalk(TalkbackType type)
@@ -109,7 +104,6 @@ void Talkback::merge(shared_ptr<Talkback> mergee)
     while (t != end) {
         vector<string>& src = mergee->talkstore[t->second];
         vector<string>& dest = talkstore[t->second];
-        //logger->debug("Copying %s/%i %i new into %i\n", t->first.c_str(), t->second, src.size(), dest.size());
         copy(src.begin(), src.end(), back_inserter(dest));
         ++t;
     }
@@ -121,7 +115,7 @@ TalkbackType Talkback::getTypeNum(string name)
     typedef map<string, TalkbackType>::const_iterator TBCI;
     TBCI tbtype = talktype.find(name);
     if (tbtype == talktype.end()) {
-        logger->error("Unknown type: %s\n",name.c_str());
+        game.log << "Unknown type: \"" << name << "\"" << endl;
         return TB_invalid;
     }
     return tbtype->second;
