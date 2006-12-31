@@ -123,15 +123,18 @@ private:
 struct GameConfig
 {
     string basedir, homedir;
+
     // Game options
     string map;
     bool fullscreen;
     int width, height;
+
     // Config only options
     bool play_intro;
     bool scale_movies;
     int scaler_quality;
     int scrollstep, scrolltime, maxscroll;
+
     // Debug flags
     bool nosound;
     bool debug;
@@ -149,7 +152,7 @@ public:
 extern GameEngine game;
 
 // Remove this when the above works
-enum GameTypes {GAME_TD = 1, GAME_RA = 2};
+enum GameType {GAME_TD = 1, GAME_RA = 2};
 
 struct ConfigType
 {
@@ -158,7 +161,7 @@ struct ConfigType
     unsigned char intro, gamemode, totalplayers, playernum,
         scrollstep, scrolltime, maxscroll, finaldelay, dispatch_mode;
     bool nosound, playvqa, allowsandbagging, debug;
-    GameTypes gamenum;
+    GameType gamenum;
     SDL_GrabMode grabmode;
     static const unsigned char NUMBINDABLE = 3;
     SDLKey bindablekeys[NUMBINDABLE];

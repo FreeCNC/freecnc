@@ -187,7 +187,7 @@ const char* VFS_getFirstExisting(unsigned int count, ...)
     return NULL;
 }
 
-void VFS_LoadGame(GameTypes gt)
+void VFS_LoadGame(GameType gt)
 {
     switch (gt) {
     case GAME_TD:

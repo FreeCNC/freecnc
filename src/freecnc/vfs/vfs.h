@@ -9,7 +9,7 @@ void VFS_PreInit(const char* binpath);
 void VFS_Init(const char *binpath);
 void VFS_Destroy();
 
-void VFS_LoadGame(GameTypes gt);
+void VFS_LoadGame(GameType gt);
 
 VFile *VFS_Open(const char *fname, const char* mode="rb");
 void VFS_Close(VFile *file);
