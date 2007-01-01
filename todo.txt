@@ -1,9 +1,6 @@
 0.3 - "The reckoning"
 * New VFS (really)
 * Fix 64bit issues
-* Command line argument parsing
-    First stage done, now need to migrate to new config object
-* Phase in new GameEngine class (config, logger, vfs)
 * ???
 * Profit!
 
