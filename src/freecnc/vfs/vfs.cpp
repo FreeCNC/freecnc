@@ -48,7 +48,7 @@ void VFS_Init(const char* binpath)
     try {
         filesini = GetConfig("files.ini");
     } catch(runtime_error&) {
-        game.log << "Unable to locate files.ini." << endl;
+        game.log << "Legacy VFS: Unable to locate files.ini." << endl;
         throw runtime_error("Unable to locate files.ini");
     }
     for (unsigned int pathnum = 1;;++pathnum) {
@@ -76,7 +76,7 @@ void VFS_Init(const char* binpath)
             break;
         }
 
-        game.log << "Trying to load \"" << key->second << "\"" << endl;
+        game.log << "Legacy VFS: Trying to load \"" << key->second << "\"" << endl;
 
         try {
             // First check we have all the required mixfiles.
@@ -89,7 +89,7 @@ void VFS_Init(const char* binpath)
                     break;
                 }
                 if( !mixfiles->loadArchive(key2->second.c_str()) ) {
-                    game.log << "Missing required file " << key2->second << endl;
+                    game.log << "Legacy VFS: Missing required file " << key2->second << endl;
                     throw 0;
                 }
 
@@ -189,7 +189,7 @@ void VFS_LoadGame(GameType gt)
         externals->loadArchive("data/settings/ra/");
         break;
     default:
-        game.log << "Unknown gametype " << gt << " specified" << endl;
+        game.log << "Legacy VFS: Unknown gametype " << gt << " specified" << endl;
         throw runtime_error("Unknown gametype specified");
     }
 }
