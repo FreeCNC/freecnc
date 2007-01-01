@@ -12,9 +12,11 @@ SplashScreen::~SplashScreen()
 
 void SplashScreen::run()
 {
-    VQAMovie mov(game.config.gametype != GAME_RA ? "logo" : "prolog");
-    mov.play();
-
+    try {
+        VQAMovie mov(game.config.gametype != GAME_RA ? "logo" : "prolog");
+        mov.play();
+    } catch (std::runtime_error& e) {
+    }
     //WSA choose("choose.wsa");
     //choose.animate();
     
