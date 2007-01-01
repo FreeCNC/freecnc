@@ -197,7 +197,7 @@ bool UnitAndStructurePool::createStructure(const char* typen, unsigned short cel
         unsigned char owner, unsigned short health, unsigned char facing, bool makeanim) {
     StructureType* type = getStructureTypeByName(typen);
     if (0 == type) {
-        logger->error("Invalid type \"%s\"\n",typen);
+        game.log << "UnitAndStructurePool::createStructure: Invalid type \"" << typen << "\"" << endl;
         return false;
     }
     return createStructure(type, cellpos, owner, health, facing, makeanim);
@@ -212,7 +212,7 @@ bool UnitAndStructurePool::createStructure(StructureType* type, unsigned short c
 
     unsigned int br = cellpos + ccmap->getWidth()*(type->getYsize()-1);
     if (cellpos > ccmap->getSize() || (br > ccmap->getSize() && 0)) {
-        logger->error("Attempted to create a \"%s\" at %i, outside map (%i)\n", type->getTName(), br, ccmap->getSize());
+        game.log << "Attempted to create a \"" << type->getTName() << "\" at " << br << ", outside map (" << ccmap->getSize() << ")" << endl;
         return false;
     }
 
@@ -241,15 +241,16 @@ bool UnitAndStructurePool::createStructure(StructureType* type, unsigned short c
                     if (getStructureAt(curpos+x) != 0) {
                         unsigned short tx, ty;
                         ccmap->translateFromPos(curpos+x, &tx, &ty);
-                        logger->error("\"%s\" already exists at (%i, %i) [%i]\n",
-                                getStructureAt(curpos+x)->getType()->getTName(),
-                                tx, ty, curpos+x);
+                        game.log << "\"" << getStructureAt(curpos+x)->getType()->getTName()
+                                 << "\" already exists at (" << tx << ", " << ty
+                                 << ") [" << curpos+x << "]" << endl;
                         return false;
                     }
                     if (0 != (unitandstructmat[curpos+x] & US_IS_UNIT)) {
                         unsigned short tx, ty;
                         ccmap->translateFromPos(curpos+x, &tx, &ty);
-                        logger->error("Unit(s) already exists at cell (%i, %i) %i\n", tx, ty, curpos+x);
+                        game.log << "Unit(s) already present at (" << tx << ", "
+                                 << ty << ") [" << curpos+x << "]" << endl;
                         return false;
                     }
                 }
@@ -304,7 +305,7 @@ bool UnitAndStructurePool::createUnit(const char *typen, unsigned short cellpos,
         unsigned char subpos, unsigned char owner, unsigned short health, unsigned char facing) {
     UnitType* type = getUnitTypeByName(typen);
     if (0 == type) {
-        logger->error("Invalid type name: \"%s\"\n", typen);
+        game.log << "UnitAndStructurePool::createUnit: Invalid type name: \"" << typen << "\""  << endl;
         return false;
     }
     return createUnit(type, cellpos, subpos, owner, health, facing);
@@ -315,18 +316,15 @@ bool UnitAndStructurePool::createUnit(UnitType* type, unsigned short cellpos,
     unsigned int unitnum;
 
     if (cellpos > (ccmap->getWidth() * ccmap->getHeight())) {
-        logger->error("Attempted to create a %s at %i, outside map.\n",
-                type->getTName(), cellpos);
+        game.log << "Attempted to create a " << type->getTName() << " at " << cellpos << ", outside map." << endl;
         return false;
     }
     if (getStructureAt(cellpos) != NULL) {
-        logger->error("Cell %i already occupied by structure (%s).\n", cellpos,
-                getStructureAt(cellpos)->getType()->getTName());
+        game.log << "Cell " << cellpos << " already occupied by structure (" << getStructureAt(cellpos)->getType()->getTName() << ")." << endl;
         return false;
     }
     if (getUnitAt(cellpos,subpos) != NULL) {
-        logger->error("Cell/subpos already occupied by %s\n", getUnitAt(cellpos,
-                    subpos)->getType()->getTName());
+        game.log << "Cell/subpos already occupied by " << getUnitAt(cellpos, subpos)->getType()->getTName() << endl;
         return false;
     }
 
@@ -373,7 +371,7 @@ bool UnitAndStructurePool::createUnit(UnitType* type, unsigned short cellpos,
 bool UnitAndStructurePool::spawnUnit(const char* typen, unsigned char owner) {
     UnitType* type = getUnitTypeByName(typen);
     if (0 == type) {
-        logger->error("Invalid type name: \"%s\"\n", typen);
+        game.log << "UnitAndStructurePool::spawnUnit: Invalid type name: \"" << typen << "\""  << endl;
         return false;
     }
     return spawnUnit(type, owner);
@@ -387,7 +385,7 @@ bool UnitAndStructurePool::spawnUnit(UnitType* type, unsigned char owner) {
     if (0 != tmpstruct) {
         pos = tmpstruct->getFreePos(&subpos, type->isInfantry());
     } else {
-        logger->error("No primary building set for %s\n", type->getTName());
+        game.log << "UnitAndStructurePool::spawnUnit: No primary building set for " << type->getTName() << endl;
         return false;
     }
 
@@ -396,7 +394,7 @@ bool UnitAndStructurePool::spawnUnit(UnitType* type, unsigned char owner) {
         tmpstruct->runAnim(1);
         return createUnit(type, pos, subpos, owner, FULLHEALTH, 0);
     } else {
-        logger->error("No free position for %s\n", type->getTName());
+        game.log << "UnitAndStructurePool::spawnUnit: No free position for " << type->getTName() << endl;
     }
     return false;
 }
@@ -981,11 +979,14 @@ void UnitAndStructurePool::updateWalls(Structure* st, bool add) {
 void UnitAndStructurePool::showMoves()
 {
     unsigned int x;
-    logger->note("Current cells have US_MOVING_HERE set:\n"
-                 "cell\tvalue (US_MOVING_HERE == %u/%x)\n",US_MOVING_HERE,US_MOVING_HERE);
+    game.log << "Current cells have US_MOVING_HERE set:\n"
+                "cell\tvalue (US_MOVING_HERE == " << US_MOVING_HERE << "/"
+             << std::hex << US_MOVING_HERE << std::dec << endl;
     for (x=0;x < (unsigned int)ccmap->getWidth()*ccmap->getHeight();++x) {
-        if (unitandstructmat[x]&US_MOVING_HERE)
-            logger->note("%i\t%u/%x\n",x,unitandstructmat[x],unitandstructmat[x]);
+        if (unitandstructmat[x]&US_MOVING_HERE) {
+            game.log << x << "\t" << unitandstructmat[x] << "/" << std::hex
+                     << unitandstructmat[x] << std::dec << endl;
+        }
     }
 }
 
@@ -997,7 +998,7 @@ void UnitAndStructurePool::addPrerequisites(UnitType* unittype)
     vector<char*> prereqs = unittype->getPrereqs();
 
     if (prereqs.empty()) {
-        logger->warning("No prerequisites for unit \"%s\"\n",unittype->getTName());
+        game.log << "UnitAndStructurePool::addPrerequisites: No prerequisites for unit \"" << unittype->getTName() << "\"" << endl;
         return;
     }
     if (strcasecmp(prereqs[0],"none") == 0) {
@@ -1018,8 +1019,8 @@ void UnitAndStructurePool::addPrerequisites(StructureType* structtype)
     vector<char*> prereqs = structtype->getPrereqs();
 
     if (prereqs.empty()) {
-        logger->warning("No prerequisites for structure \"%s\".\n"
-                        "Use \"none\" if this intended.\n",structtype->getTName());
+        game.log << "UnitAndStructurePool::addPrerequisites: No prerequisites for structure \""
+                 << structtype->getTName() << "\"." "Use \"none\" if this intended." << endl;
         return;
     }
     if (strcasecmp(prereqs[0],"none") == 0) {
@@ -1063,7 +1064,7 @@ void UnitAndStructurePool::preloadUnitAndStructures(unsigned char techlevel)
             secname = unitini->readSection(secnum);
             ltech = unitini->readInt(secname.c_str(),"techlevel",100);
             if (ltech == 100) {
-                logger->warning("No techlevel defined for unit \"%s\"\n",secname.c_str());
+                game.log << "UnitAndStructurePool::preloadUnitAndStructures: No techlevel defined for unit \"" << secname << "\"" << endl;
             } else {
                 if (ccmap->getGameMode() == 0) {
                     if (ltech <= techlevel) {
@@ -1083,7 +1084,7 @@ void UnitAndStructurePool::preloadUnitAndStructures(unsigned char techlevel)
             secname = structini->readSection(secnum);
             ltech = structini->readInt(secname.c_str(),"techlevel",100);
             if (ltech == 100) {
-                logger->warning("No techlevel defined for structure \"%s\"\n",secname.c_str());
+                game.log << "UnitAndStructurePool::preloadUnitAndStructures: No techlevel defined for structure \"" << secname << "\"" << endl;
             } else {
                 if (ccmap->getGameMode() == 0) {
                     if (ltech <= techlevel) {

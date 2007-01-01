@@ -104,7 +104,7 @@ Weapon::Weapon(const char* wname) : name(wname)
 
     pname = weapini->readString(wname, "projectile");
     if( pname == NULL ) {
-        logger->warning("Unable to find projectile for weapon \"%s\" in inifile..\n", wname);
+        game.log << "Unable to find projectile for weapon \"" << wname << "\" in inifile.."  << endl;
         throw 0;
     }
     projname = (string)pname;
@@ -116,7 +116,7 @@ Weapon::Weapon(const char* wname) : name(wname)
         try {
             projectile = new Projectile(pname, weapini);
         } catch(int) {
-            logger->warning("Unable to find projectile \"%s\" used for weapon \"%s\".\nUnit using this weapon will be unarmed\n", pname, wname);
+            game.log << "Unable to find projectile \"" << pname << "\" used for weapon \"" << wname << "\".  Units using this weapon will be unarmed\n" << endl;
             delete[] pname;
             throw 0;
         }
@@ -128,7 +128,7 @@ Weapon::Weapon(const char* wname) : name(wname)
 
     whname = weapini->readString(wname, "warhead");
     if( whname == NULL ) {
-        logger->warning("Unable to find warhead for weapon \"%s\" in inifile..\n", wname);
+        game.log << "Unable to find warhead for weapon \"" << wname << "\" in inifile.."  << endl;
         throw 0;
     }
     warheadname = (string)whname;
@@ -138,7 +138,7 @@ Weapon::Weapon(const char* wname) : name(wname)
         try {
             whead = new Warhead(whname, weapini);
         } catch (int) {
-            logger->warning("Unable to find Warhead \"%s\" used for weapon \"%s\".\nUnit using this weapon will be unarmed\n", whname, wname);
+            game.log << "Unable to find warhead \"" << whname << "\" used for weapon \"" << wname << "\".  Units using this weapon will be unarmed\n" << endl;
             delete[] whname;
             throw 0;
         }
@@ -203,7 +203,7 @@ Weapon::Weapon(const char* wname) : name(wname)
                     pc::imagepool->push_back(fireanimtemp);
                 } else {
                     fireimages[i] = 0;
-                    logger->warning("%s was empty in [%s]\n",tmpname,faname);
+                    game.log << "Weapon: " << tmpname << " was empty in [" << faname << "]" << endl;
                 }
                 delete[] faimage;
                 faimage = NULL;

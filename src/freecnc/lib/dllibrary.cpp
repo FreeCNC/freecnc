@@ -13,7 +13,7 @@ DLLibrary::DLLibrary(const char *libname) : name(libname)
 {
     library = LoadLibrary(libname);
     if (!library) {
-        logger->warning("Unable to load library \"%s\"\n", libname);
+        game.log << "Unable to load library \"" << libname << "\""  << endl;
         throw 0;
     }
 }
@@ -27,7 +27,7 @@ void *DLLibrary::GetFunction(const char *funcname)
 {
     void *retval = (void *)GetProcAddress(library, funcname);
     if (retval == NULL) {
-        logger->warning("Unable to extract function \"%s\" from library \"%s\"\n", funcname, name.c_str());
+        game.log << "Unable to extract function \"" << funcname << "\" from library \"" << name << "\"" << endl;
     }
     return retval;
 }
@@ -54,12 +54,12 @@ DLLibrary::DLLibrary(const char *libname) : name(libname)
             const char* errstr;
             const char* file;
             NSLinkEditError(&ler,&lerno,&file,&errstr);
-            logger->warning("Unable to load library \"%s\": %s\n", libname, errstr);
+            game.log << "Unable to load library \"" << libname << "\": " << errstr << endl;
             throw 0;
         }
         NSDestroyObjectFileImage(image);
     } else {
-        logger->warning("Unable to load library \"%s\"\n", libname);
+        game.log << "Unable to load library \"" << libname << "\""  << endl;
         throw 0;
     }
 }
@@ -78,7 +78,7 @@ void *DLLibrary::GetFunction(const char* funcname)
     if (sym) {
         return NSAddressOfSymbol(sym);
     }
-    logger->warning("Unable to extract function \"%s\" from library \"%s\"\n", funcname, name.c_str());
+    game.log << "Unable to extract function \"" << funcname << "\" from library \"" << name << "\"" << endl;
     return NULL;
 }
 
@@ -105,7 +105,7 @@ DLLibrary::DLLibrary(const char *libname) : name(libname)
 {
     library = dlopen(libname, LIBOPTION);
     if( !library ) {
-        logger->warning("Unable to load library \"%s\": %s\n", libname, dlerror());
+        game.log << "Unable to load library \"" << libname << "\": " << dlerror() << endl;
         throw 0;
     }
 }
@@ -131,7 +131,7 @@ void *DLLibrary::GetFunction(const char *funcname)
         delete[] fsname;
     }
     if (retval == NULL) {
-        logger->warning("Unable to extract function \"%s\" from library \"%s\": %s\n", funcname, name.c_str(), dlerror());
+        game.log << "Unable to extract function \"" << funcname << "\" from library \"" << name << "\": " << dlerror() << endl;
     }
     return retval;
 }

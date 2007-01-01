@@ -102,7 +102,7 @@ Sidebar::Sidebar(Player *pl, unsigned short height, const char *theatre)
     } catch (ImageNotFound&) {
         /// @TODO This problem should ripple up to the "game detection" layer
         // so it can try again from scratch with a different set of data files.
-        logger->error("Hmm.. managed to misdetect sidebar type\n");
+        game.log << "Hmm.. managed to misdetect sidebar type" << endl;
         try {
             // Switch between Gold and DOS
             if (side < 3) {
@@ -114,7 +114,7 @@ Sidebar::Sidebar(Player *pl, unsigned short height, const char *theatre)
             radarlogo = pc::imgcache->loadImage(radarname, scaleq);
             isoriginaltype = !isoriginaltype;
         } catch (ImageNotFound&) {
-            logger->error("Unable to load the radar-image! (Maybe you run c&c gold but have forgoten updatec.mix?)\n");
+            game.log << "Unable to load the radar-image! (Maybe you run c&c gold but have forgoten updatec.mix?)" << endl;
             throw SidebarError();
         }
     }
@@ -225,7 +225,7 @@ SDL_Surface *Sidebar::getSidebarImage(SDL_Rect location)
                 SDL_BlitSurface(texture, &src, sbar, &dest);
             }
         } catch (ImageNotFound&) {
-            logger->error("Unable to load the background texture\n");
+            game.log << "Unable to load the background texture" << endl;
             SDL_FillRect(sbar, &location, SDL_MapRGB(sbar->format, 0xa0, 0xa0, 0xa0));
         }
     }
@@ -262,13 +262,13 @@ void Sidebar::SetupButtons(unsigned short height)
 
     tmpname = VFS_getFirstExisting(3,"stripna.shp","hstrip.shp","strip.shp");
     if (tmpname == 0) {
-        logger->error("Unable to find strip images for sidebar, exiting\n");
+        game.log << "Unable to find strip images for sidebar, exiting" << endl;
         throw SidebarError();
     }
     try {
         strip = new SHPImage(tmpname, scaleq);
     } catch (ImageNotFound&) {
-        logger->error("Unable to load strip images for sidebar, exiting\n");
+        game.log << "Unable to load strip images for sidebar, exiting" << endl;
         throw SidebarError();
     }
 
@@ -444,7 +444,7 @@ void Sidebar::DrawClock(unsigned char index, unsigned char imgnum) {
             num = pc::imgcache->loadImage("hclock.shp");
         }
     } catch (ImageNotFound& e) {
-        logger->error("Unable to load clock image!\n");
+        game.log << "Unable to load clock image!" << endl;
         return;
     }
     num += imgnum;
@@ -480,7 +480,7 @@ void Sidebar::ClickButton(unsigned char index, char* unitname, createmode_t* cre
         ScrollBuildList((f&sbo_up), (f&sbo_unit));
         break;
     default:
-        logger->error("Sidebar::ClickButton. This should not happen (%i)\n",f&0x3);
+        // unreachable
         break;
     }
 }

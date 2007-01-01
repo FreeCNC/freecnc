@@ -39,7 +39,7 @@ UnitType::UnitType(const char *typeName, shared_ptr<INIFile> unitini)
     try {
         unitini->readKeyValue(typeName,0);
     } catch (int) {
-        logger->error("Unknown type: %s\n",typeName);
+        game.log << "UnitType: Unknown type: \"" << typeName << "\"" << endl;
         name = NULL;
         shpnums = NULL;
         return;
@@ -56,7 +56,7 @@ UnitType::UnitType(const char *typeName, shared_ptr<INIFile> unitini)
 
     unittype = unitini->readInt(tname, "unittype",0);
     if (0 == unittype) {
-        logger->warning("No unit type specified for \"%s\"\n", tname);
+        game.log << "UnitType: No unit type specified for \"" << tname << "\"" << endl;
     }
 
     numlayers = unitini->readInt(tname, "layers", 1);
@@ -67,7 +67,7 @@ UnitType::UnitType(const char *typeName, shared_ptr<INIFile> unitini)
     try {
         shpimage = new SHPImage(shpname.c_str(), mapscaleq);
     } catch (ImageNotFound&) {
-        logger->error("Image not found: \"%s\"\n", shpname.c_str());
+        game.log << "Image not found: \"" << shpname << "\"" << endl;
         numlayers = 0;
         return;
     }
@@ -124,7 +124,7 @@ UnitType::UnitType(const char *typeName, shared_ptr<INIFile> unitini)
     maxhealth = unitini->readInt(tname, "health", 50);
     cost = unitini->readInt(tname, "cost", 0);
     if (0 == cost) {
-        logger->error("\"%s\" has no cost, setting to 1\n", tname);
+        game.log << "UnitType: \"" << tname << "\" has no cost, setting to 1" << endl;
         cost = 1;
     }
     tmpspeed = unitini->readInt(tname, "turnspeed");
@@ -355,7 +355,7 @@ void Unit::turn(unsigned char facing, unsigned char layer)
         t = &turnanim2;
         break;
     default:
-        logger->error("invalid arg of %i to Unit::turn\n",layer);
+        game.log << "Unit::turn invalid arg of " << layer << " to Unit::turn" << endl;
         return;
         break;
     }

@@ -8,10 +8,6 @@ class Logger
 public:
     Logger(const char *logname, int threshold);
     ~Logger();
-    void error(const char *txt, ...);
-    void debug(const char *txt, ...);
-    void warning(const char *txt, ...);
-    void note(const char *txt, ...);
     void gameMsg(const char *txt, ...);
     void renderGameMsg(bool r)
     {

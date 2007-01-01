@@ -216,7 +216,7 @@ void Input::handle()
                     break;
                 case SDLK_F7:
                     logger->gameMsg("MARK @ %i",SDL_GetTicks());
-                    logger->debug("Mark placed at %i\n",SDL_GetTicks());
+                    game.log << "DEBUG: Mark placed at " << SDL_GetTicks() << endl;
                     break;
                 case SDLK_F8:
                     p::uspool->showMoves();

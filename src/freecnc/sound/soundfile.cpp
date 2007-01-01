@@ -200,12 +200,12 @@ SoundFile::SoundFile() : fileOpened(false)
 {
     if (!initconv) {
         if (SDL_BuildAudioCVT(&eightbitconv, AUDIO_U8, 1, 22050, SOUND_FORMAT, SOUND_CHANNELS, SOUND_FREQUENCY) < 0) {
-            logger->error("Could not build 8bit->16bit conversion filter\n");
+            game.log << "Could not build 8bit->16bit conversion filter" << endl;
             return;
         }
 
         if (SDL_BuildAudioCVT(&monoconv, AUDIO_S16SYS, 1, 22050, SOUND_FORMAT, SOUND_CHANNELS, SOUND_FREQUENCY) < 0) {
-            logger->error("Could not build mono->stereo conversion filter\n");
+            game.log << "Could not build mono->stereo conversion filter" << endl;
             return;
         }
         initconv = true;
@@ -224,12 +224,12 @@ bool SoundFile::Open(const std::string& filename)
     // Open file
     file = VFS_Open(filename.c_str());
     if (file == NULL) {
-        logger->error("Sound: Could not open file \"%s\".\n", filename.c_str());
+        game.log << "Sound: Could not open file \"" << filename << "\"." << endl;
         return false;
     }
     
     if (file->fileSize() < 12) {
-        logger->error("Sound: Could not open file \"%s\": Invalid file size.\n", filename.c_str());
+        game.log << "Sound: Could not open file \"" << filename << "\": Invalid file size." << endl;
     }
 
     // Parse header
@@ -245,12 +245,12 @@ bool SoundFile::Open(const std::string& filename)
     } else if (type == 99) {
         conv = &monoconv;
     } else {
-        logger->error("Sound: Could not open file \"%s\": Corrupt header (Unknown type: %i).\n", filename.c_str(), type);
+        game.log << "Sound: Could not open file \"" << filename << "\": Corrupt header (Unknown type: " << type << ")." << endl;
         return false;
     }
 
     if (frequency != 22050)
-        logger->warning("Sound: \"%s\" needs converting from %iHz (should be 22050Hz)\n", filename.c_str(), frequency);
+        game.log << "Sound: \"" << filename << "\" needs converting from " << frequency << "Hz (should be 22050Hz)" << endl;
 
     imaSample = 0;
     imaIndex  = 0;
@@ -294,13 +294,13 @@ unsigned int SoundFile::Decode(SampleBuffer& buffer, unsigned int length)
         file->readDWord(&ID, 1);
 
         if (comp_sample_size > (SOUND_MAX_CHUNK_SIZE)) {
-            logger->warning("Size data for current sample too large\n");
+            game.log << "Size data for current sample too large" << endl;
             return SOUND_DECODE_ERROR;
         }
 
         // abort if id was wrong */
         if (ID != 0xDEAF) {
-            logger->warning("Sample had wrong ID: %x\n", ID);
+            game.log << "Sample had wrong ID: Got " << std::hex << ID << std::dec << " expected 0xDEAF." << endl;
             return SOUND_DECODE_ERROR;
         }
 
@@ -321,7 +321,7 @@ unsigned int SoundFile::Decode(SampleBuffer& buffer, unsigned int length)
         conv->buf = tmpbuff;
         conv->len = uncomp_sample_size;
         if (SDL_ConvertAudio(conv) < 0) {
-            logger->warning("Could not run conversion filter: %s\n", SDL_GetError());
+            game.log << "Could not run conversion filter: " << SDL_GetError() << endl;
             return SOUND_DECODE_ERROR;
         }
         memcpy(&buffer[written], tmpbuff, uncomp_sample_size*conv->len_mult);
