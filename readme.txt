@@ -36,7 +36,7 @@ and how to run the game.
 
 FreeCNC is licensed under the terms of the GPL, see license.txt for details.
 
-FreeCNC uses Lua 5.0, licensed under the MIT license, see
+FreeCNC uses Lua 5.1.1, licensed under the MIT license, see
 http://www.lua.org/license.html for more information.
 
 FreeCNC also uses SDL 1.2, licensed under the LGPL, see
