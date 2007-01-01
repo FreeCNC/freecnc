@@ -1,8 +1,11 @@
 0.3 - "The reckoning"
 * New VFS (really)
+* Remove code relating to various unimplemented features (replays and
+  multiplayer)
 * Fix 64bit issues
-* ???
-* Profit!
+    Most of these should be fixed with the new VFS
+* Move the events system over to using smart pointers
+* Fix sidebar graphic glitches
 
 Unassigned, unsorted, incomplete:
 * Music playlists
