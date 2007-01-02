@@ -4,7 +4,9 @@
   multiplayer)
 * Fix 64bit issues
     Most of these should be fixed with the new VFS
-* Move the events system over to using smart pointers
+* Move the pointers to unit and structure over to shared_ptr and remove the
+  refcounting.
+* Reimplement the path finder to not derive from std::stack.
 * Fix sidebar graphic glitches
 
 Unassigned, unsorted, incomplete:
