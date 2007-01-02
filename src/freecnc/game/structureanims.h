@@ -1,20 +1,11 @@
 #ifndef _GAME_STRUCTUREANIMS_H
 #define _GAME_STRUCTUREANIMS_H
 
-#include "../freecnc.h"
 #include "actioneventqueue.h"
 
 class Structure;
 class StructureType;
 class UnitOrStructure;
-
-/** \author Euan MacGregor, 2001
- *
- * Like the rest of the project, this code is licensed under the GPL.
- *
- * Please direct your bug reports to the Sourceforge bug tracker.
- * Set the category to "structures"
- */
 
 /**
  * Structure animation introduction
@@ -55,10 +46,13 @@ public:
      *        structure animation event.  Used for chaining events
      */
     BuildingAnimEvent(unsigned int p, Structure* str, unsigned char mode);
-    /// cleans up, checks for a scheduled event and runs it if there is
+
+
     virtual ~BuildingAnimEvent();
+
     /// Passes control over to the anim_func (defined in derived classes)
-    virtual void run();
+    virtual bool run();
+
     /// Cleanly terminates the animation
     /**
      * Structure animations should always be stopped using this function
@@ -71,69 +65,43 @@ public:
     }
     /// checks whether the structure has been critically damaged
     virtual void updateDamaged();
-    /** \note
-     * Brief note to explain my thinking behind this:
-     * Originally, (until I knew better) the code used protected members
-     * to pass data between the generic building animation class and the
-     * actual animation classes.  This was changed in favour of passing
-     * a pointer to a struct from the run function to be modified by the
-     * derived class.
-     *
-     * \par
-     * Some classes needed their own updateDamaged function, which either
-     * needs to update the anim_data structure or read from it.
-     *
-     * \par
-     * Looking through those functions, at a later date from when I first
-     * wrote this code, I think I can resolve this issue nicely.
-     */
 
-    //@{
     /// if a class overrides the updateDamaged method it should be a friend
     friend class RefineAnimEvent;
     friend class ProcAnimEvent;
     friend class DoorAnimEvent;
     friend class BAttackAnimEvent;
-    //@}
 
-    //@{
-    /// Sets the next animation to run when the current animation finishes
-    /**
-     * Since the code for the AttackAnimEvent is different to the others
-     * there needs to be seperate code to handle scheduling Attack events
-     */
-    void setSchedule(BAttackAnimEvent* ea,bool attack) {
-        if (attack) {
-            this->ea = ea;
-        } else {
-            this->e = (BuildingAnimEvent*)ea;
-        }
-        toAttack = attack;
+    void setSchedule(shared_ptr<BAttackAnimEvent> new_attack) {
+        next_attack_event = new_attack;
     }
-    void setSchedule(BuildingAnimEvent* e) {
-        this->e = e;
+
+    void setSchedule(shared_ptr<BuildingAnimEvent> event) {
+        next_anim = event;
     }
-    //@}
+
+    void finish();
+
     virtual void update() {}
 private:
     Structure* strct;
     anim_nfo anim_data;
-    bool layer2,toAttack;
-    BuildingAnimEvent* e;
-    BAttackAnimEvent* ea;
+    bool layer2;
+    shared_ptr<BuildingAnimEvent> next_anim;
+    shared_ptr<BAttackAnimEvent> next_attack_event;
 protected:
-    /// all derived classes must define this function
     virtual void anim_func(anim_nfo* data) = 0;
+
     /// retrieve some constant data from the structure
     animinfo_t getaniminfo() {
         return ((StructureType *)strct->getType())->getAnimInfo();
     }
+
     /// this is needed as strct->getType() returns UnitOrStructureType*
     StructureType* getType() {
         return strct->type;
     }
 };
-
 
 /// The animation that is shown when a structure is either built or sold
 class BuildAnimEvent : public BuildingAnimEvent {
@@ -144,7 +112,6 @@ public:
      * @param sell whether the structure is being built or sold (true if sold)
      */
     BuildAnimEvent(unsigned int p, Structure* str, bool sell);
-    ~BuildAnimEvent();
     void anim_func(anim_nfo* data);
 private:
     unsigned char frame,framend;
@@ -235,11 +202,11 @@ public:
      * @param target the unit or structure to be attacked
      */
     BAttackAnimEvent(unsigned int p, Structure* str);
-    ~BAttackAnimEvent();
-    void run();
+    bool run();
     void stop();
     void anim_func(anim_nfo* data) {}
     void update();
+    void finish();
 private:
     unsigned char frame;
     Structure* strct;
@@ -267,11 +234,11 @@ public:
     /// @todo spawn survivors
     /// @todo spawn flame objects
     ~BExplodeAnimEvent();
-    virtual void run();
+    bool run();
 private:
     Structure* strct;
     unsigned short lastframe, counter;
-    virtual void anim_func(anim_nfo* data);
+    void anim_func(anim_nfo* data);
 };
 
 #endif /* STRUCTUREANIMS_H */

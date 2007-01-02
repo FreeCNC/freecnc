@@ -78,9 +78,9 @@ void Game::play()
     p::ccmap->restoreLocation(0);
 
     while (!pc::input->shouldQuit()) {
-        pc::gfxeng->renderScene();
-        p::aequeue->runEvents();
         pc::input->handle();
+        p::aequeue->runEvents();
+        pc::gfxeng->renderScene();
     }
     pc::sfxeng->StopMusic();
 

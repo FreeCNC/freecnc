@@ -247,11 +247,14 @@ void Weapon::fire(UnitOrStructure *owner, unsigned short target, unsigned char s
         if (numfiredirections == 1) {
             facing = 0;
         }
-        new ExplosionAnim(1, owner->getPos(),fireimages[facing],
-                          (unsigned char)length,/*owner->getXoffset()+*/InfantryGroup::GetUnitOffsets()[owner->getSubpos()],
-                          /*owner->getYoffset()+*/InfantryGroup::GetUnitOffsets()[owner->getSubpos()]);
+        shared_ptr<ExplosionAnim> explosion(new ExplosionAnim(1,
+            owner->getPos(),fireimages[facing], (unsigned char)length,
+            /*owner->getXoffset()+*/InfantryGroup::GetUnitOffsets()[owner->getSubpos()],
+            /*owner->getYoffset()+*/InfantryGroup::GetUnitOffsets()[owner->getSubpos()]));
+        p::aequeue->scheduleEvent(explosion);
     }
-    p::aequeue->scheduleEvent(new ProjectileAnim(0, this, owner, target, subtarget));
+    shared_ptr<ProjectileAnim> proj(new ProjectileAnim(0, this, owner, target, subtarget));
+    p::aequeue->scheduleEvent(proj);
 }
 
 WeaponsPool::WeaponsPool()

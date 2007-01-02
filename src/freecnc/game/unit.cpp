@@ -28,9 +28,6 @@ UnitType::UnitType(const char *typeName, shared_ptr<INIFile> unitini)
     SHPImage* shpimage;
     unsigned int i;
     string shpname(typeName);
-#ifdef LOOPEND_TURN
-    char* imagename;
-#endif
     unsigned int shpnum;
     unsigned int tmpspeed;
 
@@ -239,10 +236,6 @@ Unit::Unit(UnitType *type, unsigned short cellpos, unsigned char subpos, Infantr
             infgrp->AddInfantry(this, subpos);
         }
     }
-    moveanim = NULL;
-    attackanim = NULL;
-    walkanim = NULL;
-    turnanim1 = turnanim2 = NULL;
     deployed = false;
     p::ppool->getPlayer(owner)->builtUnit(this);
 }
@@ -312,8 +305,8 @@ void Unit::move(unsigned short dest, bool stop)
             target = NULL;
         }
     }
-    if (moveanim == NULL) {
-        moveanim = new MoveAnimEvent(type->getSpeed(), this);
+    if (!moveanim) {
+        moveanim.reset(new MoveAnimEvent(type->getSpeed(), this));
         p::aequeue->scheduleEvent(moveanim);
     } else {
         moveanim->update();
@@ -337,7 +330,7 @@ void Unit::attack(UnitOrStructure* target, bool stop)
     target->referTo();
     targetcell = target->getBPos(cellpos);
     if (attackanim == NULL) {
-        attackanim = new UAttackAnimEvent(0, this);
+        attackanim.reset(new UAttackAnimEvent(0, this));
         p::aequeue->scheduleEvent(attackanim);
     } else {
         attackanim->update();
@@ -346,7 +339,7 @@ void Unit::attack(UnitOrStructure* target, bool stop)
 
 void Unit::turn(unsigned char facing, unsigned char layer)
 {
-    TurnAnimEvent** t;
+    shared_ptr<TurnAnimEvent>* t;
     switch (layer) {
     case 0:
         t = &turnanim1;
@@ -359,8 +352,8 @@ void Unit::turn(unsigned char facing, unsigned char layer)
         return;
         break;
     }
-    if (*t == NULL) {
-        *t = new TurnAnimEvent(type->getROT(), this, facing, layer);
+    if (!(*t)) {
+        t->reset(new TurnAnimEvent(type->getROT(), this, facing, layer));
         p::aequeue->scheduleEvent(*t);
     } else {
         (*t)->changedir(facing);
@@ -370,10 +363,10 @@ void Unit::turn(unsigned char facing, unsigned char layer)
 
 void Unit::stop()
 {
-    if (moveanim != NULL) {
+    if (moveanim) {
         moveanim->stop();
     }
-    if (attackanim != NULL) {
+    if (attackanim) {
         attackanim->stop();
     }
 }

@@ -10,9 +10,8 @@ class MoneyCounter;
 class MoneyCounter : public ActionEvent
 {
 public:
-    MoneyCounter(int*, Player*, MoneyCounter**);
-    ~MoneyCounter();
-    void run();
+    MoneyCounter(int*, Player*, shared_ptr<MoneyCounter>*);
+    bool run();
     unsigned short getDebt() const {return debtleft;}
     void addCredit(unsigned short amount);
     void addDebt(unsigned short amount);
@@ -31,9 +30,9 @@ private:
     unsigned char step(unsigned short& value);
     bool sound;
 
-    MoneyCounter** backref;
+    shared_ptr<MoneyCounter>* backref;
 
-    void reshedule();
+    void reschedule();
 };
 
 #endif

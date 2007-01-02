@@ -22,7 +22,6 @@ namespace BuildQueue
     {
     public:
         BQueue(Player* p);
-        ~BQueue();
 
         bool Add(const UnitOrStructureType* type);
         ConStatus PauseCancel(const UnitOrStructureType* type);
@@ -42,7 +41,7 @@ namespace BuildQueue
         unsigned int last, left;
         ConStatus status;
 
-        BQTimer* timer;
+        shared_ptr<BQTimer> timer;
         bool tick();
         void rescheduled();
 

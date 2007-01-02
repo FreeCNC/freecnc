@@ -17,33 +17,34 @@ UnitAnimEvent::UnitAnimEvent(unsigned int p, Unit* un) : ActionEvent(p)
     //logger->debug("UAE cons: this:%p un:%p\n",this,un);
     this->un = un;
     un->referTo();
-    scheduled = NULL;
+}
+
+void UnitAnimEvent::finish()
+{
+    if (scheduled) {
+        p::aequeue->scheduleEvent(scheduled);
+    }
 }
 
 UnitAnimEvent::~UnitAnimEvent()
 {
     //logger->debug("UAE dest: this:%p un:%p sch:%p\n",this,un,scheduled);
-    if (scheduled != NULL) {
-        p::aequeue->scheduleEvent(scheduled);
-    }
     un->unrefer();
 }
 
-void UnitAnimEvent::setSchedule(UnitAnimEvent* e)
+void UnitAnimEvent::setSchedule(shared_ptr<UnitAnimEvent> e)
 {
     //logger->debug("Scheduling an event. (this: %p, e: %p)\n",this,e);
-    if (scheduled != NULL) {
-        scheduled->setSchedule(NULL);
+    if (scheduled) {
+        scheduled->setSchedule();
         scheduled->stop();
     }
     scheduled = e;
 }
 
-void UnitAnimEvent::stopScheduled()
+void UnitAnimEvent::setSchedule()
 {
-    if (scheduled != NULL) {
-        scheduled->stop();
-    }
+    scheduled.reset();
 }
 
 MoveAnimEvent::MoveAnimEvent(unsigned int p, Unit* un) : UnitAnimEvent(p,un)
@@ -64,54 +65,61 @@ MoveAnimEvent::MoveAnimEvent(unsigned int p, Unit* un) : UnitAnimEvent(p,un)
 
 MoveAnimEvent::~MoveAnimEvent()
 {
-    if (un->moveanim == this)
-        un->moveanim = NULL;
+    delete path;
+}
+
+void MoveAnimEvent::finish()
+{
+    if (waiting) {
+        return;
+    }
+
+    if (un->moveanim.get() == this)
+        un->moveanim.reset();
     //logger->debug("MoveAnim dest (this %p un %p dest %u)\n",this,un,dest);
     if( !moved_half && newpos != 0xffff) {
         p::uspool->abortMove(un,newpos);
     }
-    delete path;
-    if (un->walkanim != NULL) {
+    if (un->walkanim) {
         un->walkanim->stop();
     }
-    if (un->turnanim1 != NULL) {
+    if (un->turnanim1) {
         un->turnanim1->stop();
 
     }
-    if (un->turnanim2 != NULL) {
+    if (un->turnanim2) {
         un->turnanim2->stop();
     }
+
+    UnitAnimEvent::finish();
 }
 
-void MoveAnimEvent::run()
+bool MoveAnimEvent::run()
 {
     char uxoff, uyoff;
     unsigned char oldsubpos;
 
     waiting = false;
     if( !un->isAlive() ) {
-        delete this;
-        return;
+        return false;
     }
 
     if( path == NULL ) {
         p::uspool->setCostCalcOwnerAndType(un->owner, 0);
         path = new Path(un->getPos(), dest, range);
         if( !path->empty() ) {
-            startMoveOne(false);
+            return startMoveOne(false);
         } else {
-            if (un->attackanim != NULL) {
+            if (un->attackanim) {
                 un->attackanim->stop();
             }
-            delete this;
         }
-        return;
+        return false;
     }
 
     if( blocked ) {
         blocked = false;
-        startMoveOne(true);
-        return;
+        return startMoveOne(true);
     }
     /* if distance left is smaller than xmod we're ready */
 
@@ -150,19 +158,14 @@ void MoveAnimEvent::run()
     if( xmod == 0 && ymod == 0 ) {
         un->xoffset = 0;
         un->yoffset = 0;
-        moveDone();
-        return;
+        return moveDone();
     }
 
-    p::aequeue->scheduleEvent(this);
+    return true;
 }
 
-void MoveAnimEvent::startMoveOne(bool wasblocked)
+bool MoveAnimEvent::startMoveOne(bool wasblocked)
 {
-#ifdef LOOPEND_TURN
-    //TODO: transport boat is jerky (?)
-    unsigned char loopend=((UnitType*)un->type)->getAnimInfo().loopend;
-#endif
     unsigned char face;
 
     newpos = p::uspool->preMove(un, path->top(), &xmod, &ymod);
@@ -175,8 +178,7 @@ void MoveAnimEvent::startMoveOne(bool wasblocked)
         if( path->empty() ) {
             xmod = 0;
             ymod = 0;
-            p::aequeue->scheduleEvent(this);
-            return;
+            return true;
         }
         newpos = p::uspool->preMove(un, path->top(), &xmod, &ymod);
         if( newpos == 0xffff ) {
@@ -187,8 +189,7 @@ void MoveAnimEvent::startMoveOne(bool wasblocked)
                     un->attackanim->stop();
                 }
                 this->stop();
-                p::aequeue->scheduleEvent(this);
-                return;
+                return true;
             } else {
                 /* TODO: tell the blocking unit to move here */
 
@@ -198,17 +199,12 @@ void MoveAnimEvent::startMoveOne(bool wasblocked)
                     un->walkanim->stop();
                 }
 
-                p::aequeue->scheduleEvent(this);
-                return;
+                return true;
             }
         }
     }
 
-#ifdef LOOPEND_TURN 
-    face = ((char)((loopend+1)*(8-path->top())/8))&loopend;
-#else
     face = (32-(path->top() << 2))&0x1f;
-#endif
     path->pop();
 
     moved_half = false;
@@ -217,40 +213,32 @@ void MoveAnimEvent::startMoveOne(bool wasblocked)
         if (un->walkanim != NULL) {
             un->walkanim->changedir(face);
         } else {
-            un->walkanim = new WalkAnimEvent(((UnitType *)un->getType())->getSpeed(), un, face, 0);
+            un->walkanim.reset(new WalkAnimEvent(((UnitType *)un->getType())->getSpeed(), un, face, 0));
             p::aequeue->scheduleEvent(un->walkanim);
         }
-        p::aequeue->scheduleEvent(this);
-
-    } else {
-#ifdef LOOPEND_TURN 
-        unsigned char curface = (un->getImageNum(0)&loopend);
-        unsigned char delta = (abs(curface-face))&loopend;
-        if( curface != face ) {
-            if( (delta <= (char)((loopend+1)/8)) || (delta >= (char)(loopend*7/8))) {
-#else
-        unsigned char curface = (un->getImageNum(0)&0x1f);
-        unsigned char delta = (abs(curface-face))&0x1f;
-        if( (un->getImageNum(0)&0x1f) != face ) {
-            if( (delta < 5) || (delta > 27) ) {
-#endif
-                un->turn(face,0);
-                p::aequeue->scheduleEvent(this);
-            } else {
-                waiting = true;
-                un->turn(face,0);
-                un->turnanim1->setSchedule(this);
-            }
-            if (un->getType()->getNumLayers() > 1) {
-                un->turn(face,1);
-            }
-        } else {
-            p::aequeue->scheduleEvent(this);
-        }
+        return true;
     }
+    unsigned char curface = (un->getImageNum(0)&0x1f);
+    unsigned char delta = (abs(curface-face))&0x1f;
+    if( (un->getImageNum(0)&0x1f) != face ) {
+        if( (delta < 5) || (delta > 27) ) {
+            un->turn(face,0);
+            return true;
+        } else {
+            waiting = true;
+            un->turn(face,0);
+            un->turnanim1->setSchedule(un->moveanim);
+        }
+        if (un->getType()->getNumLayers() > 1) {
+            un->turn(face,1);
+        }
+    } else {
+        return true;
+    }
+    return false;
 }
 
-void MoveAnimEvent::moveDone()
+bool MoveAnimEvent::moveDone()
 {
     un->xoffset = 0;
     un->yoffset = 0;
@@ -262,26 +250,23 @@ void MoveAnimEvent::moveDone()
         pathinvalid = false;
     }
     if( !path->empty() && !stopping ) {
-        startMoveOne(false);
-    } else {
-        if( dest != un->getPos() && !stopping ) {
-            delete path;
-            p::uspool->setCostCalcOwnerAndType(un->owner, 0);
-            path = new Path(un->getPos(), dest, range);
-            pathinvalid = false;
-        }
-        if( path->empty() || stopping ) {
-            delete this;
-        } else {
-            startMoveOne(false);
-        }
+        return startMoveOne(false);
     }
+    if( dest != un->getPos() && !stopping ) {
+        delete path;
+        p::uspool->setCostCalcOwnerAndType(un->owner, 0);
+        path = new Path(un->getPos(), dest, range);
+        pathinvalid = false;
+    }
+    if( path->empty() || stopping ) {
+        return false;
+    }
+    return startMoveOne(false);
 }
 
 void MoveAnimEvent::stop()
 {
     stopping = true;
-    //stopScheduled();
 }
 
 void MoveAnimEvent::update()
@@ -304,18 +289,15 @@ WalkAnimEvent::WalkAnimEvent(unsigned int p, Unit *un, unsigned char dir, unsign
     calcbaseimage();
 }
 
-WalkAnimEvent::~WalkAnimEvent()
+void WalkAnimEvent::finish()
 {
-#ifdef LOOPEND_TURN
-    un->setImageNum((((UnitType*)un->type)->getAnimInfo().loopend+1)*dir/8,layer);
-#else
     un->setImageNum(dir>>2,layer);
-#endif
-    if (un->walkanim == this)
-        un->walkanim = NULL;
+    if (un->walkanim.get() == this)
+        un->walkanim.reset();
+    UnitAnimEvent::finish();
 }
 
-void WalkAnimEvent::run()
+bool WalkAnimEvent::run()
 {
     unsigned char layerface;
     if (!stopping) {
@@ -323,11 +305,9 @@ void WalkAnimEvent::run()
         // XXX: Assumes 6 frames to loop over
         istep = (istep + 1)%6;
         un->setImageNum(layerface,layer);
-        p::aequeue->scheduleEvent(this);
-    } else {
-        delete this;
-        return;
+        return true;
     }
+    return false;
 }
 
 void WalkAnimEvent::calcbaseimage()
@@ -338,73 +318,54 @@ void WalkAnimEvent::calcbaseimage()
 
 TurnAnimEvent::TurnAnimEvent(unsigned int p, Unit *un, unsigned char dir, unsigned char layer) : UnitAnimEvent(p,un)
 {
-#ifdef LOOPEND_TURN   
-    unsigned char loopend=((UnitType*)un->type)->getAnimInfo().loopend;
-#endif
     //logger->debug("Turn cons (t%p u%p d%i l%i)\n",this,un,dir,layer);
     unsigned char layerface;
     this->un = un;
     this->dir = dir;
     this->layer = layer;
     stopping = false;
-#ifdef LOOPEND_TURN 
-    layerface = un->getImageNum(layer)&loopend;
-    if( ((layerface-dir)&loopend) < ((dir-layerface)&loopend) ) {
-#else
     layerface = un->getImageNum(layer)&0x1f;
     if( ((layerface-dir)&0x1f) < ((dir-layerface)&0x1f) ) {
-#endif
         turnmod = -(((UnitType *)un->getType())->getTurnMod());
     } else {
         turnmod = (((UnitType *)un->getType())->getTurnMod());
     }
 }
 
-TurnAnimEvent::~TurnAnimEvent()
+void TurnAnimEvent::finish()
 {
     //logger->debug("TurnAnim dest\n");
     if (layer == 0) {
-        if (un->turnanim1 == this)
-            un->turnanim1 = NULL;
+        if (un->turnanim1.get() == this)
+            un->turnanim1.reset();
     } else {
-        if (un->turnanim2 == this)
-            un->turnanim2 = NULL;
+        if (un->turnanim2.get() == this)
+            un->turnanim2.reset();
     }
+    UnitAnimEvent::finish();
 }
 
-void TurnAnimEvent::run()
+bool TurnAnimEvent::run()
 {
-#ifdef LOOPEND_TURN   
-    unsigned char loopend=((UnitType*)un->type)->getAnimInfo().loopend;
-#endif
     unsigned char layerface;
 
     //logger->debug("TurnAnim run (s%i)\n",stopping);
     if (stopping) {
-        delete this;
-        return;
+        return false;
     }
 
-#ifdef LOOPEND_TURN   
-    layerface = un->getImageNum(layer)&loopend;
-    if( abs((layerface-dir)&loopend) > abs(turnmod) ) {
-        layerface += turnmod;
-        layerface &= loopend;
-#else
     layerface = un->getImageNum(layer)&0x1f;
     if( abs((layerface-dir)&0x1f) > abs(turnmod) ) {
         layerface += turnmod;
         layerface &= 0x1f;
-#endif
     } else
         layerface = dir;
 
     un->setImageNum(layerface,layer);
     if( layerface == dir || !un->isAlive()) {
-        delete this;
-        return;
+        return false;
     }
-    p::aequeue->scheduleEvent(this);
+    return true;
 }
 
 UAttackAnimEvent::UAttackAnimEvent(unsigned int p, Unit *un) : UnitAnimEvent(p,un)
@@ -421,8 +382,17 @@ UAttackAnimEvent::~UAttackAnimEvent()
 {
     //logger->debug("UAttack dest\n");
     target->unrefer();
-    if (un->attackanim == this)
-        un->attackanim = NULL;
+}
+
+void UAttackAnimEvent::finish()
+{
+    if (waiting != 0) {
+        return;
+    }
+
+    if (un->attackanim.get() == this)
+        un->attackanim.reset();
+    UnitAnimEvent::finish();
 }
 
 void UAttackAnimEvent::update()
@@ -436,36 +406,31 @@ void UAttackAnimEvent::update()
 
 void UAttackAnimEvent::stop()
 {
-    if (un == NULL) {
-        throw runtime_error("UAttackAnimEvent::stop Unit pointer is NULL");
-    }
+    assert(un);
     stopping = true;
+    if (un->attackanim.get() == this)
+        un->attackanim.reset();
 }
 
-void UAttackAnimEvent::run()
+bool UAttackAnimEvent::run()
 {
     unsigned int distance;
     int xtiles, ytiles;
     unsigned short atkpos;
     float alpha;
     unsigned char facing;
-#ifdef LOOPEND_TURN
-    unsigned char loopend2=((UnitType*)un->type)->getAnimInfo().loopend2;
-#endif
 
     //logger->debug("attack run t%p u%p\n",this,un);
     waiting = 0;
     if( !un->isAlive() || stopping ) {
-        delete this;
-        return;
+        return false;
     }
 
     if( !target->isAlive() || stopping) {
         if ( !target->isAlive() ) {
             un->doRandTalk(TB_postkill);
         }
-        delete this;
-        return;
+        return false;
     }
     atkpos = un->getTargetCell();
 
@@ -478,8 +443,8 @@ void UAttackAnimEvent::run()
         waiting = 3;
         un->move(atkpos,false);
         un->moveanim->setRange(un->type->getWeapon()->getRange());
-        un->moveanim->setSchedule(this);
-        return;
+        un->moveanim->setSchedule(un->attackanim);
+        return false;
     }
     //Make sure we're facing the right way
     if( xtiles == 0 ) {
@@ -494,15 +459,6 @@ void UAttackAnimEvent::run()
             alpha = M_PI+alpha;
         }
     }
-#ifdef LOOPEND_TURN
-    facing = ((char)((loopend2+1)*(1-alpha/2/M_PI)+8))&loopend2;
-    if (un->type->isInfantry()) {
-        if (facing != (un->getImageNum(0)&loopend2)) {
-            un->setImageNum((char)((loopend2+1)*facing/8),0);
-        }
-    } else if (un->type->getNumLayers() > 1 ) {
-        if (abs((int)(facing - (un->getImageNum(1)&loopend2))) > un->type->getROT()) {
-#else
     facing = (40-(char)(alpha*16/M_PI))&0x1f;
     if (un->type->isInfantry()) {
         if (facing != (un->getImageNum(0)&0x1f)) {
@@ -510,24 +466,19 @@ void UAttackAnimEvent::run()
         }
     } else if (un->type->getNumLayers() > 1 ) {
         if (abs((int)(facing - (un->getImageNum(1)&0x1f))) > un->type->getROT()) {
-#endif
             setDelay(0);
             waiting = 2;
             un->turn(facing,1);
-            un->turnanim2->setSchedule(this);
-            return;
+            un->turnanim2->setSchedule(un->attackanim);
+            return false;
         }
     } else {
-#ifdef LOOPEND_TURN
-        if (abs((int)(facing - un->getImageNum(0)&loopend2)) > un->type->getROT()) {
-#else
         if (abs((int)(facing - un->getImageNum(0)&0x1f)) > un->type->getROT()) {
-#endif
             setDelay(0);
             waiting = 1;
             un->turn(facing,0);
-            un->turnanim1->setSchedule(this);
-            return;
+            un->turnanim1->setSchedule(un->attackanim);
+            return false;
         }
     }
     // We can shoot
@@ -536,6 +487,6 @@ void UAttackAnimEvent::run()
     // set delay to reloadtime
     setDelay(un->type->getWeapon()->getReloadTime());
     waiting = 4;
-    p::aequeue->scheduleEvent(this);
+    return true;
 }
 

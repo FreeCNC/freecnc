@@ -1,7 +1,6 @@
 #ifndef _GAME_UNITANIMATIONS_H
 #define _GAME_UNITANIMATIONS_H
 
-#include "../freecnc.h"
 #include "actioneventqueue.h"
 
 class Path;
@@ -13,31 +12,33 @@ class UnitAnimEvent : public ActionEvent
 public:
     UnitAnimEvent(unsigned int p, Unit* un);
     virtual ~UnitAnimEvent();
-    void setSchedule(UnitAnimEvent* e);
-    void stopScheduled();
+    void setSchedule();
+    void setSchedule(shared_ptr<UnitAnimEvent> e);
+    virtual void finish();
     virtual void stop() = 0;
     virtual void update() {}
-    virtual void run() = 0;
+    virtual bool run() = 0;
 
 private:
     Unit* un;
-    UnitAnimEvent* scheduled;
+    shared_ptr<UnitAnimEvent> scheduled;
 };
 
 class MoveAnimEvent : public UnitAnimEvent
 {
 public:
     MoveAnimEvent(unsigned int p, Unit* un);
-    virtual ~MoveAnimEvent();
-    virtual void stop();
-    virtual void run();
-    virtual void update();
-    virtual void setRange(unsigned int nr) {range = nr;}
+    ~MoveAnimEvent();
+    void finish();
+    void stop();
+    bool run();
+    void update();
+    void setRange(unsigned int nr) {range = nr;}
 
 private:
     bool stopping;
-    void startMoveOne(bool wasblocked);
-    void moveDone();
+    bool startMoveOne(bool wasblocked);
+    bool moveDone();
     unsigned short dest,newpos;
     bool blocked, moved_half, pathinvalid, waiting;
     char xmod, ymod;
@@ -50,10 +51,10 @@ private:
 class WalkAnimEvent : public UnitAnimEvent {
 public:
     WalkAnimEvent(unsigned int p, Unit* un, unsigned char dir, unsigned char layer);
-    virtual ~WalkAnimEvent();
-    virtual void stop() {stopping = true;}
-    virtual void run();
-    virtual void changedir(unsigned char ndir) {
+    void stop() {stopping = true;}
+    bool run();
+    void finish();
+    void changedir(unsigned char ndir) {
         stopping = false;
         dir = ndir;
         calcbaseimage();
@@ -73,11 +74,11 @@ class TurnAnimEvent : public UnitAnimEvent
 {
 public:
     TurnAnimEvent(unsigned int p, Unit *un, unsigned char dir, unsigned char layer);
-    virtual ~TurnAnimEvent();
-    virtual void run();
-    virtual void stop() {stopping = true;}
+    bool run();
+    void finish();
+    void stop() {stopping = true;}
     void update() {}
-    virtual void changedir(unsigned char ndir) {
+    void changedir(unsigned char ndir) {
         stopping = false;
         dir = ndir;
     }
@@ -94,10 +95,11 @@ class UAttackAnimEvent : public UnitAnimEvent
 {
 public:
     UAttackAnimEvent(unsigned int p, Unit *un);
-    virtual ~UAttackAnimEvent();
+    ~UAttackAnimEvent();
+    void finish();
     void stop();
-    virtual void update();
-    virtual void run();
+    void update();
+    bool run();
 
 private:
     Unit *un;

@@ -19,25 +19,23 @@ ExplosionAnim::ExplosionAnim(unsigned int p, unsigned short pos, unsigned int st
     l2o->cellpos = pos;
     l2entry = p::uspool->addL2overlay(pos, l2o);
     this->animsteps = animsteps;
-    p::aequeue->scheduleEvent(this);
     this->pos = pos;
 }
 
-ExplosionAnim::~ExplosionAnim()
+void ExplosionAnim::finish()
 {
     p::uspool->removeL2overlay(l2entry);
     delete l2o;
 }
 
-void ExplosionAnim::run()
+bool ExplosionAnim::run()
 {
     animsteps--;
     if( animsteps == 0 ) {
-        delete this;
-        return;
+        return false;
     }
     ++l2o->imagenums[0];
-    p::aequeue->scheduleEvent(this);
+    return true;
 }
 
 ProjectileAnim::ProjectileAnim(unsigned int p, Weapon *weap, UnitOrStructure* owner,
@@ -126,7 +124,7 @@ ProjectileAnim::ProjectileAnim(unsigned int p, Weapon *weap, UnitOrStructure* ow
     }
 }
 
-ProjectileAnim::~ProjectileAnim()
+void ProjectileAnim::finish()
 {
     if( l2o != NULL ) {
         p::uspool->removeL2overlay(l2entry);
@@ -137,10 +135,14 @@ ProjectileAnim::~ProjectileAnim()
             target->unrefer();
         }
     }
+}
+
+ProjectileAnim::~ProjectileAnim()
+{
     owner->unrefer();
 }
 
-void ProjectileAnim::run()
+bool ProjectileAnim::run()
 {
     unsigned int oldpos;
     Unit *utarget;
@@ -203,14 +205,15 @@ void ProjectileAnim::run()
         if( weap->getWarhead()->getExplosionsound() != NULL ) {
             pc::sfxeng->PlaySound(weap->getWarhead()->getExplosionsound());
         }
-        new ExplosionAnim(1, dest, weap->getWarhead()->getEImage(),
-                          weap->getWarhead()->getESteps(), 0, 0);
+        shared_ptr<ExplosionAnim> explosion(new ExplosionAnim(1, dest,
+            weap->getWarhead()->getEImage(), weap->getWarhead()->getESteps(),
+            0, 0));
+        p::aequeue->scheduleEvent(explosion);
 
         starget = p::uspool->getStructureAt(dest,weap->getWall());
         if( starget != NULL ) {
             starget->applyDamage(weap->getDamage(),weap,owner);
-            delete this;
-            return;
+            return false;
         }
 
         utarget = p::uspool->getUnitAt(dest, subdest);
@@ -228,16 +231,13 @@ void ProjectileAnim::run()
                 if (utarget != NULL) { // soldier might have already been killed
                     utarget->applyDamage((short)(2.0*(double)weap->getDamage()/3.0),weap,owner);
                 }
-                delete this;
-                return;
+                return false;
             } else {
                 utarget->applyDamage(weap->getDamage(),weap,owner);
-                delete this;
-                return;
+                return false;
             }
         }
-        delete this;
-        return;
+        return false;
     }
     if (!heatseek) {
         // decrease xdiff by xmod and ydiff by ymod
@@ -278,11 +278,12 @@ void ProjectileAnim::run()
         if( weap->getWarhead()->getExplosionsound() != NULL ) {
             pc::sfxeng->PlaySound(weap->getWarhead()->getExplosionsound());
         }
-        new ExplosionAnim(1, l2o->cellpos, weap->getWarhead()->getEImage(),
-                          weap->getWarhead()->getESteps(), 0, 0);
+        shared_ptr<ExplosionAnim> explosion(new ExplosionAnim(1, l2o->cellpos,
+            weap->getWarhead()->getEImage(), weap->getWarhead()->getESteps(),
+            0, 0));
+        p::aequeue->scheduleEvent(explosion);
 
-        delete this;
-        return;
+        return false;
     }
-    p::aequeue->scheduleEvent(this);
+    return true;
 }

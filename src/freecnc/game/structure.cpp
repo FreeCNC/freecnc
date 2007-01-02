@@ -247,10 +247,8 @@ Structure::Structure(StructureType *type, unsigned short cellpos, unsigned char 
     animating = false;
     usemakeimgs = false;
     primary = false;
-    buildAnim = NULL;
-    attackAnim = NULL;
     health = (unsigned short)((double)rhealth/256.0f * (double)type->getMaxHealth());
-    damaged = checkdamage();
+    update_damaged_look(true);
     if( !type->isWall() ) {
         p::ppool->getPlayer(owner)->builtStruct(this);
     }
@@ -428,30 +426,30 @@ void Structure::runAnim(unsigned int mode)
         animating = true;
         if (mode == 0) { // run build anim at const speed
             usemakeimgs = true;
-            buildAnim = new BuildAnimEvent(3,this,false);
+            buildAnim.reset(new BuildAnimEvent(3,this,false));
         } else {
             speed = type->getAnimInfo().animspeed;
             switch (mode&0xf) {
             case 1:
                 if (type->getAnimInfo().animtype == 4) {
-                    buildAnim = new ProcAnimEvent(speed,this);
+                    buildAnim.reset(new ProcAnimEvent(speed,this));
                 } else {
-                    buildAnim = new LoopAnimEvent(speed,this);
+                    buildAnim.reset(new LoopAnimEvent(speed,this));
                 }
                 break;
             case 2:
-                buildAnim = new BTurnAnimEvent(speed,this,(mode>>4));
+                buildAnim.reset(new BTurnAnimEvent(speed,this,(mode>>4)));
                 break;
             case 7:
-                buildAnim = new RefineAnimEvent(speed,this,5);
+                buildAnim.reset(new RefineAnimEvent(speed,this,5));
                 break;
             default:
-                buildAnim = NULL;
+                buildAnim.reset();
                 animating = false;
                 break;
             }
         }
-        if (buildAnim != NULL) {
+        if (buildAnim) {
             p::aequeue->scheduleEvent(buildAnim);
         }
     }
@@ -459,28 +457,30 @@ void Structure::runAnim(unsigned int mode)
 
 void Structure::runSecAnim(unsigned int param)
 {
-    BuildingAnimEvent* sec_anim = NULL;
+    shared_ptr<BuildingAnimEvent> sec_anim;
     unsigned char secmode = type->getAnimInfo().sectype;
-    if (secmode != 0) {
-        switch (secmode) {
-        case 7:
-            sec_anim = new RefineAnimEvent(2,this,param);
-            break;
-        case 5:
-            sec_anim = new DoorAnimEvent(2,this,(param!=0));
-            break;
-        case 8:
-            //sec_anim = new RepairAnimEvent(3,this);
-            break;
-        }
-        if (animating) {
-            buildAnim->setSchedule(sec_anim);
-            stopAnim();
-        } else {
-            buildAnim = sec_anim;
-            p::aequeue->scheduleEvent(buildAnim);
-            animating = true;
-        }
+    if (secmode == 0) {
+        return;
+    }
+
+    switch (secmode) { /// @TODO Do something with these arbitrary numbers here
+    case 7:
+        sec_anim.reset(new RefineAnimEvent(2,this,param));
+        break;
+    case 5:
+        sec_anim.reset(new DoorAnimEvent(2,this,(param!=0)));
+        break;
+    case 8:
+        //sec_anim.reset(new RepairAnimEvent(3,this));
+        break;
+    }
+    if (animating) {
+        buildAnim->setSchedule(sec_anim);
+        stopAnim();
+    } else {
+        buildAnim = sec_anim;
+        p::aequeue->scheduleEvent(buildAnim);
+        animating = true;
     }
 }
 
@@ -491,7 +491,7 @@ void Structure::stopAnim()
 
 void Structure::stop()
 {
-    if (attackAnim != NULL) {
+    if (attackAnim) {
         attackAnim->stop();
     }
 }
@@ -500,7 +500,6 @@ void Structure::applyDamage(short amount, Weapon* weap, UnitOrStructure* attacke
 {
     if (exploding)
         return;
-    unsigned char odam = damaged;
     amount = (short)((double)amount * weap->getVersus(type->getArmour()));
     if ((health-amount) <= 0) {
         exploding = true;
@@ -508,7 +507,7 @@ void Structure::applyDamage(short amount, Weapon* weap, UnitOrStructure* attacke
             p::uspool->removeStructure(this);
         } else {
             p::ppool->getPlayer(attacker->getOwner())->addStructureKill();
-            BExplodeAnimEvent* boom = new BExplodeAnimEvent(1,this);
+            shared_ptr<BuildingAnimEvent> boom(new BExplodeAnimEvent(1, this));
             if (animating) {
                 buildAnim->setSchedule(boom);
                 buildAnim->stop();
@@ -525,44 +524,64 @@ void Structure::applyDamage(short amount, Weapon* weap, UnitOrStructure* attacke
     }
     if (animating) {
         buildAnim->updateDamaged();
+        return;
+    }
+
+    update_damaged_look(false);
+}
+
+void Structure::update_damaged_look(bool first_time)
+{
+    unsigned char previously_damaged;
+    if (!first_time) {
+        previously_damaged = damaged;
     } else {
+        previously_damaged = false;
+    }
+    damaged = checkdamage();
+
+    int new_image[2];
+    new_image[0] = imagenumbers[0]&~0x800;
+    if (type->getNumLayers() == 2) {
+        new_image[1] = imagenumbers[1]&~0x800;
+    }
+
+    if (damaged && !previously_damaged) {
         if (type->isWall()) {
-            if ((damaged = checkdamage())) { // This is correct
-                if (odam != damaged) {
-                    changeImage(0,16);
-                }
-            }
-        } else {
-            if ((damaged = checkdamage())) { // This is correct
-                if (odam != damaged) { // only play critical damage sound once
-                    if (pc::sfxeng != NULL) {
-                        pc::sfxeng->PlaySound("xplobig4.aud");
-                    }
-                    setImageNum((imagenumbers[0]&~0x800)+type->getAnimInfo().dmgoff,0);
-                    if (type->getNumLayers() == 2)
-                        setImageNum((imagenumbers[1]&~0x800)+type->getAnimInfo().dmgoff2,1);
-                }
-            } else {
-                if (odam) {
-                    setImageNum((imagenumbers[0]&~0x800)-type->getAnimInfo().dmgoff,0);
-                    if (type->getNumLayers() == 2)
-                        setImageNum((imagenumbers[1]&~0x800)-type->getAnimInfo().dmgoff,1);
-                    return;
-                }
-            }
+            changeImage(0,16);
+            return;
+        }
+        // only play critical damage sound once
+        if (!first_time)
+            pc::sfxeng->PlaySound("xplobig4.aud");
+
+        new_image[0] += type->getAnimInfo().dmgoff;
+        if (type->getNumLayers() == 2) {
+            new_image[1] += type->getAnimInfo().dmgoff2;
+        }
+    } else if (!damaged && previously_damaged) {
+        new_image[0] -= type->getAnimInfo().dmgoff;
+        if (type->getNumLayers() == 2) {
+            new_image[1] -= type->getAnimInfo().dmgoff2;
         }
     }
+
+    setImageNum(new_image[0],0);
+    if (type->getNumLayers() == 2) {
+        setImageNum(new_image[1],1);
+    }
+
 }
 
 void Structure::attack(UnitOrStructure* target)
 {
     this->target = target;
     targetcell = target->getBPos(cellpos);
-    if( attackAnim == NULL ) {
-        attackAnim = new BAttackAnimEvent(0, this);
-        p::aequeue->scheduleEvent(attackAnim);
-    } else {
+    if (attackAnim) {
         attackAnim->update();
+    } else {
+        attackAnim.reset(new BAttackAnimEvent(0, this));
+        p::aequeue->scheduleEvent(attackAnim);
     }
 }
 
@@ -592,7 +611,7 @@ unsigned int Structure::getExitCell() const
 
 unsigned short Structure::getTargetCell() const
 {
-    if (attackAnim != NULL && target != NULL) {
+    if (attackAnim && target != NULL) {
         return target->getBPos(cellpos);
     }
     return targetcell;

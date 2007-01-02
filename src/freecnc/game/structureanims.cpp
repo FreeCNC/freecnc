@@ -21,35 +21,33 @@ BuildingAnimEvent::BuildingAnimEvent(unsigned int p, Structure* str, unsigned ch
     anim_data.frame1 = 0;
     anim_data.damagedelta = 0;
     anim_data.damaged = false;
-    toAttack = false;
     if (getaniminfo().animdelay != 0 && mode != 0) // no delay for building anim
         setDelay(getaniminfo().animdelay);
-    e = NULL;
-    ea = NULL;
-    layer2      = ((strct->type->getNumLayers()==2)?true:false);
+    layer2 = ((strct->type->getNumLayers()==2)?true:false);
+}
+
+void BuildingAnimEvent::finish()
+{
+    if (next_attack_event) {
+        strct->attackAnim = next_attack_event;
+        p::aequeue->scheduleEvent(next_attack_event);
+    } else {
+        strct->buildAnim = next_anim;
+        if (next_anim) {
+            p::aequeue->scheduleEvent(next_anim);
+        }
+    }
 }
 
 BuildingAnimEvent::~BuildingAnimEvent()
 {
-    if ((e != NULL)||(ea!=NULL)) {
-        if (toAttack) {
-            strct->attackAnim = ea;
-            p::aequeue->scheduleEvent(ea);
-        } else {
-            strct->buildAnim = e;
-            p::aequeue->scheduleEvent(e);
-        }
-    }
     strct->unrefer();
 }
 
-void BuildingAnimEvent::run()
+bool BuildingAnimEvent::run()
 {
-    BuildingAnimEvent* tmp_ev;
-
     if( !strct->isAlive() ) {
-        delete this;
-        return;
+        return false;
     }
     anim_func(&anim_data);
 
@@ -57,60 +55,62 @@ void BuildingAnimEvent::run()
     if (layer2) {
         strct->setImageNum(anim_data.frame1,1);
     }
-    if (anim_data.done) {
-        if (anim_data.mode != 6 && anim_data.mode != 5) {
-            strct->setImageNum(anim_data.damagedelta,0);
-            if (layer2) {
-                strct->setImageNum(anim_data.damagedelta2,1);
-            }
-        }
-        if (anim_data.mode == 0) {
-            strct->setImageNum(anim_data.damagedelta + anim_data.frame0,0);
-        }
-        strct->usemakeimgs = false;
-        if ((anim_data.mode == 0) || (anim_data.mode == 7)) {
-            switch (getaniminfo().animtype) {
-            case 1:
-                tmp_ev = new LoopAnimEvent(getaniminfo().animspeed,strct);
-                setSchedule(tmp_ev);
-                break;
-            case 4:
-                tmp_ev = new ProcAnimEvent(getaniminfo().animspeed,strct);
-                setSchedule(tmp_ev);
-                break;
-            default:
-                strct->animating = false;
-                break;
-            }
-        } else if (e == NULL) {
-            strct->animating = false;
-        }
-        delete this;
-        return;
+    if (!anim_data.done) {
+        return true;
     }
-    p::aequeue->scheduleEvent(this);
+    if (anim_data.mode != 6 && anim_data.mode != 5) {
+        strct->setImageNum(anim_data.damagedelta,0);
+        if (layer2) {
+            strct->setImageNum(anim_data.damagedelta2,1);
+        }
+    }
+    if (anim_data.mode == 0) {
+        strct->setImageNum(anim_data.damagedelta + anim_data.frame0,0);
+    }
+    strct->usemakeimgs = false;
+    if ((anim_data.mode == 0) || (anim_data.mode == 7)) {
+        shared_ptr<BuildingAnimEvent> new_event;
+
+        switch (getaniminfo().animtype) {
+        case 1:
+            new_event.reset(new LoopAnimEvent(getaniminfo().animspeed,strct));
+            setSchedule(new_event);
+            break;
+        case 4:
+            new_event.reset(new ProcAnimEvent(getaniminfo().animspeed,strct));
+            setSchedule(new_event);
+            break;
+        default:
+            strct->animating = false;
+            break;
+        }
+    } else if (!next_anim) {
+        strct->animating = false;
+    }
+    return false;
 }
 
 void BuildingAnimEvent::updateDamaged()
 {
     bool odam = anim_data.damaged;
     anim_data.damaged = (strct->checkdamage() > 0);
-    if (anim_data.damaged) {
-        if (getaniminfo().dmgoff != 0 || getaniminfo().dmgoff2 != 0) {
-            anim_data.damagedelta = getaniminfo().dmgoff;
-            anim_data.damagedelta2 = getaniminfo().dmgoff2;
-        } else {
-            anim_data.damagedelta = getaniminfo().loopend+1;
-            if (layer2) {
-                anim_data.damagedelta2 = getaniminfo().loopend2+1;
-            }
-        }
-        if (!odam && pc::sfxeng != NULL && !p::ccmap->isLoading()) {
-            pc::sfxeng->PlaySound("xplobig4.aud");
-        }
-    } else {
+    if (!anim_data.damaged) {
         anim_data.damagedelta = 0;
         anim_data.damagedelta2 = 0;
+        return;
+    }
+
+    if (getaniminfo().dmgoff != 0 || getaniminfo().dmgoff2 != 0) {
+        anim_data.damagedelta = getaniminfo().dmgoff;
+        anim_data.damagedelta2 = getaniminfo().dmgoff2;
+    } else {
+        anim_data.damagedelta = getaniminfo().loopend+1;
+        if (layer2) {
+            anim_data.damagedelta2 = getaniminfo().loopend2+1;
+        }
+    }
+    if (!odam && pc::sfxeng != NULL && !p::ccmap->isLoading()) {
+        pc::sfxeng->PlaySound("xplobig4.aud");
     }
 }
 
@@ -141,9 +141,6 @@ void BuildAnimEvent::anim_func(anim_nfo* data)
         }
     }
 }
-BuildAnimEvent::~BuildAnimEvent()
-{}
-
 
 LoopAnimEvent::LoopAnimEvent(unsigned int p, Structure* str) : BuildingAnimEvent(p,str,1)
 {
@@ -197,10 +194,7 @@ BTurnAnimEvent::BTurnAnimEvent(unsigned int p, Structure* str, unsigned char fac
     updateDamaged();
     targetface = face;
     layerface = (str->getImageNums()[0]&0x1f);
-    if (layerface == face) {
-        delete this;
-        return;
-    }
+    assert(layerface != face);
     if( ((layerface-face)&0x1f) < ((face-layerface)&0x1f) ) {
         turnmod = -1;
     } else {
@@ -319,11 +313,11 @@ BAttackAnimEvent::BAttackAnimEvent(unsigned int p, Structure *str) : BuildingAni
     done = false;
 }
 
-BAttackAnimEvent::~BAttackAnimEvent()
+void BAttackAnimEvent::finish()
 {
     target->unrefer();
     strct->unrefer();
-    strct->attackAnim = NULL;
+    strct->attackAnim.reset();
 }
 
 void BAttackAnimEvent::update()
@@ -333,7 +327,7 @@ void BAttackAnimEvent::update()
     target->referTo();
 }
 
-void BAttackAnimEvent::run()
+bool BAttackAnimEvent::run()
 {
     unsigned int distance;
     int xtiles, ytiles;
@@ -342,14 +336,11 @@ void BAttackAnimEvent::run()
     unsigned char facing;
     mwid = p::ccmap->getWidth();
     if( !strct->isAlive() || done ) {
-        delete this;
-        return;
+        return false;
     }
 
     if( !target->isAlive() || done) {
-        if (!target->isAlive()) {}
-        delete this;
-        return;
+        return false;
     }
     atkpos = target->getPos();
 
@@ -362,8 +353,7 @@ void BAttackAnimEvent::run()
          * Alternatively, we could just wait to see if the target ever 
          * enters range (highly unlikely when the target is a structure)
          */
-        delete this;
-        return;
+        return false;
     }
     //Make sure we're facing the right way
     if( xtiles == 0 ) {
@@ -382,22 +372,24 @@ void BAttackAnimEvent::run()
 
     if ((strct->type->hasTurret())&&((strct->getImageNums()[0]&0x1f)!=facing)) { // turn to face target first
         setDelay(0);
-        strct->buildAnim = new BTurnAnimEvent(strct->type->getTurnspeed(), strct, facing);
-        strct->buildAnim->setSchedule(this,true);
-        p::aequeue->scheduleEvent(strct->buildAnim);
-        return;
+        shared_ptr<BuildingAnimEvent> new_event(new BTurnAnimEvent(strct->type->getTurnspeed(), strct, facing));
+        new_event->setSchedule(strct->attackAnim);
+        strct->buildAnim = new_event;
+        strct->attackAnim.reset();
+        p::aequeue->scheduleEvent(new_event);
+        return false;
     }
-
 
     // We can shoot
     strct->type->getWeapon()->fire(strct, target->getBPos(strct->getPos()), target->getSubpos());
     setDelay(strct->type->getWeapon()->getReloadTime());
-    p::aequeue->scheduleEvent(this);
+    return true;
 }
 
 void BAttackAnimEvent::stop()
 {
     done = true;
+    strct->attackAnim.reset();
 }
 
 BExplodeAnimEvent::BExplodeAnimEvent(unsigned int p, Structure* str) : BuildingAnimEvent(p,str,9)
@@ -418,13 +410,13 @@ BExplodeAnimEvent::~BExplodeAnimEvent()
     p::uspool->removeStructure(strct);
 }
 
-void BExplodeAnimEvent::run()
+bool BExplodeAnimEvent::run()
 {
     if ((counter == 0) && !(getType()->isWall()) && (pc::sfxeng != NULL) && !p::ccmap->isLoading()) {
         pc::sfxeng->PlaySound("crumble.aud");
         // add code to draw flames
     }
-    BuildingAnimEvent::run();
+    return BuildingAnimEvent::run();
 }
 
 void BExplodeAnimEvent::anim_func(anim_nfo* data)

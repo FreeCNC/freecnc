@@ -2,7 +2,7 @@
 #define _GAME_ACTIONEVENTQUEUE_H
 
 #include <queue>
-#include "../freecnc.h"
+#include "../basictypes.h"
 
 /** An abstract class which all actionevents must extend. the run must
  * be implemented. */
@@ -16,10 +16,10 @@ public:
     }
     void addCurtick( unsigned int curtick )
     {
-        prio=delay+curtick;
+        prio = delay + curtick;
     }
-    virtual void run()
-    {}
+    virtual bool run() { return false; }
+    virtual void finish () {}
 
     void setDelay(unsigned int p)
     {
@@ -41,9 +41,12 @@ private:
 class Comp
 {
 public:
-    bool operator()(ActionEvent *x, ActionEvent *y)
+    bool operator()(shared_ptr<ActionEvent> x, shared_ptr<ActionEvent> y)
     {
-        return x->prio > y->prio;
+        // The lower the prio, the sooner it runs:
+        // priority_queue comp wants to know if x is "less" than y, and puts
+        // the highest priorities at the top, so we inverse the comp.
+        return y->prio < x->prio;
     }
 };
 
@@ -51,14 +54,14 @@ class ActionEventQueue
 {
 public:
     ActionEventQueue();
-    ~ActionEventQueue();
-    void scheduleEvent(ActionEvent *ev);
+    void scheduleEvent(shared_ptr<ActionEvent> ev);
     void runEvents();
     unsigned int getElapsedTime();
     unsigned int getCurtick();
 private:
     unsigned int starttick;
-    std::priority_queue<ActionEvent*, std::vector<ActionEvent*>, Comp> eventqueue;
+    std::priority_queue<shared_ptr<ActionEvent>,
+        vector<shared_ptr<ActionEvent> >, Comp> eventqueue;
 };
 
 #endif

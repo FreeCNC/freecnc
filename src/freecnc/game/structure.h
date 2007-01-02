@@ -219,6 +219,8 @@ public:
     unsigned char checkdamage();
     unsigned short getTargetCell() const;
 private:
+    void update_damaged_look(bool first_time);
+
     StructureType *type;
     unsigned int structnum;
     unsigned short *imagenumbers;
@@ -227,8 +229,8 @@ private:
     bool animating,usemakeimgs,exploding,primary;
     double ratio; // health/maxhealth
 
-    BuildingAnimEvent* buildAnim;
-    BAttackAnimEvent* attackAnim;
+    shared_ptr<BuildingAnimEvent> buildAnim;
+    shared_ptr<BAttackAnimEvent> attackAnim;
 };
 
 #include "structureanims.h"

@@ -7,21 +7,10 @@ ActionEventQueue::ActionEventQueue()
     starttick = SDL_GetTicks();
 }
 
-/** Destructor, removes the timer and empties the actioneventqueue */
-ActionEventQueue::~ActionEventQueue()
-{
-    ActionEvent *ev;
-    while( !eventqueue.empty() ) {
-        ev = eventqueue.top();
-        eventqueue.pop();
-        delete ev;
-    }
-}
-
 /** scedules  event for later ececution.
  * @param a class containing the action to run.
  */
-void ActionEventQueue::scheduleEvent(ActionEvent *ev)
+void ActionEventQueue::scheduleEvent(shared_ptr<ActionEvent> ev)
 {
     ev->addCurtick(getCurtick());
     eventqueue.push(ev);
@@ -31,10 +20,16 @@ void ActionEventQueue::scheduleEvent(ActionEvent *ev)
 void ActionEventQueue::runEvents()
 {
     unsigned int curtick = getCurtick();
-    /* run all events in the queue with a prio lower than curtick */
-    while( !eventqueue.empty() && eventqueue.top()->getPrio() <= curtick ) {
-        eventqueue.top()->run();
+
+    // run all events in the queue with a prio lower than curtick
+    while (!eventqueue.empty() && eventqueue.top()->getPrio() <= curtick) {
+        shared_ptr<ActionEvent> ev = eventqueue.top();
         eventqueue.pop();
+        if (ev->run()) {
+            scheduleEvent(ev);
+        } else {
+            ev->finish();
+        }
     }
 }
 

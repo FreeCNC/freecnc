@@ -62,7 +62,7 @@ private:
     class RadarAnimEvent : public ActionEvent {
     public:
         RadarAnimEvent(unsigned char mode, bool* minienable, unsigned int radar);
-        void run();
+        bool run();
     private:
         unsigned char mode, frame, framend;
         bool* minienable;
@@ -142,7 +142,7 @@ private:
     std::vector<char*> structicons;
 
     const char* radarname;
-    RadarAnimEvent* radaranim;
+    shared_ptr<RadarAnimEvent> radaranim;
     bool radaranimating;
 
     unsigned char unitoff,structoff; // For scrolling

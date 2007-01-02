@@ -96,7 +96,6 @@ Sidebar::Sidebar(Player *pl, unsigned short height, const char *theatre)
     }
 
     radarname = radarnames[side];
-    radaranim = 0;
     try {
         radarlogo = pc::imgcache->loadImage(radarname, scaleq);
     } catch (ImageNotFound&) {
@@ -663,9 +662,10 @@ void Sidebar::ResetButton()
 
 void Sidebar::StartRadarAnim(unsigned char mode, bool* minienable)
 {
-    if (radaranimating == false && radaranim == NULL && sbar != NULL) {
+    if (radaranimating == false && !radaranim && sbar != NULL) {
         radaranimating = true;
-        radaranim = new RadarAnimEvent(mode, minienable, radarlogo);
+        radaranim.reset(new RadarAnimEvent(mode, minienable, radarlogo));
+        p::aequeue->scheduleEvent(radaranim);
     }
 }
 
@@ -798,10 +798,9 @@ Sidebar::RadarAnimEvent::RadarAnimEvent(unsigned char mode, bool* minienable, un
     default:
         frame = 0;
     }
-    p::aequeue->scheduleEvent(this);
 }
 
-void Sidebar::RadarAnimEvent::run()
+bool Sidebar::RadarAnimEvent::run()
 {
     SDL_Rect *dest = &pc::sidebar->radarlocation;
     SDL_Surface *radarFrame;
@@ -817,25 +816,22 @@ void Sidebar::RadarAnimEvent::run()
         }
 
         ++frame;
-        p::aequeue->scheduleEvent(this);
-    } else {
-        if (mode == 1) {
-            if (pc::sidebar->sbar != NULL) {
-                // Draw no radar logo
-                radarFrame = pc::imgcache->getImage(radar).image;
-                SDL_BlitSurface( radarFrame, NULL, pc::sidebar->sbar, dest);
-            }
-            pc::sidebar->radaranim = NULL;
-        } else {
-            if (pc::sidebar->sbar != NULL) {
-                // Draw grey box where radar was
-                SDL_FillRect(pc::sidebar->sbar, dest, SDL_MapRGB(pc::sidebar->sbar->format, 0x0a, 0x0a, 0x0a));
-            }
-            *minienable = true;
-            pc::sidebar->radaranim = NULL;
-        }
-        pc::sidebar->radaranimating = false;
-        delete this;
-        return;
+        return true;
     }
+    if (mode == 1) {
+        if (pc::sidebar->sbar != NULL) {
+            // Draw no radar logo
+            radarFrame = pc::imgcache->getImage(radar).image;
+            SDL_BlitSurface( radarFrame, NULL, pc::sidebar->sbar, dest);
+        }
+    } else {
+        if (pc::sidebar->sbar != NULL) {
+            // Draw grey box where radar was
+            SDL_FillRect(pc::sidebar->sbar, dest, SDL_MapRGB(pc::sidebar->sbar->format, 0x0a, 0x0a, 0x0a));
+        }
+        *minienable = true;
+    }
+    pc::sidebar->radaranim.reset();
+    pc::sidebar->radaranimating = false;
+    return false;
 }

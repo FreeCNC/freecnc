@@ -669,8 +669,10 @@ void Input::clickMap(int mx, int my)
                 sndplayed = true;
             }
             selected.moveUnits(pos);
-            new ExplosionAnim(1, pos, p::ccmap->getMoveFlashNum(),
-                    static_cast<unsigned char>(p::ccmap->getMoveFlash()->getNumImg()), 0, 0);
+            shared_ptr<ExplosionAnim> move_pulse(new ExplosionAnim(1, pos,
+                p::ccmap->getMoveFlashNum(), static_cast<unsigned
+                char>(p::ccmap->getMoveFlash()->getNumImg()), 0, 0));
+            p::aequeue->scheduleEvent(move_pulse);
         }
     }
 }

@@ -4,17 +4,12 @@
 #include "moneycounter.h"
 #include "player.h"
 
-MoneyCounter::MoneyCounter(int* money, Player* player, MoneyCounter** backref)
+MoneyCounter::MoneyCounter(int* money, Player* player, shared_ptr<MoneyCounter>* backref)
     : ActionEvent(1), money(*money), player(player), queued(false), creditleft(0), debtleft(0), creditsound(-1), debitsound(-1), sound(true), backref(backref)
 {
 }
 
-MoneyCounter::~MoneyCounter()
-{
-    *backref = 0;
-}
-
-void MoneyCounter::run()
+bool MoneyCounter::run()
 {
     queued = false;
     unsigned char Dcred = step(creditleft);
@@ -36,9 +31,10 @@ void MoneyCounter::run()
     }
 
     if (Dcred > 0 || Ddebt > 0) {
-        p::aequeue->scheduleEvent(this);
         queued = true;
+        return true;
     }
+    return false;
 }
 
 void MoneyCounter::addCredit(unsigned short amount)
@@ -48,7 +44,7 @@ void MoneyCounter::addCredit(unsigned short amount)
         /// @TODO Get this value from a global config object
         creditsound = pc::sfxeng->PlayLoopedSound("tone15.aud",0);
     }
-    reshedule();
+    reschedule();
 }
 
 void MoneyCounter::addDebt(unsigned short amount)
@@ -58,7 +54,7 @@ void MoneyCounter::addDebt(unsigned short amount)
         /// @TODO Get this value from a global config object
         debitsound = pc::sfxeng->PlayLoopedSound("tone16.aud",0);
     }
-    reshedule();
+    reschedule();
 }
 
 unsigned char MoneyCounter::step(unsigned short& value)
@@ -76,9 +72,9 @@ unsigned char MoneyCounter::step(unsigned short& value)
     }
 }
 
-void MoneyCounter::reshedule() {
+void MoneyCounter::reschedule() {
     if (!queued) {
         queued = true;
-        p::aequeue->scheduleEvent(this);
+        p::aequeue->scheduleEvent(*backref);
     }
 }

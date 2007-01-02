@@ -155,7 +155,7 @@ private:
     // care if money goes negative).
     bool allmap, buildany, buildall, infmoney;
 
-    MoneyCounter* counter;
+    shared_ptr<MoneyCounter> counter;
 };
 
 

@@ -13,8 +13,8 @@ class ExplosionAnim : public ActionEvent
 public:
     ExplosionAnim(unsigned int p, unsigned short pos, unsigned int startimage, unsigned char animsteps,
                   char xoff, char yoff);
-    ~ExplosionAnim();
-    void run();
+    bool run();
+    void finish();
 private:
     ExplosionAnim() : ActionEvent(1) {};
 
@@ -29,7 +29,8 @@ class ProjectileAnim : public ActionEvent
 public:
     ProjectileAnim(unsigned int p, Weapon *weap, UnitOrStructure* owner, unsigned short dest, unsigned char subdest);
     ~ProjectileAnim();
-    void run();
+    bool run();
+    void finish();
 private:
     Weapon* weap;
     UnitOrStructure* owner;

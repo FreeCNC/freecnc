@@ -92,7 +92,7 @@ Player::Player(const char *pname, shared_ptr<INIFile> mapini) {
 
     queues[0] = new BQueue(this);
     /// @TODO Only play sound if this is the local player
-    counter = new MoneyCounter(&money, this, &counter);
+    counter.reset(new MoneyCounter(&money, this, &counter));
 }
 
 Player::~Player()
@@ -103,7 +103,6 @@ Player::~Player()
     for (i = queues.begin(); i != end; ++i) {
         delete i->second;
     }
-    delete counter;
 }
 
 bool Player::changeMoney(int change) {

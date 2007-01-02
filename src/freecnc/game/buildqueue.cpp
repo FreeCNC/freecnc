@@ -14,24 +14,21 @@ namespace BuildQueue
     class BQTimer : public ActionEvent
     {
     public:
-        BQTimer(BQueue* queue, bool (BQueue::*func)(), BQTimer** backref)
+        BQTimer(BQueue* queue, bool (BQueue::*func)(), shared_ptr<BQTimer>* backref)
             : ActionEvent(1), queue(queue), func(func), scheduled(false),
             backref(backref) {}
-        ~BQTimer() {*backref = 0;}
-        void run()
+
+        bool run()
         {
-            scheduled = false;
-            if ((queue->*func)()) {
-                scheduled = true;
-                p::aequeue->scheduleEvent(this);
-                return;
-            }
+            scheduled = (queue->*func)();
+            return scheduled;
         }
-        void Reshedule()
+
+        void Reschedule()
         {
             if (!scheduled) {
                 scheduled = true;
-                p::aequeue->scheduleEvent(this);
+                p::aequeue->scheduleEvent(*backref);
             }
         }
 
@@ -39,7 +36,7 @@ namespace BuildQueue
         BQueue* queue;
         bool (BQueue::*func)();
         bool scheduled;
-        BQTimer** backref;
+        shared_ptr<BQTimer>* backref;
     };
 
 
@@ -51,12 +48,7 @@ namespace BuildQueue
 
     BQueue::BQueue(Player *p) : player(p), status(BQ_EMPTY)
     {
-        timer = new BQTimer(this, &BQueue::tick, &timer);
-    }
-
-    BQueue::~BQueue()
-    {
-        delete timer;
+        timer.reset(new BQTimer(this, &BQueue::tick, &timer));
     }
 
     bool BQueue::Add(const UnitOrStructureType *type)
@@ -73,14 +65,14 @@ namespace BuildQueue
             production.insert(Production::value_type(type, 1));
             queue.push_back(type);
             status = BQ_RUNNING;
-            timer->Reshedule();
+            timer->Reschedule();
             return true;
             break;
         case BQ_PAUSED:
             if (getCurrentType() == type) {
                 status = BQ_RUNNING;
                 last = p::aequeue->getCurtick();
-                timer->Reshedule();
+                timer->Reschedule();
             }
             return true;
             break;
@@ -111,7 +103,7 @@ namespace BuildQueue
                 }
                 production.insert(Production::value_type(type,1));
                 queue.push_back(type);
-                timer->Reshedule();
+                timer->Reschedule();
                 return true;
             }
             return false;
@@ -264,7 +256,7 @@ namespace BuildQueue
         }
         left = it->first->getCost();
         last = p::aequeue->getCurtick();
-        timer->Reshedule();
+        timer->Reschedule();
         p::ppool->updateSidebar();
     }
 

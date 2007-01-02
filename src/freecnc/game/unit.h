@@ -77,11 +77,6 @@ public:
     armour_t getArmour() const {
         return armour;
     }
-#ifdef LOOPEND_TURN
-    animinfo_t getAnimInfo() const {
-        return animinfo;
-    }
-#endif
     const char* getRandTalk(TalkbackType type) const;
     Weapon *getWeapon(bool primary = true) const {
         return (primary?primary_weapon:secondary_weapon);
@@ -124,9 +119,6 @@ private:
     unsigned short cost,maxhealth;
     unsigned char numlayers,speed,turnspeed,turnmod,sight,offset,pipcolour;
     armour_t armour;
-#ifdef LOOPEND_TURN
-    animinfo_t animinfo;
-#endif
     unsigned char techlevel,buildlevel,unittype;
     char movemod;
 
@@ -246,11 +238,11 @@ private:
 
     InfantryGroupPtr infgrp;
 
-    MoveAnimEvent *moveanim;
-    UAttackAnimEvent *attackanim;
-    WalkAnimEvent *walkanim;
-    TurnAnimEvent *turnanim1;
-    TurnAnimEvent *turnanim2;
+    shared_ptr<MoveAnimEvent> moveanim;
+    shared_ptr<UAttackAnimEvent> attackanim;
+    shared_ptr<WalkAnimEvent> walkanim;
+    shared_ptr<TurnAnimEvent> turnanim1;
+    shared_ptr<TurnAnimEvent> turnanim2;
 };
 
 /*
