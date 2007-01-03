@@ -1,5 +1,5 @@
-#ifndef _VFS_MIX_MIX_H
-#define _VFS_MIX_MIX_H
+#ifndef _LEGACYVFS_MIX_MIX_H
+#define _LEGACYVFS_MIX_MIX_H
 
 #include "../../freecnc.h"
 #include "../archive.h"

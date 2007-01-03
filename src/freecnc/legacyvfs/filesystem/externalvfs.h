@@ -1,5 +1,5 @@
-#ifndef _VFS_EXTERNALVFS_EXTERNALVFS_H
-#define _VFS_EXTERNALVFS_EXTERNALVFS_H
+#ifndef _LEGACYVFS_EXTERNALVFS_EXTERNALVFS_H
+#define _LEGACYVFS_EXTERNALVFS_EXTERNALVFS_H
 
 #include "../../freecnc.h"
 #include "../archive.h"

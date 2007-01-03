@@ -1,5 +1,5 @@
-#ifndef _VFS_VFS_H
-#define _VFS_VFS_H
+#ifndef _LEGACYVFS_VFS_H
+#define _LEGACYVFS_VFS_H
 
 #include "../freecnc.h"
 

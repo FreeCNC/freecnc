@@ -1,5 +1,5 @@
-#ifndef _VFS_ARCHIVE_H
-#define _VFS_ARCHIVE_H
+#ifndef _LEGACYVFS_ARCHIVE_H
+#define _LEGACYVFS_ARCHIVE_H
 
 #include <cstdarg>
 

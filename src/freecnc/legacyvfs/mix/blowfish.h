@@ -1,5 +1,5 @@
-#ifndef _VFS_MIX_BLOWFISH_H
-#define _VFS_MIX_BLOWFISH_H
+#ifndef _LEGACYVFS_MIX_BLOWFISH_H
+#define _LEGACYVFS_MIX_BLOWFISH_H
 
 typedef unsigned int t_bf_p[18];
 typedef unsigned int t_bf_s[4][256];

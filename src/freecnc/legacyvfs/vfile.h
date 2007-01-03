@@ -1,5 +1,5 @@
-#ifndef _VFS_VFILE_H
-#define _VFS_VFILE_H
+#ifndef _LEGACYVFS_VFILE_H
+#define _LEGACYVFS_VFILE_H
 
 #include "../freecnc.h"
 #include "archive.h"
