@@ -179,24 +179,24 @@ namespace VFS
         return file->feof();
     }
 
-    void MixArchive::seek_start(int filenum, int offset)
+    void MixArchive::seek_cur(int filenum, int offset)
     {
         MixFilePtr file = files.find(filenum)->second;
-        file->fseek(offset, SEEK_SET);
-    }
-    
+        file->fseek(offset, SEEK_CUR);
+    }    
+   
     void MixArchive::seek_end(int filenum, int offset)
     {
         MixFilePtr file = files.find(filenum)->second;
         file->fseek(offset, SEEK_END);
     }
     
-    void MixArchive::seek_cur(int filenum, int offset)
+    void MixArchive::seek_start(int filenum, int offset)
     {
         MixFilePtr file = files.find(filenum)->second;
-        file->fseek(offset, SEEK_CUR);
+        file->fseek(offset, SEEK_SET);
     }
-    
+
     int MixArchive::tell(int filenum) const
     {
         MixFilePtr file = files.find(filenum)->second;

@@ -35,6 +35,7 @@ namespace VFS
                 handle = fopen(pth.native_directory_string().c_str(), writable ? "wb" : "rb");
             }
         }
+
         ~DirArchiveFile()
         {
             if (handle) {
@@ -135,10 +136,10 @@ namespace VFS
         return feof(file->handle) > 0;
     }
 
-    void DirArchive::seek_start(int filenum, int offset)
+    void DirArchive::seek_cur(int filenum, int offset)
     {
         DirFilePtr file = files.find(filenum)->second;
-        fseek(file->handle, offset, SEEK_SET);
+        fseek(file->handle, offset, SEEK_CUR);
     }
     
     void DirArchive::seek_end(int filenum, int offset)
@@ -146,13 +147,13 @@ namespace VFS
         DirFilePtr file = files.find(filenum)->second;
         fseek(file->handle, offset, SEEK_END);
     }
-    
-    void DirArchive::seek_cur(int filenum, int offset)
+
+    void DirArchive::seek_start(int filenum, int offset)
     {
         DirFilePtr file = files.find(filenum)->second;
-        fseek(file->handle, offset, SEEK_CUR);
+        fseek(file->handle, offset, SEEK_SET);
     }
-    
+        
     int DirArchive::tell(int filenum) const
     {
         DirFilePtr file = files.find(filenum)->second;
