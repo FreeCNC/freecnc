@@ -85,12 +85,12 @@ extern int mapscaleq;
 #ifdef M_PI
 #undef M_PI
 #endif
-#define M_PI   3.14159265358979323846
+#define M_PI   3.14159265358979323846f
 
 #ifdef M_PI_2
 #undef M_PI_2
 #endif
-#define M_PI_2 1.57079632679489661923
+#define M_PI_2 1.57079632679489661923f
 
 /// @TODO: This shouldn't be here
 struct animinfo_t {

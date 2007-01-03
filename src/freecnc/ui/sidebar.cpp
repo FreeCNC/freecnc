@@ -442,7 +442,7 @@ void Sidebar::DrawClock(unsigned char index, unsigned char imgnum) {
         } else {
             num = pc::imgcache->loadImage("hclock.shp");
         }
-    } catch (ImageNotFound& e) {
+    } catch (ImageNotFound&) {
         game.log << "Unable to load clock image!" << endl;
         return;
     }

@@ -158,7 +158,7 @@ unsigned char CnCMap::accScroll(unsigned char direction)
             scrollvec.y = scrollstep;
         else if (scrollvec.y < maxscroll)
             scrollvec.y += scrollstep;
-        validy = (valscroll & s_down);
+        validy = (valscroll & s_down) != 0;
         if (!validy) {
             scrollvec.y = 0;
             direction ^= s_down;
@@ -169,7 +169,7 @@ unsigned char CnCMap::accScroll(unsigned char direction)
             scrollvec.x =  -scrollstep;
         else if (scrollvec.x > -maxscroll)
             scrollvec.x -= scrollstep;
-        validx = (valscroll & s_left);
+        validx = (valscroll & s_left) != 0;
         if (!validx) {
             scrollvec.x = 0;
             direction ^= s_left;
@@ -180,7 +180,7 @@ unsigned char CnCMap::accScroll(unsigned char direction)
             scrollvec.x = scrollstep;
         else if (scrollvec.x < maxscroll)
             scrollvec.x += scrollstep;
-        validx = (valscroll & s_right);
+        validx = (valscroll & s_right) != 0;
         if (!validx) {
             scrollvec.x = 0;
             direction ^= s_right;
@@ -199,7 +199,7 @@ unsigned char CnCMap::absScroll(short dx, short dy, unsigned char border)
     unsigned char direction = s_none;
     bool validx = false, validy = false;
     if (dx <= -border) {
-        validx = (valscroll & s_left);
+        validx = (valscroll & s_left) != 0;
         if (validx) {
             scrollvec.x = (char)(min(dx,(short)100) * fmax);
             direction |= s_left;
@@ -207,7 +207,7 @@ unsigned char CnCMap::absScroll(short dx, short dy, unsigned char border)
             scrollvec.x = 0;
         }
     } else if (dx >= border) {
-        validx = (valscroll & s_right);
+        validx = (valscroll & s_right) != 0;
         if (validx) {
             scrollvec.x = (char)(min(dx,(short)100) * fmax);
             direction |= s_right;
@@ -224,7 +224,7 @@ unsigned char CnCMap::absScroll(short dx, short dy, unsigned char border)
             scrollvec.y = 0;
         }
     } else if (dy >= border) {
-        validy = (valscroll & s_down);
+        validy = (valscroll & s_down) != 0;
         if (validy) {
             scrollvec.y = (char)(min(dy,(short)100) * fmax);
             direction |= s_down;
