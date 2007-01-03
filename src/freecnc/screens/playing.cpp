@@ -1,5 +1,5 @@
 #include "playing.h"
-#include "../game/game_public.h";
+#include "../game/game_public.h"
 
 PlayingScreen::PlayingScreen()
 {
