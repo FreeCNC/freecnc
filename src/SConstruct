@@ -1,6 +1,5 @@
 #!/usr/bin/scons
 # This might not even work
-from os import environ, popen, getenv
 from glob import glob
 from sys import platform
 
@@ -10,12 +9,8 @@ source += glob("freecnc/*/*.cpp")
 source += glob("freecnc/*/*/*.cpp")
 #luasource += glob("#/lua/*.c")
 
-# Import PATH and optional MINGW environment variables to allow zx64 to cross compile
-# See http://zx64.uwcs.co.uk/freecnc/crossdev/
-if platform == "linux2":
-    env = Environment(ENV = {"PATH" : environ["PATH"], "MINGW" : getenv("MINGW")})
-else:
-    env = Environment()
+env = Environment()
+
 # Don't clutter the source tree with multiple .sconsign files
 env.SConsignFile()
 
@@ -37,14 +32,7 @@ else:
 
 env.ParseConfig(sdlconfname + " --cflags --libs")
 
-env["CPPPATH"] += ["#/freecnc", "#/freecnc/game", "#/freecnc/screens",
-    "#/freecnc/lib", "#/freecnc/renderer", "#/freecnc/sound", "#/freecnc/ui",
-    "#/freecnc/vfs", "#/freecnc/legacyvfs"]
-try:
-    if env["ENV"]["MINGW"] != "1":
-        env["CXXFLAGS"] += ["-std=c++98", "-Wconversion", "-Wno-unused-parameter"]
-except: # No mingw env variable
-    env["CXXFLAGS"] += ["-std=c++98", "-Wconversion", "-Wno-unused-parameter"]
+env["CXXFLAGS"] += ["-Wall", "-std=c++98", "-Wconversion", "-Wno-unused-parameter"]
 
 env["LIBS"] += ["SDL_mixer", "boost_program_options", "boost_filesystem"]
 
@@ -62,6 +50,7 @@ else:
 
 env.Program(target = "bin/freecnc", source = source)
 
+# TODO: Update this after VFS and logger migration
 # Only build tools if specified
 if ARGUMENTS.get("TOOLS", 0):
     commonobjects = glob("src/vfs/*.cpp") + glob("src/vfs/*/*.cpp")
