@@ -33,7 +33,7 @@ namespace BuildQueue
         const UnitOrStructureType* getCurrentType() const {return *queue.begin();}
 
     private:
-        void next();
+        bool next();
         enum RQstate {RQ_DONE, RQ_NEW, RQ_MAXED};
         RQstate requeue(const UnitOrStructureType* type);
 

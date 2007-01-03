@@ -204,7 +204,9 @@ namespace BuildQueue
                 // If we were able to spawn the unit, move onto the next
                 // item
                 status = BQ_RUNNING;
-                next();
+                bool done = next();
+                p::ppool->updateSidebar();
+                return done;
             }
         } else {
             /// @TODO Play "construction complete" sound
@@ -233,7 +235,7 @@ namespace BuildQueue
         return status;
     }
 
-    void BQueue::next()
+    bool BQueue::next()
     {
         assert(!queue.empty());
         Production::iterator it = production.find(getCurrentType());
@@ -243,7 +245,7 @@ namespace BuildQueue
             queue.pop_front();
             if (queue.empty()) {
                 status = BQ_EMPTY;
-                return;
+                return false;
             } else {
                 // None left of the current type of thing being built, so move onto
                 // the next item in the queue and start building
@@ -258,6 +260,7 @@ namespace BuildQueue
         last = p::aequeue->getCurtick();
         timer->Reschedule();
         p::ppool->updateSidebar();
+        return true;
     }
 
     BQueue::RQstate BQueue::requeue(const UnitOrStructureType* type)
