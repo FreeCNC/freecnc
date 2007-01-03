@@ -6,7 +6,7 @@
     Most of these should be fixed with the new VFS
 * Move the pointers to unit and structure over to shared_ptr and remove the
   refcounting.
-* Reimplement the path finder to not derive from std::stack.
+* Rewrite the path finder to not suck as much.
 * Fix sidebar graphic glitches
 
 Unassigned, unsorted, incomplete:
