@@ -19,7 +19,7 @@ namespace VFS
     class DirArchive : public Archive
     {
     public:
-        DirArchive(const boost::filesystem::path& basedir);
+        DirArchive(const boost::filesystem::path& dir);
         ~DirArchive();
         
         // Archive info
@@ -47,8 +47,8 @@ namespace VFS
         int size(int filenum) const;
 
     private:
-        boost::filesystem::path basedir;
-        int curfilenum;
+        boost::filesystem::path dir;
+        int filenum;
         std::map<int, boost::shared_ptr<DirArchiveFile> > files;
     };
 }

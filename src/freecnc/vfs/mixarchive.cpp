@@ -23,15 +23,15 @@ namespace VFS
     {
         FILE* handle;
         string name;
-        int lower_boundry;
-        int upper_boundry;
+        int lower_boundary;
+        int upper_boundary;
         bool eof;
 
-        MixArchiveFile(const fs::path& mixfile, const string& name, int lower_boundry, int upper_boundry)
-            : name(name), lower_boundry(lower_boundry), upper_boundry(upper_boundry), eof(false)
+        MixArchiveFile(const fs::path& mixfile, const string& name, int lower_boundary, int upper_boundary)
+            : handle(0), name(name), lower_boundary(lower_boundary), upper_boundary(upper_boundary), eof(false)
         {
             handle = fopen(mixfile.native_directory_string().c_str(), "rb");
-            ::fseek(handle, lower_boundry, SEEK_SET);
+            ::fseek(handle, lower_boundary, SEEK_SET);
         }
         
         ~MixArchiveFile()
@@ -44,15 +44,16 @@ namespace VFS
         // Thin wrapper over feof that stays within the boundries
         bool feof()
         {
-            return eof || ::feof(handle);
+            return eof || (::feof(handle) > 0);
         }
          
         // Thin wrapper over fread that stays within the boundries
         size_t fread(void* dest, size_t element_size, size_t count)
         {
             int pos = ftell(handle);
-            int realcount = pos + count > upper_boundry ? upper_boundry - pos : count;
-            if (pos + count >= upper_boundry) eof = true;
+            int finalpos = pos + (int)(count*element_size);
+            size_t realcount = finalpos > upper_boundary ? (upper_boundary - pos)/element_size : count;
+            if (finalpos >= upper_boundary) eof = true;
             return ::fread(dest, element_size, realcount, handle);
         }
         
@@ -65,15 +66,15 @@ namespace VFS
                     dest = ftell(handle) + offset; 
                     break;
                 case SEEK_END:
-                    dest = upper_boundry + offset; 
+                    dest = upper_boundary + offset; 
                     break;
                 case SEEK_SET:
-                    dest = lower_boundry + offset;
+                    dest = lower_boundary + offset;
                     break;
                 default:
                     return;
             }
-            if (dest < lower_boundry || dest > upper_boundry) {
+            if (dest < lower_boundary || dest > upper_boundary) {
                 return; 
             }
             eof = false;
@@ -86,7 +87,7 @@ namespace VFS
     //-------------------------------------------------------------------------
   
     MixArchive::MixArchive(const fs::path& mixfile)
-        : curfilenum(0), mixfile(mixfile)
+        : mixfile(mixfile), filenum(0)
     {
         // TODO: Build the mix file.
     }
@@ -112,8 +113,8 @@ namespace VFS
         
         MixFilePtr file(new MixFile(mixfile, filename, 0, 0));
         if (file->handle) {
-            files.insert(MixFileMap::value_type(curfilenum, file));
-            return curfilenum++;
+            files.insert(MixFileMap::value_type(filenum, file));
+            return filenum++;
         } else {
             return -1;
         }
@@ -130,7 +131,7 @@ namespace VFS
     {
         MixFilePtr file = files.find(filenum)->second;
         buf.resize(count);
-        int bytesread = file->fread(&buf[0], sizeof(char), buf.size());
+        int bytesread = (int)file->fread(&buf[0], sizeof(char), buf.size());
         buf.resize(bytesread);
         return bytesread;
     }
@@ -141,7 +142,7 @@ namespace VFS
         int totalbytesread = 0, bytesread = 0, i = 0;
         char buffer[1024];
         while (true) {
-            bytesread = file->fread(buffer, sizeof(char), sizeof(buffer));
+            bytesread = (int)file->fread(buffer, sizeof(char), sizeof(buffer));
             for (i = 0; i < bytesread; ++i) {
                 if (buffer[i] == delim) {
                     buf.reserve(buf.size() + i + 1);
@@ -199,7 +200,7 @@ namespace VFS
     int MixArchive::tell(int filenum) const
     {
         MixFilePtr file = files.find(filenum)->second;
-        return ftell(file->handle) - file->lower_boundry;
+        return ftell(file->handle) - file->lower_boundary;
     }
 
     //-------------------------------------------------------------------------
@@ -213,6 +214,6 @@ namespace VFS
     int MixArchive::size(int filenum) const
     {
         MixFilePtr file = files.find(filenum)->second;
-        return file->upper_boundry - file->lower_boundry;
+        return file->upper_boundary - file->lower_boundary;
     }    
 }

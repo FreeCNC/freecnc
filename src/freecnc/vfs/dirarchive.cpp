@@ -25,10 +25,10 @@ namespace VFS
         string name;
         bool writable;
 
-        DirArchiveFile(const fs::path& basedir, const string& name, bool writable)
+        DirArchiveFile(const fs::path& dir, const string& name, bool writable)
             : name(name), writable(writable), handle(0)
         {
-            fs::path pth(basedir / name);
+            fs::path pth(dir / name);
             if (fs::exists(pth) && fs::is_directory(pth)) {
                 return;
             } else {
@@ -47,8 +47,8 @@ namespace VFS
     // DirArchive
     //-------------------------------------------------------------------------
   
-    DirArchive::DirArchive(const fs::path& basedir)
-        : curfilenum(0), basedir(basedir)
+    DirArchive::DirArchive(const fs::path& dir)
+        : dir(dir), filenum(0)
     {
     }
     
@@ -58,17 +58,17 @@ namespace VFS
     
     string DirArchive::archive_path()
     {
-        return basedir.native_directory_string();
+        return dir.native_directory_string();
     }
     
     //-------------------------------------------------------------------------
     
     int DirArchive::open(const std::string& filename, bool writable)
     {
-        DirFilePtr file(new DirFile(basedir, filename, writable));
+        DirFilePtr file(new DirFile(dir, filename, writable));
         if (file->handle) {
-            files.insert(DirFileMap::value_type(curfilenum, file));
-            return curfilenum++;
+            files.insert(DirFileMap::value_type(filenum, file));
+            return filenum++;
         } else {
             return -1;
         }
@@ -85,7 +85,7 @@ namespace VFS
     {
         DirFilePtr file = files.find(filenum)->second;
         buf.resize(count);
-        int bytesread = fread(&buf[0], sizeof(char), buf.size(), file->handle);
+        int bytesread = (int)fread(&buf[0], sizeof(char), buf.size(), file->handle);
         buf.resize(bytesread);
         return bytesread;
     }
@@ -96,7 +96,7 @@ namespace VFS
         int totalbytesread = 0, bytesread = 0, i = 0;
         char buffer[1024];
         while (true) {
-            bytesread = fread(buffer, sizeof(char), sizeof(buffer), file->handle);
+            bytesread = (int)fread(buffer, sizeof(char), sizeof(buffer), file->handle);
             for (i = 0; i < bytesread; ++i) {
                 if (buffer[i] == delim) {
                     buf.reserve(buf.size() + i + 1);
@@ -118,7 +118,7 @@ namespace VFS
     int DirArchive::write(int filenum, vector<char>& buf)
     {
         DirFilePtr file = files.find(filenum)->second;
-        return fwrite(&buf[0], sizeof(char), buf.size(), file->handle);
+        return (int)fwrite(&buf[0], sizeof(char), buf.size(), file->handle);
     }
     
     void DirArchive::flush(int filenum)
@@ -132,7 +132,7 @@ namespace VFS
     bool DirArchive::eof(int filenum) const
     {
         DirFilePtr file = files.find(filenum)->second;
-        return feof(file->handle);
+        return feof(file->handle) > 0;
     }
 
     void DirArchive::seek_start(int filenum, int offset)

@@ -48,7 +48,7 @@ namespace VFS
 
     private:
         boost::filesystem::path mixfile;
-        int curfilenum;
+        int filenum;
         std::map<int, boost::shared_ptr<MixArchiveFile> > files;
     };
 }
