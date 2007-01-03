@@ -26,7 +26,7 @@ namespace VFS
         bool writable;
 
         DirArchiveFile(const fs::path& dir, const string& name, bool writable)
-            : name(name), writable(writable), handle(0)
+            : handle(0), name(name), writable(writable)
         {
             fs::path pth(dir / name);
             if (fs::exists(pth) && fs::is_directory(pth)) {
