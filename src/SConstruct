@@ -37,14 +37,16 @@ else:
 
 env.ParseConfig(sdlconfname + " --cflags --libs")
 
-env["CPPPATH"] += ["#/freecnc", "#/freecnc/game", "#/freecnc/lib", "#/freecnc/renderer", "#/freecnc/sound", "#/freecnc/ui", "#/freecnc/legacyvfs"]
+env["CPPPATH"] += ["#/freecnc", "#/freecnc/game", "#/freecnc/screens",
+    "#/freecnc/lib", "#/freecnc/renderer", "#/freecnc/sound", "#/freecnc/ui",
+    "#/freecnc/vfs", "#/freecnc/legacyvfs"]
 try:
     if env["ENV"]["MINGW"] != "1":
         env["CXXFLAGS"] += ["-std=c++98", "-Wconversion", "-Wno-unused-parameter"]
 except: # No mingw env variable
     env["CXXFLAGS"] += ["-std=c++98", "-Wconversion", "-Wno-unused-parameter"]
 
-env["LIBS"] += ["SDL_mixer", "boost_program_options"]
+env["LIBS"] += ["SDL_mixer", "boost_program_options", "boost_filesystem"]
 
 release = env.Copy()
 release["CXXFLAGS"] += ["-Os"]
