@@ -4,7 +4,7 @@
 
 #include "SDL.h"
 
-#include "../vfs/vfs_public.h"
+#include "../legacyvfs/vfs_public.h"
 #include "soundfile.h"
 
 namespace Sound

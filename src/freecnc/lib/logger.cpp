@@ -3,7 +3,7 @@
 
 #include "../freecnc.h"
 #include "../renderer/renderer_public.h"
-#include "../vfs/vfs_public.h"
+#include "../legacyvfs/vfs_public.h"
 
 Logger::Logger(const char *logname, int threshold)
 {

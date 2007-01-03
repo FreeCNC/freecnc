@@ -1,7 +1,7 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "../vfs/vfs_public.h"
+#include "../legacyvfs/vfs_public.h"
 #include "font.h"
 
 using std::runtime_error;

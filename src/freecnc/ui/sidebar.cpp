@@ -6,7 +6,7 @@
 
 #include "../game/game_public.h"
 #include "../sound/sound_public.h"
-#include "../vfs/vfs_public.h"
+#include "../legacyvfs/vfs_public.h"
 #include "input.h"
 #include "sidebar.h"
 

@@ -11,7 +11,7 @@
 #include "sound/sound_public.h"
 #include "screens/mainmenu.h"
 #include "screens/splash.h"
-#include "vfs/vfs_public.h"
+#include "legacyvfs/vfs_public.h"
 
 using std::exception;
 using std::ostringstream;

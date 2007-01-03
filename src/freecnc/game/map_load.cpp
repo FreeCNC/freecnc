@@ -9,7 +9,7 @@
 #include "../lib/compression.h"
 #include "../lib/inifile.h"
 #include "../renderer/renderer_public.h"
-#include "../vfs/vfs_public.h"
+#include "../legacyvfs/vfs_public.h"
 #include "game.h"
 #include "map.h"
 #include "playerpool.h"

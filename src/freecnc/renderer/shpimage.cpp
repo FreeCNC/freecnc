@@ -4,7 +4,7 @@
 
 #include "../lib/compression.h"
 #include "../lib/inifile.h"
-#include "../vfs/vfs_public.h"
+#include "../legacyvfs/vfs_public.h"
 #include "imageproc.h"
 #include "shpimage.h"
 #include "../lib/fcncendian.h"

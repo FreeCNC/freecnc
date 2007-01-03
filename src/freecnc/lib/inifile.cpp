@@ -8,7 +8,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "../freecnc.h"
-#include "../vfs/vfs_public.h"
+#include "../legacyvfs/vfs_public.h"
 #include "inifile.h"
 
 using std::runtime_error;
