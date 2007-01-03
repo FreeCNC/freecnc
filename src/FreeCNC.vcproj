@@ -629,6 +629,60 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="vfs"
+			>
+			<File
+				RelativePath=".\freecnc\vfs\archive.h"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\vfs\dirarchive.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\vfs\dirarchive.h"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\vfs\file.h"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\vfs\mixarchive.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\vfs\mixarchive.h"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\vfs\vfs.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\freecnc\vfs\vfs.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\freecnc\basictypes.h"
 			>

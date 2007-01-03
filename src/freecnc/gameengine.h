@@ -8,6 +8,10 @@
 #include <fstream>
 
 #include "basictypes.h"
+#include "vfs/vfs.h"
+
+using VFS::File;
+using VFS::FileNotFound;
 
 enum GameType
 {
@@ -62,6 +66,7 @@ public:
     
     std::ofstream log;
     GameConfig config;
+    VFS::VFS vfs;
 
 private:
     scoped_ptr<GameScreen> screen;
@@ -77,80 +82,5 @@ public:
 private:
     string message;
 };
-
-/*
-class InputEngine;
-class NetworkClient;
-class NetworkServer;
-class Renderer;
-class SoundEngine;
-
-class GameEngine
-{
-public:
-    GameEngine() : running(false), inited(false) {}
-    ~GameEngine() { Shutdown(); }
-
-    // Initializes or reconfigures all subsytems.
-    // It uses the settings in config to do so.
-    void Init();
-
-    // Shuts down the engine explicitly.
-    void Shutdown();
-
-    // The heart of the engine: Basically just does a bit of bookkeeping and
-    // calls Update and Render on the current GameMode.
-    void MainLoop();
-
-    // Pushes a new mode on top of the current; When it is popped, the previous
-    // mode is resumed.
-    void PushMode(shared_ptr<GameMode> mode);
-
-    // Pops the current mode
-    void PopMode();
-
-    // Returns the current mode
-    shared_ptr<GameMode> CurrentMode();
-
-    // The input subsystem, null if in dedicated-server mode
-    scoped_ptr<InputEngine> input;
-
-    // The networking subsystem
-    scoped_ptr<NetworkClient> network;
-
-    // The server networking subsytem, null if not hosting a server
-    scoped_ptr<NetworkServer> serverNetwork;
-    
-    // The rendering subsystem, null if in dedicated-server mode
-    scoped_ptr<Renderer> renderer;
-
-    // The sound subsystem, null if in dedicated-server mode
-    scoped_ptr<SoundEngine> sound;
-
-    // Engine configuration. Used by Init.
-    Config config;
-
-    // The logger - used like a stream: game.log << "test" << endl;
-    Logger log;
-
-    // Virtual Filesystem, used for nearly all file access; Provides archive
-    // abstraction.
-    VFS vfs;
-
-private:
-    // Whether the engine has been initialized
-    bool inited;
-
-    // Whether the engine is currently running (in MainLoop)
-    bool running;
-
-    // The configuration used for the latest init. Used to determine which
-    // settings have changed when re-initing, and to support recovery.
-    Config curconfig;
-
-    // The current GameModes.
-    std::stack<shared_ptr<GameMode> > modes;
-};
-*/
 
 #endif
