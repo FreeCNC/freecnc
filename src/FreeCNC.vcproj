@@ -374,37 +374,37 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="vfs"
+			Name="legacyvfs"
 			>
 			<File
-				RelativePath=".\freecnc\vfs\archive.h"
+				RelativePath=".\freecnc\legacyvfs\archive.h"
 				>
 			</File>
 			<File
-				RelativePath=".\freecnc\vfs\vfile.h"
+				RelativePath=".\freecnc\legacyvfs\vfile.h"
 				>
 			</File>
 			<File
-				RelativePath=".\freecnc\vfs\vfs.cpp"
+				RelativePath=".\freecnc\legacyvfs\vfs.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\freecnc\vfs\vfs.h"
+				RelativePath=".\freecnc\legacyvfs\vfs.h"
 				>
 			</File>
 			<File
-				RelativePath=".\freecnc\vfs\vfs_public.h"
+				RelativePath=".\freecnc\legacyvfs\vfs_public.h"
 				>
 			</File>
 			<Filter
 				Name="filesystem"
 				>
 				<File
-					RelativePath=".\freecnc\vfs\filesystem\externalvfs.cpp"
+					RelativePath=".\freecnc\legacyvfs\filesystem\externalvfs.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\freecnc\vfs\filesystem\externalvfs.h"
+					RelativePath=".\freecnc\legacyvfs\filesystem\externalvfs.h"
 					>
 				</File>
 			</Filter>
@@ -412,27 +412,27 @@
 				Name="mix"
 				>
 				<File
-					RelativePath=".\freecnc\vfs\mix\blowfish.cpp"
+					RelativePath=".\freecnc\legacyvfs\mix\blowfish.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\freecnc\vfs\mix\blowfish.h"
+					RelativePath=".\freecnc\legacyvfs\mix\blowfish.h"
 					>
 				</File>
 				<File
-					RelativePath=".\freecnc\vfs\mix\mixvfs.cpp"
+					RelativePath=".\freecnc\legacyvfs\mix\mixvfs.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\freecnc\vfs\mix\mixvfs.h"
+					RelativePath=".\freecnc\legacyvfs\mix\mixvfs.h"
 					>
 				</File>
 				<File
-					RelativePath=".\freecnc\vfs\mix\ws-key.cpp"
+					RelativePath=".\freecnc\legacyvfs\mix\ws-key.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\freecnc\vfs\mix\ws-key.h"
+					RelativePath=".\freecnc\legacyvfs\mix\ws-key.h"
 					>
 				</File>
 			</Filter>
@@ -522,6 +522,34 @@
 			</File>
 		</Filter>
 		<Filter
+			Name="screens"
+			>
+			<File
+				RelativePath=".\freecnc\screens\mainmenu.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\screens\mainmenu.h"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\screens\playing.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\screens\playing.h"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\screens\splash.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\screens\splash.h"
+				>
+			</File>
+		</Filter>
+		<Filter
 			Name="renderer"
 			>
 			<File
@@ -598,34 +626,6 @@
 			</File>
 			<File
 				RelativePath=".\freecnc\renderer\wsa.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="screens"
-			>
-			<File
-				RelativePath=".\freecnc\screens\mainmenu.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\freecnc\screens\mainmenu.h"
-				>
-			</File>
-			<File
-				RelativePath=".\freecnc\screens\playing.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\freecnc\screens\playing.h"
-				>
-			</File>
-			<File
-				RelativePath=".\freecnc\screens\splash.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\freecnc\screens\splash.h"
 				>
 			</File>
 		</Filter>
