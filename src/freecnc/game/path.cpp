@@ -11,7 +11,6 @@ struct TileRef {
     unsigned int h;
 };
 
-
 class FibHeapEntry {
 public:
     friend class KeyComp;
@@ -38,8 +37,8 @@ public:
     }
 };
 
-
-Path::Path(unsigned int crBeg, unsigned int crEnd, unsigned char max_dist) : std::stack<unsigned char>() {
+Path::Path(unsigned int crBeg, unsigned int crEnd, unsigned char max_dist)
+{
     unsigned short startposx;
     unsigned short startposy;
     unsigned short stopposx;
@@ -279,7 +278,7 @@ Path::Path(unsigned int crBeg, unsigned int crEnd, unsigned char max_dist) : std
         crV = crEnd;
 
         while( crV != crBeg ) {
-            push(ed[crV]);
+            result.push(ed[crV]);
             switch( ed[crV] ) {
             case 0:
                 crV = crV + p::ccmap->getWidth();
@@ -318,8 +317,3 @@ Path::Path(unsigned int crBeg, unsigned int crEnd, unsigned char max_dist) : std
     }
 }
 
-Path::~Path()
-{
-    while( !empty() )
-        pop();
-}

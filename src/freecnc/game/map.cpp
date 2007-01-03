@@ -3,7 +3,6 @@
 
 #include "../renderer/renderer_public.h"
 #include "map.h"
-#include "path.h"
 #include "playerpool.h"
 #include "structure.h"
 #include "unit.h"
