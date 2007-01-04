@@ -19,7 +19,7 @@ namespace VFS
     // MixArchiveFile helper class
     //-------------------------------------------------------------------------
 
-    struct MixArchiveFile : boost::noncopyable
+    struct MixArchiveFile : private boost::noncopyable
     {
         FILE* handle;
         string name;

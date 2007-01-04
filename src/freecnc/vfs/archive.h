@@ -11,7 +11,7 @@
 
 namespace VFS
 {
-    class Archive : public boost::noncopyable
+    class Archive : private boost::noncopyable
     {
     public:
         virtual ~Archive() {}

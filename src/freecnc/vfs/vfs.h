@@ -21,7 +21,7 @@ namespace VFS
     typedef std::vector<boost::shared_ptr<Archive> > ArchiveVector; 
     typedef std::vector<ArchiveVector> ArchiveVectorVector;
 
-    class VFS : public boost::noncopyable
+    class VFS : private boost::noncopyable
     {
     public:
         VFS();

@@ -19,7 +19,7 @@ namespace VFS
     // DirArchiveFile helper class
     //-------------------------------------------------------------------------
 
-    struct DirArchiveFile : boost::noncopyable
+    struct DirArchiveFile : private boost::noncopyable
     {
         FILE* handle;
         string name;

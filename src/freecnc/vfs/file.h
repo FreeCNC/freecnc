@@ -14,7 +14,7 @@
 
 namespace VFS
 {
-    class File : public boost::noncopyable
+    class File : private boost::noncopyable
     {
     public:
         File(Archive& arch, int filenum, bool writable)
