@@ -1,7 +1,7 @@
 #ifndef _GAME_MAP_H
 #define _GAME_MAP_H
 
-#include "../freecnc.h"
+#include "../basictypes.h"
 #include "../lib/inifile.h"
 
 struct SDL_Surface;
@@ -61,6 +61,8 @@ struct MissionData {
 
     /// used to determine what units/structures can be built
     unsigned char buildlevel;
+
+    string theater_prefix;
 };
 
 struct ScrollVector {
@@ -122,8 +124,6 @@ public:
         t_water_blocked=5, t_other_nonpass=7};
     enum ScrollDirection {s_none = 0, s_up = 1, s_right = 2, s_down = 4, s_left = 8,
         s_upright = 3, s_downright = 6, s_downleft = 12, s_upleft = 9, s_all = 15};
-
-    class LoadMapError {};
 
     // C/S: Not sure about this one
     unsigned char getGameMode() const {
@@ -276,6 +276,10 @@ private:
 
     /// Load the bin part of the map (TD)
     void loadBin();
+
+    void load_terrain_detail(const char* prefix);
+
+    void load_resources();
 
     /// Load the overlay section of the map (TD)
     void loadOverlay(shared_ptr<INIFile> inifile);

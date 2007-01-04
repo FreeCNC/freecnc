@@ -33,23 +33,21 @@ void CnCMap::loadIni()
     try {
         inifile = GetConfig(map_filename);
     } catch (runtime_error&) {
-        game.log << "Map \"" << map_filename << "\" not found.  Check your installation." << endl;
-        throw LoadMapError();
+        string s("Map loader: The map \"");
+        s += map_filename;
+        s += "\" not found.  Check your installation and files.ini.";
+        throw runtime_error(s);
     }
 
     p::ppool = new PlayerPool(inifile, 0);
 
     if (inifile->readInt("basic", "newiniformat", 0) != 0) {
-        game.log << "Red Alert maps not fully supported yet" << endl;
+        game.log << "Map loader: Red Alert maps not fully supported yet" << endl;
     }
 
     simpleSections(inifile);
 
-    try {
-        p::uspool = new UnitAndStructurePool();
-    } catch (int) {
-        throw LoadMapError();
-    }
+    p::uspool = new UnitAndStructurePool();
 
     p::ppool->setLPlayer(missionData.player);
 
@@ -67,30 +65,24 @@ void CnCMap::loadIni()
         try {
             pips = new SHPImage("pips.shp", mapscaleq);
         } catch(ImageNotFound&) {
-            game.log << "Unable to load the pips graphics!" << endl;
-            throw LoadMapError();
+            throw runtime_error("Map loader: Unable to load the pips graphics");
         }
     }
     pipsnum = pc::imagepool->size()<<16;
     pc::imagepool->push_back(pips);
 
-    if (maptype == GAME_RA) {
-        try {
-            char moveflsh[13] = "moveflsh.";
-            strncat( moveflsh, missionData.theater, 3 );
-            moveflash = new SHPImage(moveflsh,mapscaleq);
-        } catch (ImageNotFound&) {
-            game.log << "Unable to load the movement acknowledgement pulse graphic" << endl;
-            throw LoadMapError();
+    try {
+        string flash_filename("moveflsh.");
+        if (maptype == GAME_RA) {
+            flash_filename += missionData.theater_prefix;
+        } else {
+            flash_filename += "shp";
         }
-    } else {
-        try {
-            moveflash = new SHPImage("moveflsh.shp",mapscaleq);
-        } catch (ImageNotFound&) {
-            game.log << "Unable to load the movement acknowledgement pulse graphic" << endl;
-            throw LoadMapError();
-        }
+        moveflash = new SHPImage(flash_filename.c_str(), mapscaleq);
+    } catch (ImageNotFound&) {
+        throw runtime_error("Unable to load the movement acknowledgement pulse graphic");
     }
+
     flashnum = pc::imagepool->size()<<16;
     pc::imagepool->push_back(moveflash);
 }
@@ -100,8 +92,6 @@ void CnCMap::loadIni()
  * @param pointer to the inifile
  */
 void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
-    const char* key;
-    unsigned char iter = 0;
 
     // The strings in the basic section
     static const char* strreads[] = {
@@ -116,14 +106,14 @@ void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
     };
     static unsigned short* intvars[]  = {&height, &width, &x, &y};
 
+    int iter = 0;
     while (strreads[iter] != 0) {
         char** variable;
-        key = strreads[iter];
+        const char* key = strreads[iter];
         variable = strvars[iter];
         *variable = inifile->readString("BASIC", key);
         if (0 == *variable) {
-            game.log << "Error loading map: missing \"" << key << "\"" << endl;
-            throw LoadMapError();
+            throw runtime_error("Error loading map: missing \"" + string(key) + "\"");
         }
         ++iter;
     }
@@ -132,13 +122,15 @@ void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
     while (intreads[iter] != 0) {
         int temp;
         unsigned short* variable;
-        key      = intreads[iter];
+        const char* key = intreads[iter];
         variable = intvars[iter];
 
         temp = inifile->readInt("MAP", key);
         if (INIERROR == temp) {
-            game.log << "Error loading map: unable to find \"" << key << "\"" << endl;
-            throw LoadMapError();
+            string s("Map loader: Unable to find key \"");
+            s += key;
+            s += "\"";
+            throw runtime_error(s);
         }
 
         *variable = temp;
@@ -147,11 +139,51 @@ void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
 
     missionData.theater = inifile->readString("MAP", "THEATER");
     if (0 == missionData.theater) {
-        game.log << "Error loading map: unable to find \"THEATER\"" << endl;
-        throw LoadMapError();
+        throw runtime_error("Map loader: Unable to find \"THEATER\" section");
     }
+    missionData.theater_prefix = string(missionData.theater, 3);
 
     missionData.buildlevel = inifile->readInt("BASIC", "BUILDLEVEL",1);
+}
+
+void CnCMap::load_terrain_detail(const char* prefix)
+{
+    static const string middles[] = {"1.", "2.", "3.", "4.", "5.", "6."};
+
+    for (int i = 0; i < 6; ++i) {
+        string shpname(prefix + middles[i] + missionData.theater_prefix);
+        try {
+            SHPImage* image = new SHPImage(shpname.c_str(), mapscaleq);
+            pc::imagepool->push_back(image);
+        } catch (ImageNotFound&) {
+            continue;
+        }
+    }
+}
+
+void CnCMap::load_resources()
+{
+    string resource_name;
+    if (maptype == GAME_TD) {
+        resource_name = "TI1.";
+    } else if (maptype == GAME_RA) {
+        resource_name = "GOLD01.";
+    } else {
+        throw runtime_error("Map loader: Unsupported map type: " + string(missionData.theater));
+    }
+
+    resource_name += missionData.theater_prefix;
+    try {
+        SHPImage* image = new SHPImage(resource_name.c_str(), mapscaleq);
+        resourcebases.push_back(pc::imagepool->size());
+        pc::imagepool->push_back(image);
+    } catch (ImageNotFound&) {
+        throw runtime_error("Map loader: Could not load \"" + resource_name + "\"");
+    }
+
+    // No craters or scorch marks for interior?
+    load_terrain_detail("SC");
+    load_terrain_detail("CR");
 }
 
 /** Function to load all the advanced sections in the inifile.
@@ -161,7 +193,6 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
     unsigned int keynum;
     int i;
     //char *line;
-    char shpname[128];
     char trigger[128];
     char action[128];
     char type[128];
@@ -171,7 +202,6 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
     unsigned short tx, ty, xsize, ysize, tmp2;
     std::map<std::string, unsigned int> imagelist;
     std::map<std::string, unsigned int>::iterator imgpos;
-    SHPImage *image;
     TerrainEntry tmpterrain;
     INIKey key;
 
@@ -199,58 +229,22 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
 
     shared_ptr<INIFile> arts = GetConfig("art.ini");
 
-    /* load the shadowimages */
     try {
-        image = new SHPImage("SHADOW.SHP", mapscaleq);
-        numShadowImg = image->getNumImg();
+        SHPImage image("SHADOW.SHP", mapscaleq);
+        numShadowImg = image.getNumImg();
         shadowimages.resize(numShadowImg);
         for( i = 0; i < 48; i++ ) {
-            image->getImageAsAlpha(i, &shadowimages[i]);
+            image.getImageAsAlpha(i, &shadowimages[i]);
         }
-        delete image;
     } catch(ImageNotFound&) {
         game.log << "Unable to load \"shadow.shp\"" << endl;
         numShadowImg = 0;
     }
-    /* load the smudge marks and the tiberium to the imagepool */
-    if (strncasecmp(missionData.theater, "INT", 3) != 0) {
-        string sname;
-        if (maptype == GAME_TD) {
-            sname = "TI1";
-        } else if (maptype == GAME_RA) {
-            sname = "GOLD01";
-        } else {
-            game.log << "Unsuported maptype" << endl;
-            throw LoadMapError();
-        }
 
-        resourcenames[sname] = 0;
-        sname += "." + string(missionData.theater,3);
-        try {
-            image = new SHPImage(sname.c_str(), mapscaleq);
-            resourcebases.push_back(pc::imagepool->size());
-            pc::imagepool->push_back(image);
-        } catch (ImageNotFound&) {
-            game.log << "Could not load \"" << sname << "\"" << endl;
-            throw LoadMapError();
-        }
-        // No craters or scorch marks for interior?
-        for (i = 1; i <= 6; i++) {
-            sprintf(shpname, "SC%d.", i);
-            strncat(shpname, missionData.theater, 3);
-            try {
-                image = new SHPImage(shpname, mapscaleq);
-            } catch (ImageNotFound&) {continue;}
-            pc::imagepool->push_back(image);
-        }
-        for (i = 1; i <= 6; i++) {
-            sprintf(shpname, "CR%d.", i);
-            strncat(shpname, missionData.theater, 3);
-            try {
-                image = new SHPImage(shpname, mapscaleq);
-            } catch (ImageNotFound&) {continue;}
-            pc::imagepool->push_back(image);
-        }
+    // load the smudge marks and the tiberium/ore to the imagepool
+
+    if (missionData.theater_prefix != "INT") {
+        load_resources();
     }
 
     overlaymatrix.resize(width*height, 0);
@@ -258,6 +252,7 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
     try {
         for( keynum = 0; ;keynum++ ) {
             bool bad = false;
+            char shpname[128];
             key = inifile->readKeyValue("TERRAIN", keynum);
             /* , is the char which separate terraintype from action. */
 
@@ -338,12 +333,11 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
                     tmpterrain.shpnum = pc::imagepool->size()<<16;
                     terrains[linenum] = tmpterrain;
                     try {
-                        image = new SHPImage(shpname, mapscaleq);
+                        SHPImage* image = new SHPImage(shpname, mapscaleq);
+                        pc::imagepool->push_back(image);
                     } catch (ImageNotFound&) {
-                        game.log << "Could not load \"" << shpname << "\""  << endl;
-                        throw LoadMapError();
+                        throw runtime_error("Map loader: Could not load \"" + string(shpname) + "\"");
                     }
-                    pc::imagepool->push_back(image);
                 }
             }
         }
@@ -459,24 +453,18 @@ void CnCMap::loadBin()
     //    unsigned char templ, tile;
     int xtile, ytile;
     VFile *binfile;
-    char *binname = new char[strlen(missionData.mapname)+5];
+    string bin_filename(missionData.mapname);
 
     TileList *mapdata;
 
     mapdata = new TileList[width*height];
 
-    /* Calculate name of bin file ( mapname.bin ). */
-    strcpy(binname, missionData.mapname);
-    strcat(binname, ".BIN");
+    bin_filename += ".BIN";
 
-    /* get the offset and size of the binfile along with a pointer to it */
-    //binfile = mixes->getOffsetAndSize(binname, &offset, &size);
-    binfile = VFS_Open(binname);
-    delete[] binname;
+    binfile = VFS_Open(bin_filename.c_str());
 
     if(binfile == NULL) {
-        game.log << "Unable to locate BIN file!" << endl;
-        throw LoadMapError();
+        throw runtime_error("Map loader: Unable to open " + bin_filename);
     }
 
     /* Seek the beginning of the map.
@@ -628,9 +616,8 @@ void CnCMap::parseBin(TileList* bindata)
                 /* a new tile */
                 tileimg = loadTile(templini, templ, tile, &tiletype);
 
-                if( tileimg == NULL ) {
-                    game.log << "Error loading tiles" << endl;
-                    throw LoadMapError();
+                if (tileimg == NULL) {
+                    throw runtime_error("Map loader: Error loading tiles");
                 }
 
                 tileidx = tileimages.size();
@@ -743,8 +730,7 @@ void CnCMap::parseOverlay(const unsigned int& linenum, const string& name)
         try {
             frame = pc::imgcache->loadImage(shpname.c_str()) >> 16;
         } catch (ImageNotFound&) {
-            game.log << "Unable to load overlay \"" << shpname << "\" (or \"" << name << ".SHP\")" << endl;
-            throw LoadMapError();
+            throw runtime_error("Unable to load overlay \"" + shpname + "\" or \"" + name + ".SHP\"");
         }
     }
 
@@ -763,8 +749,7 @@ void CnCMap::parseOverlay(const unsigned int& linenum, const string& name)
             if ('E' == name[1]) i = 3;
         }
         if (0 == i) {
-            game.log << "Resource hack for \"" << name << "\" failed." << endl;
-            throw LoadMapError();
+            throw runtime_error("Resource hack for \"" + string(name) + "\" failed.");
         }
         map<string, unsigned char>::iterator t = resourcenames.find(name);
         if (resourcenames.end() == t) {
@@ -809,8 +794,7 @@ void CnCMap::loadPal(SDL_Color *palette)
     palfile = VFS_Open(palname.c_str());
 
     if (palfile == NULL) {
-        game.log << "Unable to locate palette (\"" << palname << "\")." << endl;
-        throw LoadMapError();
+        throw runtime_error("Unable to locate palette (\"" + palname + "\").");
     }
 
     /* Load the palette */
@@ -825,8 +809,6 @@ void CnCMap::loadPal(SDL_Color *palette)
     VFS_Close(palfile);
 }
 
-
-
 /** load a tile from the mixfile.
  * @param the mixfiles.
  * @param the template inifile.
@@ -836,68 +818,65 @@ void CnCMap::loadPal(SDL_Color *palette)
  */
 SDL_Surface *CnCMap::loadTile(shared_ptr<INIFile> templini, unsigned short templ, unsigned char tile, unsigned int* tiletype)
 {
-    TemplateCache::iterator ti;
     TemplateImage *theaterfile;
 
     SDL_Surface *retimage;
 
-    char tilefilename[13];
-    char tilenum[11];
-    char *temname;
+    string tile_filename("TEM");
+    string tile_number("tiletype");
 
     /* The name of the file containing the template is something from
      * templates.ini . the three first
      * chars in the name of the theater eg. .DES .TEM .WIN */
 
-    sprintf(tilefilename, "TEM%d", templ);
-    sprintf(tilenum, "tiletype%d", tile);
-    *tiletype = templini->readInt(tilefilename, tilenum, 0);
+    tile_filename += boost::lexical_cast<string>(templ);
+    tile_number += boost::lexical_cast<string>(tile);
 
-    temname = templini->readString(tilefilename, "NAME");
+    *tiletype = templini->readInt(tile_filename.c_str(), tile_number.c_str(), 0);
 
-    if( temname == NULL ) {
-        game.log << "Error in templates.ini! (can't find \"" << tilefilename << "\")"  << endl;
-        strcpy(tilefilename, "CLEAR1");
+    // TODO: stringfy this after new INIFile
+    char* temp_name = templini->readString(tile_filename.c_str(), "NAME");
+
+    if (temp_name == NULL) {
+        game.log << "Map loader: Error in templates.ini: can't find \"" << tile_filename << "\""  << endl;
+        tile_filename = "CLEAR1";
     } else {
-        strcpy(tilefilename, temname);
-        delete[] temname;
+        tile_filename = temp_name;
+        delete[] temp_name;
     }
 
-    strcat( tilefilename, "." );
-    strncat( tilefilename, missionData.theater, 3 );
+    tile_filename += "." + missionData.theater_prefix;
 
     // Check the templateCache
-    ti = templateCache.find( tilefilename );
+    TemplateCache::iterator ti = templateCache.find(tile_filename);
     // If we haven't preloaded this, lets do so now
     if (ti == templateCache.end()) {
         try {
             if( maptype == GAME_RA ) {
-                theaterfile = new TemplateImage(tilefilename, mapscaleq, 1);
+                theaterfile = new TemplateImage(tile_filename.c_str(), mapscaleq, 1);
             } else {
-                theaterfile = new TemplateImage(tilefilename, mapscaleq);
+                theaterfile = new TemplateImage(tile_filename.c_str(), mapscaleq);
             }
         } catch(ImageNotFound&) {
-            game.log << "Unable to locate template " << templ << ", " << tile << " (\"" << tilefilename << "\") in mix! using tile 0, 0 instead" << endl;
+            game.log << "Unable to locate template " << templ << ", " << tile << " (\"" << tile_filename << "\") in mix! using tile 0, 0 instead" << endl;
             if (templ == 0 && tile == 0) {
-                game.log << "Unable to load tile 0,0.  Can't proceed" << endl;
-                return NULL;
+                throw runtime_error("Map loader: Unable to load tile 0,0.  Can't proceed");
             }
-            return loadTile( templini, 0, 0, tiletype );
+            return loadTile(templini, 0, 0, tiletype);
         }
 
         // Store this TemplateImage for later use
-        templateCache[tilefilename] = theaterfile;
+        templateCache[tile_filename] = theaterfile;
     } else {
         theaterfile = ti->second;
     }
 
     //Now return this SDL_Surface
     retimage = theaterfile->getImage(tile);
-    if( retimage == NULL ) {
-        game.log << "Illegal template " << templ << ", " << tile << " (\"" << tilefilename << "\")! using tile 0, 0 instead" << endl;
-        if( templ == 0 && tile == 0 )
-            return NULL;
-        return loadTile( templini, 0, 0, tiletype );
+    if (retimage == NULL) {
+        game.log << "Illegal template " << templ << ", " << tile << " (\"" << tile_filename << "\")! using tile 0, 0 instead" << endl;
+        assert(templ != 0 && tile != 0);
+        return loadTile(templini, 0, 0, tiletype);
     }
 
     // Save a cache of this TemplateImage & Tile, so we can reload the SDL_Surface later
@@ -908,7 +887,6 @@ SDL_Surface *CnCMap::loadTile(shared_ptr<INIFile> templini, unsigned short templ
     templateTileCache.push_back(pair);
 
     return retimage;
-
 }
 
 /** Reloads all the tile's SDL_Image
