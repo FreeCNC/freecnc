@@ -34,9 +34,10 @@ and how to run the game.
 3. License
 -------------------------------------------------------------------------------
 
-FreeCNC is licensed under the terms of the GPL, see license.txt for details.
+FreeCNC is licensed under the terms of the GPL version 2, see gpl.txt for
+details.
 
-FreeCNC uses Lua 5.1.1, licensed under the MIT license, see
+FreeCNC uses Lua 5.1, licensed under the MIT license, see
 http://www.lua.org/license.html for more information.
 
 FreeCNC also uses SDL 1.2, licensed under the LGPL, see
@@ -227,7 +228,7 @@ located.
   website developer
 
   Thomas Johansson (prencher) - thomas@freecnc.org
-  developer, svn/trac admin, email admin
+  developer, website admin
 
 7.2. Previous team members
 ==========================
@@ -245,7 +246,7 @@ located.
   not sure
 
   Tim Johansson (Tim^) - email unknown
-  started the project, developer
+  project starter, developer
 
 7.3. Thanks
 ===========
@@ -253,11 +254,10 @@ located.
   Thanks to everybody who have contributed patches and insights over the years,
   especially the people who reverse engineered the file formats.
 
-  Thanks to James Crasta for providing website & trac hosting, and Lasse Hjorth
-  for hosting our email.
+  Thanks to James Crasta for providing website hosting, and Lasse Hjorth for
+  hosting our email.
 
-  Thanks to SourceForge for hosting us in the past, even when things got a bit
-  ugly with EA.
+  Thanks to SourceForge for hosting our SVN and project pages.
 
   And finally thanks to anybody else we may have forgotten - do contact us if
   you belong here :)
