@@ -6,31 +6,23 @@
 
 namespace
 {
-    struct TileRef
+    struct Node
     {
-        unsigned short x;
-        unsigned short y;
-        unsigned int g;
-        unsigned int h;
-    };
+        Node() : x(-1), y(-1), g(0), h(0), key(0) { }
+        Node(int x, int y) : x(x), y(y), g(0), h(0), key(0) { }
 
-    class Node
-    {
-        public:
-            friend class NodeComp;
-            Node(TileRef *val, unsigned int k) {
-                value = val;
-                key = k;
-            }
-            TileRef *getValue() {
-                return value;
-            }
-            void setKey(unsigned int k) {
-                key = k;
-            }
-        private:
-            TileRef *value;
-            unsigned int key;
+        int x, y;
+
+        // Distance from start pos
+        unsigned int g;
+
+        // Estimated distance to the end
+        unsigned int h;
+
+        // g + h
+        unsigned int key;
+
+        void update_heuristic(int end_x, int end_y);
     };
 
     struct NodeComp {
@@ -41,6 +33,13 @@ namespace
 
     const int DIAGONAL = 14;
     const int STRAIGHT = 10;
+
+    void Node::update_heuristic(int end_x, int end_y)
+    {
+        int diffx = abs(x - end_x);
+        int diffy = abs(y - end_y);
+        h = min(diffx, diffy) * DIAGONAL + abs(diffx - diffy) * STRAIGHT;
+    }
 }
 
 Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
@@ -61,8 +60,7 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
     unsigned int current_pos, next_pos;
     unsigned short current_x, current_y, next_x, next_y;
     unsigned int cost;
-    TileRef *current_node_values, *next_node_values;
-    unsigned short diffx, diffy;
+
     unsigned char current_direction;
     unsigned int current_min_pos;
     unsigned int current_min_h;
@@ -77,38 +75,32 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
 
     unsigned char *directions = new unsigned char[mapsize];
 
-    current_node_values = new TileRef;
-    current_node_values->x = start_pos_x;
-    current_node_values->y = start_pos_y;
-    current_node_values->g = 0;
-    diffx = abs(start_pos_x - stop_pos_x);
-    diffy = abs(start_pos_y - stop_pos_y);
-    current_node_values->h = min(diffx, diffy) * DIAGONAL + abs( diffx - diffy) * STRAIGHT;
+    current_node = new Node(start_pos_x, start_pos_y);
+    current_node->update_heuristic(stop_pos_x, stop_pos_y);
 
-    nodes[start_pos] = current_node = new Node(current_node_values, current_node_values->h);
+    nodes[start_pos] = current_node;
 
     current_min_pos = start_pos;
-    current_min_h = current_node_values->h;
+    current_min_h = current_node->h;
 
     open.push(current_node);
 
-    closed = new Node(NULL, 0);
+    closed = new Node();
     reusable_node = NULL;
 
     while (!open.empty()) {
         current_node = open.top();
         open.pop();
-        current_node_values = current_node->getValue();
-        current_x = current_node_values->x;
-        current_y = current_node_values->y;
+        current_x = current_node->x;
+        current_y = current_node->y;
         current_pos = p::ccmap->translateToPos(current_x, current_y);
 
-        if (current_node_values->h < current_min_h) {
-            current_min_h = current_node_values->h;
+        if (current_node->h < current_min_h) {
+            current_min_h = current_node->h;
             current_min_pos = current_pos;
         }
 
-        if (current_node_values->h <= ((unsigned int)max_dist) * STRAIGHT || current_node_values->g >= 100) {
+        if (current_node->h <= ((unsigned int)max_dist) * STRAIGHT || current_node->g >= 100) {
             /* desired min dist to target, 0 to go all the way. Currently the length of the path is limited to 100 */
             break;
         }
@@ -123,7 +115,7 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
                 next_x = current_x;
                 next_y = current_y-1;
                 next_pos = current_pos - p::ccmap->getWidth();
-                cost = current_node_values->g + p::ccmap->getCost(next_pos) * STRAIGHT;
+                cost = current_node->g + p::ccmap->getCost(next_pos) * STRAIGHT;
                 break;
             case 1:
                 if (current_y == 0 || current_x == (p::ccmap->getWidth()-1)) {
@@ -132,7 +124,7 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
                 next_x = current_x+1;
                 next_y = current_y-1;
                 next_pos = current_pos - p::ccmap->getWidth() + 1;
-                cost = current_node_values->g + p::ccmap->getCost(next_pos) * DIAGONAL;
+                cost = current_node->g + p::ccmap->getCost(next_pos) * DIAGONAL;
                 break;
             case 2:
                 if (current_x == (p::ccmap->getWidth()-1)) {
@@ -141,7 +133,7 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
                 next_y = current_y;
                 next_x = current_x+1;
                 next_pos = current_pos + 1;
-                cost = current_node_values->g + p::ccmap->getCost(next_pos) * STRAIGHT;
+                cost = current_node->g + p::ccmap->getCost(next_pos) * STRAIGHT;
                 break;
             case 3:
                 if (current_y == (p::ccmap->getHeight()-1) || current_x == (p::ccmap->getWidth()-1)) {
@@ -150,7 +142,7 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
                 next_x = current_x+1;
                 next_y = current_y+1;
                 next_pos = current_pos + p::ccmap->getWidth() + 1;
-                cost = current_node_values->g + p::ccmap->getCost(next_pos) * DIAGONAL;
+                cost = current_node->g + p::ccmap->getCost(next_pos) * DIAGONAL;
                 break;
             case 4:
                 if (current_y == (p::ccmap->getHeight()-1)) {
@@ -159,7 +151,7 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
                 next_x = current_x;
                 next_y = current_y+1;
                 next_pos = current_pos + p::ccmap->getWidth();
-                cost = current_node_values->g + p::ccmap->getCost(next_pos) * STRAIGHT;
+                cost = current_node->g + p::ccmap->getCost(next_pos) * STRAIGHT;
                 break;
             case 5:
                 if (current_y == (p::ccmap->getHeight()-1) || current_x == 0) {
@@ -168,7 +160,7 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
                 next_x = current_x-1;
                 next_y = current_y+1;
                 next_pos = current_pos + p::ccmap->getWidth() - 1;
-                cost = current_node_values->g + p::ccmap->getCost(next_pos) * DIAGONAL;
+                cost = current_node->g + p::ccmap->getCost(next_pos) * DIAGONAL;
                 break;
             case 6:
                 if (current_x == 0) {
@@ -177,7 +169,7 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
                 next_y = current_y;
                 next_x = current_x-1;
                 next_pos = current_pos - 1;
-                cost = current_node_values->g + p::ccmap->getCost(next_pos) * STRAIGHT;
+                cost = current_node->g + p::ccmap->getCost(next_pos) * STRAIGHT;
                 break;
             case 7:
                 if (current_y == 0 || current_x == 0) {
@@ -186,7 +178,7 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
                 next_x = current_x-1;
                 next_y = current_y-1;
                 next_pos = current_pos - p::ccmap->getWidth() - 1;
-                cost = current_node_values->g + p::ccmap->getCost(next_pos) * DIAGONAL;
+                cost = current_node->g + p::ccmap->getCost(next_pos) * DIAGONAL;
                 break;
             default:
                 cost = 0xffff;
@@ -205,37 +197,30 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
                 if (reusable_node != NULL) {
                     next_node = reusable_node;
                     reusable_node = NULL;
-                    next_node_values = next_node->getValue();
+                    next_node->x = next_x;
+                    next_node->y = next_y;
                 } else {
-                    next_node_values = new TileRef;
-                    next_node = new Node(next_node_values, 0);
+                    next_node = new Node(next_x, next_y);
                 }
 
                 nodes[next_pos] = next_node;
                 directions[next_pos] = current_direction;
 
-                next_node_values->x = next_x;
-                next_node_values->y = next_y;
-                next_node_values->g = cost;
-                diffx = abs(next_x - stop_pos_x);
-                diffy = abs(next_y - stop_pos_y);
-                next_node_values->h = min(diffx, diffy) * DIAGONAL + abs( diffx - diffy) * STRAIGHT;
-
-                next_node->setKey(next_node_values->g + next_node_values->h);
-
+                next_node->g = cost;
+                next_node->update_heuristic(stop_pos_x, stop_pos_y);
+                next_node->key = next_node->g + next_node->h;
                 open.push(next_node);
-            } else if (cost == next_node->getValue()->g) {
+            } else if (cost == next_node->g) {
                 continue;
-            } else if (cost < next_node->getValue()->g) {
-                next_node->getValue()->g = cost;
+            } else if (cost < next_node->g) {
+                next_node->g = cost;
                 directions[next_pos] = current_direction;
-                next_node->setKey(cost + next_node->getValue()->h);
+                next_node->key = cost + next_node->h;
             }
         }
 
         nodes[current_pos] = closed;
         if (reusable_node != NULL) {
-            delete current_node_values;
             delete current_node;
         } else {
             reusable_node = current_node;
@@ -247,13 +232,11 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
     }
 
     if (reusable_node != NULL) {
-        delete (TileRef *)reusable_node->getValue();
         delete reusable_node;
     }
 
     for (int i = 0; i < mapsize; ++i) {
         if (nodes[i] != NULL && nodes[i] != closed) {
-            delete (TileRef *)nodes[i]->getValue();
             delete nodes[i];
         }
     }
