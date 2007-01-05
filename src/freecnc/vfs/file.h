@@ -1,6 +1,7 @@
 #ifndef _VFS_FILE_H
 #define _VFS_FILE_H
 
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <boost/noncopyable.hpp>
