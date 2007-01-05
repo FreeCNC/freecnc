@@ -122,8 +122,8 @@ void GameEngine::shutdown()
 
 void GameEngine::parse_options(int argc, char** argv)
 {
-    po::options_description generic("Generic options");
-    generic.add_options()
+    po::options_description general("General options");
+    general.add_options()
         ("help,h", "show this message")
         ("version,v", "print version")
         ("basedir", po::value<string>(&config.basedir)->default_value("."),
@@ -166,7 +166,7 @@ void GameEngine::parse_options(int argc, char** argv)
 
     po::options_description cmdline_options, config_file_options;
 
-    cmdline_options.add(generic).add(game).add(debug);
+    cmdline_options.add(general).add(game).add(debug);
     config_file_options.add(game).add(config_only).add(debug);
 
     po::variables_map vm;
