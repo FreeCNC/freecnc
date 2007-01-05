@@ -4,316 +4,296 @@
 #include "map.h"
 #include "path.h"
 
-struct TileRef {
-    unsigned short crx;
-    unsigned short cry;
-    unsigned int g;
-    unsigned int h;
-};
-
-class FibHeapEntry {
-public:
-    friend class KeyComp;
-    FibHeapEntry(TileRef *val, unsigned int k) {
-        value = val;
-        key = k;
-    }
-    TileRef *getValue() {
-        return value;
-    }
-    void setKey(unsigned int k) {
-        key = k;
-    }
-private:
-    TileRef *value;
-    unsigned int key;
-};
-
-// Friend class which compares ActionEvents priority
-class KeyComp {
-public:
-    bool operator()(FibHeapEntry *x, FibHeapEntry *y) {
-        return x->key > y->key;
-    }
-};
-
-Path::Path(unsigned int crBeg, unsigned int crEnd, unsigned char max_dist)
+namespace
 {
-    unsigned short startposx;
-    unsigned short startposy;
-    unsigned short stopposx;
-    unsigned short stopposy;
-    FibHeapEntry** Nodes;
-    unsigned char *ed;
-    FibHeapEntry *pU, *pV;
-    FibHeapEntry *pReuse;
-    FibHeapEntry *retired;
-    std::priority_queue<FibHeapEntry*, std::vector<FibHeapEntry *>, KeyComp> PQ;
-    unsigned int crU, crV;
-    unsigned short crX, crY, ncrX, ncrY;
-    unsigned int dwCost;
-    int i;
-    TileRef *cellTempU, *cellTempV;
+    struct TileRef
+    {
+        unsigned short x;
+        unsigned short y;
+        unsigned int g;
+        unsigned int h;
+    };
+
+    class Node
+    {
+        public:
+            friend class NodeComp;
+            Node(TileRef *val, unsigned int k) {
+                value = val;
+                key = k;
+            }
+            TileRef *getValue() {
+                return value;
+            }
+            void setKey(unsigned int k) {
+                key = k;
+            }
+        private:
+            TileRef *value;
+            unsigned int key;
+    };
+
+    struct NodeComp {
+            bool operator()(Node* x, Node* y) {
+                return x->key > y->key;
+            }
+    };
+
+    const int DIAGONAL = 14;
+    const int STRAIGHT = 10;
+}
+
+Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
+{
+    if (start_pos == end_pos) {
+        return;
+    }
+    unsigned short start_pos_x, start_pos_y;
+    p::ccmap->translateFromPos(start_pos, &start_pos_x, &start_pos_y);
+
+    unsigned short stop_pos_x, stop_pos_y;
+    p::ccmap->translateFromPos(end_pos, &stop_pos_x, &stop_pos_y);
+
+    Node *current_node, *next_node;
+    Node *reusable_node;
+    Node *closed;
+    std::priority_queue<Node*, std::vector<Node*>, NodeComp> open;
+    unsigned int current_pos, next_pos;
+    unsigned short current_x, current_y, next_x, next_y;
+    unsigned int cost;
+    TileRef *current_node_values, *next_node_values;
     unsigned short diffx, diffy;
-    unsigned char edp;
-    unsigned int cmincr;
-    unsigned int cminh;
+    unsigned char current_direction;
+    unsigned int current_min_pos;
+    unsigned int current_min_h;
 
     unsigned short mapsize = p::ccmap->getWidth()*p::ccmap->getHeight();
 
-    p::ccmap->translateFromPos(crBeg, &startposx, &startposy);
-    p::ccmap->translateFromPos(crEnd, &stopposx, &stopposy);
+    current_pos = next_pos = 0;
+    next_x = next_y = 0;
 
-    /* When making optimised builds, the compiler whines about these variables
-     * being possibly uninitialised.
-     */
-    crU = crV = 0;
-    ncrX = ncrY = 0;
+    Node** nodes = new Node*[mapsize];
+    memset(nodes, 0, mapsize*sizeof(Node*));
 
-    Nodes = new FibHeapEntry*[mapsize];
+    unsigned char *directions = new unsigned char[mapsize];
 
-    ed = new unsigned char[mapsize];
+    current_node_values = new TileRef;
+    current_node_values->x = start_pos_x;
+    current_node_values->y = start_pos_y;
+    current_node_values->g = 0;
+    diffx = abs(start_pos_x - stop_pos_x);
+    diffy = abs(start_pos_y - stop_pos_y);
+    current_node_values->h = min(diffx, diffy) * DIAGONAL + abs( diffx - diffy) * STRAIGHT;
 
+    nodes[start_pos] = current_node = new Node(current_node_values, current_node_values->h);
 
-    //for( i = 0; i < mapsize; i++ )
-    //Nodes[i] = NULL;
-    memset(Nodes, 0, mapsize*sizeof(FibHeapEntry*));
+    current_min_pos = start_pos;
+    current_min_h = current_node_values->h;
 
-    cellTempU = new TileRef;
-    cellTempU->crx = startposx;
-    cellTempU->cry = startposy;
-    cellTempU->g = 0;
-    diffx = abs( startposx - stopposx );
-    diffy = abs( startposy - stopposy );
-    cellTempU->h = min(diffx, diffy)*14 + abs( diffx - diffy )*10;
+    open.push(current_node);
 
-    Nodes[crBeg] = pU = new FibHeapEntry(cellTempU, cellTempU->h);
+    closed = new Node(NULL, 0);
+    reusable_node = NULL;
 
-    cmincr = crBeg;
-    cminh = cellTempU->h;
+    while (!open.empty()) {
+        current_node = open.top();
+        open.pop();
+        current_node_values = current_node->getValue();
+        current_x = current_node_values->x;
+        current_y = current_node_values->y;
+        current_pos = p::ccmap->translateToPos(current_x, current_y);
 
-    PQ.push(pU);
-
-    retired = new FibHeapEntry(NULL, 0);
-    pReuse = NULL;
-
-    while( !PQ.empty() ) {
-        pU = PQ.top();
-        PQ.pop();
-        cellTempU = pU->getValue();
-        crX = cellTempU->crx;
-        crY = cellTempU->cry;
-        crU = p::ccmap->translateToPos(crX, crY);
-
-        if( cellTempU->h < cminh ) {
-            cminh = cellTempU->h;
-            cmincr = crU;
+        if (current_node_values->h < current_min_h) {
+            current_min_h = current_node_values->h;
+            current_min_pos = current_pos;
         }
 
-        if( cellTempU->h <= ((unsigned int)max_dist)*10 || cellTempU->g >= 100)
+        if (current_node_values->h <= ((unsigned int)max_dist) * STRAIGHT || current_node_values->g >= 100) {
             /* desired min dist to target, 0 to go all the way. Currently the length of the path is limited to 100 */
             break;
+        }
 
         /* Walk in all directions */
-        for( edp = 0; edp < 8; edp++ ) {
-            switch( edp ) {
+        for (current_direction = 0; current_direction < 8; current_direction++) {
+            switch (current_direction) {
             case 0:
-                if( crY == 0 )
-                    dwCost = 0xffff;
-                else {
-                    ncrX = crX;
-                    ncrY = crY-1;
-                    crV = crU - p::ccmap->getWidth();
-                    dwCost = cellTempU->g + p::ccmap->getCost(crV)*10;
-                }
-                break;
-            case 1:
-                if( crY == 0 || crX == (p::ccmap->getWidth()-1) )
-                    dwCost = 0xffff;
-                else {
-                    ncrX = crX+1;
-                    ncrY = crY-1;
-                    crV = crU - p::ccmap->getWidth() + 1;
-                    dwCost = cellTempU->g + p::ccmap->getCost(crV)*14;
-                }
-                break;
-            case 2:
-                if( crX == (p::ccmap->getWidth()-1) )
-                    dwCost = 0xffff;
-                else {
-                    ncrY = crY;
-                    ncrX = crX+1;
-                    crV = crU + 1;
-                    dwCost = cellTempU->g + p::ccmap->getCost(crV)*10;
-                }
-                break;
-            case 3:
-                if( crY == (p::ccmap->getHeight()-1) || crX == (p::ccmap->getWidth()-1) )
-                    dwCost = 0xffff;
-                else {
-                    ncrX = crX+1;
-                    ncrY = crY+1;
-                    crV = crU + p::ccmap->getWidth() + 1;
-                    dwCost = cellTempU->g + p::ccmap->getCost(crV)*14;
-                }
-                break;
-            case 4:
-                if( crY == (p::ccmap->getHeight()-1) )
-                    dwCost = 0xffff;
-                else {
-                    ncrX = crX;
-                    ncrY = crY+1;
-                    crV = crU + p::ccmap->getWidth();
-                    dwCost = cellTempU->g + p::ccmap->getCost(crV)*10;
-                }
-                break;
-            case 5:
-                if( crY == (p::ccmap->getHeight()-1) || crX == 0 )
-                    dwCost = 0xffff;
-                else {
-                    ncrX = crX-1;
-                    ncrY = crY+1;
-                    crV = crU + p::ccmap->getWidth() - 1;
-                    dwCost = cellTempU->g + p::ccmap->getCost(crV)*14;
-                }
-                break;
-            case 6:
-                if( crX == 0 )
-                    dwCost = 0xffff;
-                else {
-                    ncrY = crY;
-                    ncrX = crX-1;
-                    crV = crU - 1;
-                    dwCost = cellTempU->g + p::ccmap->getCost(crV)*10;
-                }
-                break;
-            case 7:
-                if( crY == 0 || crX == 0 )
-                    dwCost = 0xffff;
-                else {
-                    ncrX = crX-1;
-                    ncrY = crY-1;
-                    crV = crU - p::ccmap->getWidth() - 1;
-                    dwCost = cellTempU->g + p::ccmap->getCost(crV)*14;
-                }
-                break;
-            default:
-                dwCost = 0xffff;
-                break;
-            }
-
-            if( dwCost >= 0xffff )
-                continue;
-
-            pV = Nodes[crV];
-
-            /* Retired */
-            if( pV == retired )
-                continue;
-            /* Not visited */
-            else if( pV == NULL ) {
-                if( pReuse != NULL ) {
-                    pV = pReuse;
-                    pReuse = NULL;
-                    cellTempV = pV->getValue();
-                } else {
-                    cellTempV = new TileRef;
-                    pV = new FibHeapEntry(cellTempV, 0);
-                }
-
-                Nodes[crV] = pV;
-                ed[crV] = edp;
-
-                cellTempV->crx = ncrX;
-                cellTempV->cry = ncrY;
-                cellTempV->g = dwCost;
-                diffx = abs( ncrX - stopposx );
-                diffy = abs( ncrY - stopposy );
-                cellTempV->h = min(diffx, diffy)*14 + abs( diffx - diffy )*10;
-
-                pV->setKey(cellTempV->g + cellTempV->h);
-
-                PQ.push(pV);
-            } else if( dwCost <= pV->getValue()->g ) {
-                if( dwCost == pV->getValue()->g ) {
-                    /*if( rand() <= RAND_MAX/2 )
-                      ed[crV] = edp;*/
+                if (current_y == 0) {
                     continue;
                 }
-                pV->getValue()->g = dwCost;
-                ed[crV] = edp;
-                /* Decrease the key */
-                pV->setKey(dwCost + pV->getValue()->h);
-            }
-
-        }
-
-        Nodes[crU] = retired;
-        if( pReuse != NULL ) {
-            delete cellTempU;
-            delete pU;
-        } else
-            pReuse = pU;
-    } /* while done */
-
-    if( crU != crEnd ) {
-        crEnd = cmincr;
-    }
-
-    if( pReuse != NULL ) {
-        delete (TileRef *)pReuse->getValue();
-        delete pReuse;
-    }
-
-    for( i = 0; i < mapsize; i++ )
-        if( Nodes[i] != NULL && Nodes[i] != retired ) {
-            delete (TileRef *)Nodes[i]->getValue();
-            delete Nodes[i];
-        }
-    delete[] Nodes;
-    delete retired;
-
-
-    if( crEnd != crBeg ) {
-        crV = crEnd;
-
-        while( crV != crBeg ) {
-            result.push(ed[crV]);
-            switch( ed[crV] ) {
-            case 0:
-                crV = crV + p::ccmap->getWidth();
+                next_x = current_x;
+                next_y = current_y-1;
+                next_pos = current_pos - p::ccmap->getWidth();
+                cost = current_node_values->g + p::ccmap->getCost(next_pos) * STRAIGHT;
                 break;
             case 1:
-                crV = crV + p::ccmap->getWidth() - 1;
+                if (current_y == 0 || current_x == (p::ccmap->getWidth()-1)) {
+                    continue;
+                }
+                next_x = current_x+1;
+                next_y = current_y-1;
+                next_pos = current_pos - p::ccmap->getWidth() + 1;
+                cost = current_node_values->g + p::ccmap->getCost(next_pos) * DIAGONAL;
                 break;
             case 2:
-                crV = crV - 1;
+                if (current_x == (p::ccmap->getWidth()-1)) {
+                    cost = 0xffff;
+                }
+                next_y = current_y;
+                next_x = current_x+1;
+                next_pos = current_pos + 1;
+                cost = current_node_values->g + p::ccmap->getCost(next_pos) * STRAIGHT;
                 break;
             case 3:
-                crV = crV - p::ccmap->getWidth() - 1;
+                if (current_y == (p::ccmap->getHeight()-1) || current_x == (p::ccmap->getWidth()-1)) {
+                    continue;
+                }
+                next_x = current_x+1;
+                next_y = current_y+1;
+                next_pos = current_pos + p::ccmap->getWidth() + 1;
+                cost = current_node_values->g + p::ccmap->getCost(next_pos) * DIAGONAL;
                 break;
             case 4:
-                crV = crV - p::ccmap->getWidth();
+                if (current_y == (p::ccmap->getHeight()-1)) {
+                    continue;
+                }
+                next_x = current_x;
+                next_y = current_y+1;
+                next_pos = current_pos + p::ccmap->getWidth();
+                cost = current_node_values->g + p::ccmap->getCost(next_pos) * STRAIGHT;
                 break;
             case 5:
-                crV = crV - p::ccmap->getWidth() + 1;
+                if (current_y == (p::ccmap->getHeight()-1) || current_x == 0) {
+                    continue;
+                }
+                next_x = current_x-1;
+                next_y = current_y+1;
+                next_pos = current_pos + p::ccmap->getWidth() - 1;
+                cost = current_node_values->g + p::ccmap->getCost(next_pos) * DIAGONAL;
                 break;
             case 6:
-                crV = crV + 1;
+                if (current_x == 0) {
+                    continue;
+                }
+                next_y = current_y;
+                next_x = current_x-1;
+                next_pos = current_pos - 1;
+                cost = current_node_values->g + p::ccmap->getCost(next_pos) * STRAIGHT;
                 break;
             case 7:
-                crV = crV + p::ccmap->getWidth() + 1;
+                if (current_y == 0 || current_x == 0) {
+                    continue;
+                }
+                next_x = current_x-1;
+                next_y = current_y-1;
+                next_pos = current_pos - p::ccmap->getWidth() - 1;
+                cost = current_node_values->g + p::ccmap->getCost(next_pos) * DIAGONAL;
                 break;
             default:
-                delete[] ed;
-                return;
+                cost = 0xffff;
+                break;
+            }
+
+            if (cost >= 0xffff) {
+                continue;
+            }
+
+            next_node = nodes[next_pos];
+
+            if (next_node == closed) {
+                continue;
+            } else if (next_node == NULL) {
+                if (reusable_node != NULL) {
+                    next_node = reusable_node;
+                    reusable_node = NULL;
+                    next_node_values = next_node->getValue();
+                } else {
+                    next_node_values = new TileRef;
+                    next_node = new Node(next_node_values, 0);
+                }
+
+                nodes[next_pos] = next_node;
+                directions[next_pos] = current_direction;
+
+                next_node_values->x = next_x;
+                next_node_values->y = next_y;
+                next_node_values->g = cost;
+                diffx = abs(next_x - stop_pos_x);
+                diffy = abs(next_y - stop_pos_y);
+                next_node_values->h = min(diffx, diffy) * DIAGONAL + abs( diffx - diffy) * STRAIGHT;
+
+                next_node->setKey(next_node_values->g + next_node_values->h);
+
+                open.push(next_node);
+            } else if (cost == next_node->getValue()->g) {
+                continue;
+            } else if (cost < next_node->getValue()->g) {
+                next_node->getValue()->g = cost;
+                directions[next_pos] = current_direction;
+                next_node->setKey(cost + next_node->getValue()->h);
             }
         }
-        delete[] ed;
-        return;
-    } else {
-        delete[] ed;
-        return;
+
+        nodes[current_pos] = closed;
+        if (reusable_node != NULL) {
+            delete current_node_values;
+            delete current_node;
+        } else {
+            reusable_node = current_node;
+        }
     }
+
+    if (current_pos != end_pos) {
+        end_pos = current_min_pos;
+    }
+
+    if (reusable_node != NULL) {
+        delete (TileRef *)reusable_node->getValue();
+        delete reusable_node;
+    }
+
+    for (int i = 0; i < mapsize; ++i) {
+        if (nodes[i] != NULL && nodes[i] != closed) {
+            delete (TileRef *)nodes[i]->getValue();
+            delete nodes[i];
+        }
+    }
+    delete[] nodes;
+    delete closed;
+
+    next_pos = end_pos;
+
+    while (next_pos != start_pos) {
+        result.push(directions[next_pos]);
+        switch (directions[next_pos]) {
+        case 0:
+            next_pos = next_pos + p::ccmap->getWidth();
+            break;
+        case 1:
+            next_pos = next_pos + p::ccmap->getWidth() - 1;
+            break;
+        case 2:
+            next_pos = next_pos - 1;
+            break;
+        case 3:
+            next_pos = next_pos - p::ccmap->getWidth() - 1;
+            break;
+        case 4:
+            next_pos = next_pos - p::ccmap->getWidth();
+            break;
+        case 5:
+            next_pos = next_pos - p::ccmap->getWidth() + 1;
+            break;
+        case 6:
+            next_pos = next_pos + 1;
+            break;
+        case 7:
+            next_pos = next_pos + p::ccmap->getWidth() + 1;
+            break;
+        default:
+            delete[] directions;
+            return;
+        }
+    }
+    delete[] directions;
 }
 
