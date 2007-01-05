@@ -28,16 +28,12 @@ void CnCMap::loadIni()
     string map_filename(missionData.mapname);
     map_filename += ".INI";
 
-    shared_ptr<INIFile> inifile;
-
     // Load the INIFile
     try {
         inifile = GetConfig(map_filename);
     } catch (std::runtime_error&) {
-        string s("Map loader: The map \"");
-        s += map_filename;
-        s += "\" was not found.  Check your installation and files.ini.";
-        throw MapLoadingError(s);
+        throw MapLoadingError("Map loader: The map \"" + map_filename +
+            "\" was not found.  Check your installation and files.ini.");
     }
 
     p::ppool = new PlayerPool(inifile, 0);
@@ -46,7 +42,7 @@ void CnCMap::loadIni()
         game.log << "Map loader: Red Alert maps not fully supported yet" << endl;
     }
 
-    simpleSections(inifile);
+    simpleSections();
 
     p::uspool = new UnitAndStructurePool();
 
@@ -55,10 +51,11 @@ void CnCMap::loadIni()
     terraintypes.resize(width*height, 0);
     resourcematrix.resize(width*height, 0);
 
-    advancedSections(inifile);
+    advancedSections();
 
-    if (maptype == GAME_RA)
-        unMapPack(inifile);
+    if (maptype == GAME_RA) {
+        unMapPack();
+    }
 
     try {
         pips = new SHPImage("hpips.shp",mapscaleq);
@@ -86,14 +83,16 @@ void CnCMap::loadIni()
 
     flashnum = pc::imagepool->size()<<16;
     pc::imagepool->push_back(moveflash);
+
+    inifile.reset();
 }
 
 
 /** Function to load all vars in the simple sections of the inifile
  * @param pointer to the inifile
  */
-void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
-
+void CnCMap::simpleSections()
+{
     // The strings in the basic section
     static const char* strreads[] = {
         "BRIEF", "ACTION", "PLAYER", "THEME", "WIN", "LOSE", 0
@@ -187,70 +186,41 @@ void CnCMap::load_resources()
     load_terrain_detail("CR");
 }
 
-/** Function to load all the advanced sections in the inifile.
- * @param a pointer to the inifile
- */
-void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
-    unsigned int keynum;
-    int i;
-    //char *line;
-    int facing, health, subpos;
-    unsigned short tx, ty, xsize, ysize, tmp2;
-    std::map<std::string, unsigned int> imagelist;
-    std::map<std::string, unsigned int>::iterator imgpos;
-    TerrainEntry tmpterrain;
-    INIKey key;
-
-    unsigned short xwalk, ywalk;
-
+void CnCMap::load_waypoints()
+{
     try {
         int tmpval;
-        for (keynum = 0; ; keynum++) {
-            key = inifile->readKeyValue("WAYPOINTS", keynum);
+        for (int keynum = 0; ; ++keynum) {
+            INIKey key = inifile->readKeyValue("WAYPOINTS", keynum);
             if (sscanf(key->first.c_str(), "%d", &tmpval) == 1) {
+                unsigned short pos = (unsigned short)atoi(key->second.c_str());
                 if (tmpval == 26) { /* waypoint 26 is the startpos of the map */
-                    tmp2 = (unsigned short)atoi(key->second.c_str());
                     //waypoints.push_back(tmp2);
-                    translateCoord(tmp2, &tx, &ty);
+                    unsigned short tx, ty;
+                    translateCoord(pos, &tx, &ty);
                     scrollbookmarks[0].x = tx-x;
                     scrollbookmarks[0].y = ty-y;
                 }
                 if (tmpval < 8) {
-                    tmp2 = (unsigned short)atoi(key->second.c_str());
-                    waypoints.push_back(tmp2);
+                    waypoints.push_back(pos);
                 }
             }
         }
     } catch(int) {}
     p::ppool->setWaypoints(waypoints);
+}
+
+void CnCMap::load_terrain()
+{
+    std::map<std::string, unsigned int> imagelist;
 
     shared_ptr<INIFile> arts = GetConfig("art.ini");
 
     try {
-        SHPImage image("SHADOW.SHP", mapscaleq);
-        numShadowImg = image.getNumImg();
-        shadowimages.resize(numShadowImg);
-        for( i = 0; i < 48; i++ ) {
-            image.getImageAsAlpha(i, &shadowimages[i]);
-        }
-    } catch(ImageNotFound&) {
-        game.log << "Unable to load \"shadow.shp\"" << endl;
-        numShadowImg = 0;
-    }
-
-    // load the smudge marks and the tiberium/ore to the imagepool
-
-    if (missionData.theater_prefix != "INT") {
-        load_resources();
-    }
-
-    overlaymatrix.resize(width*height, 0);
-
-    try {
-        for( keynum = 0; ;keynum++ ) {
+        for (int keynum = 0; ; ++keynum) {
             bool bad = false;
 
-            key = inifile->readKeyValue("TERRAIN", keynum);
+            INIKey key = inifile->readKeyValue("TERRAIN", keynum);
             /* , is the char which separate terraintype from action. */
 
             int linenum = lexical_cast<int>(key->first);
@@ -262,6 +232,7 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
 
             /* Set the next entry in the terrain vector to the correct values.
              * the map-array and shp files vill be set later */
+            unsigned short tx, ty;
             translateCoord(linenum, &tx, &ty);
 
             if( tx < x || ty < y || tx > x+width || ty > height+y ) {
@@ -278,11 +249,11 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
                 ttype = t_other_nonpass;
 
             /* calculate the new pos based on size and blocked */
-            xsize = arts->readInt(shpname.c_str(), "XSIZE",1);
-            ysize = arts->readInt(shpname.c_str(), "YSIZE",1);
+            unsigned int xsize = arts->readInt(shpname.c_str(), "XSIZE",1);
+            unsigned int ysize = arts->readInt(shpname.c_str(), "YSIZE",1);
 
-            for( ywalk = 0; ywalk < ysize && ywalk + ty < height+y; ywalk++ ) {
-                for( xwalk = 0; xwalk < xsize && xwalk + tx < width + x; xwalk++ ) {
+            for (unsigned int ywalk = 0; ywalk < ysize && ywalk + ty < height+y; ++ywalk) {
+                for (unsigned int xwalk = 0; xwalk < xsize && xwalk + tx < width + x; ++xwalk ) {
                     string type("NOTBLOCKED");
                     type += lexical_cast<int>(ywalk*xsize+xwalk);
                     int value = arts->readInt(shpname.c_str(), type.c_str());
@@ -296,21 +267,22 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
 
             linenum = xsize*ysize;
 
-            {
-                string type;
-                do {
-                    if (linenum == 0) {
-                        game.log << "BUG: Could not find an entry in art.ini for " << shpname << "" << endl;
-                        bad = true;
-                        break;
-                    }
-                    linenum--;
-                    type = "NOTBLOCKED" + lexical_cast<string>(linenum);
-                } while(arts->readInt(shpname.c_str(), type.c_str()) == INIERROR);
-            }
-            if (bad)
-                continue;
+            string type;
+            do {
+                if (linenum == 0) {
+                    game.log << "BUG: Could not find an entry in art.ini for " << shpname << "" << endl;
+                    bad = true;
+                    break;
+                }
+                linenum--;
+                type = "NOTBLOCKED" + lexical_cast<string>(linenum);
+            } while(arts->readInt(shpname.c_str(), type.c_str()) == INIERROR);
 
+            if (bad) {
+                continue;
+            }
+
+            TerrainEntry tmpterrain;
             tmpterrain.xoffset = -(linenum%ysize)*24;
             tmpterrain.yoffset = -(linenum/ysize)*24;
 
@@ -328,17 +300,14 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
             linenum = normaliseCoord(tx, ty);
             shpname += "." + missionData.theater_prefix;
 
-            /* search the map for the image */
-            imgpos = imagelist.find(shpname);
+            std::map<std::string, unsigned int>::iterator imgpos = imagelist.find(shpname);
 
-            /* set up the overlay matrix and load some shps */
-            if( imgpos != imagelist.end() ) {
-                /* this tile already has a number */
+            // set up the overlay matrix and load some shps
+            if (imgpos != imagelist.end()) {
                 overlaymatrix[linenum] |= HAS_TERRAIN;
                 tmpterrain.shpnum = imgpos->second << 16;
                 terrains[linenum] = tmpterrain;
             } else {
-                /* a new tile */
                 imagelist[shpname] = pc::imagepool->size();
                 overlaymatrix[linenum] |= HAS_TERRAIN;
                 tmpterrain.shpnum = pc::imagepool->size()<<16;
@@ -352,20 +321,19 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
             }
         }
     } catch(int) {}
+}
 
-    if (maptype == GAME_RA){
-        unOverlayPack(inifile);
-    } else {
-        loadOverlay(inifile);
-    }
-
+void CnCMap::load_smudge_positions()
+{
     try {
         int smudgenum, linenum;
-        for( keynum = 0;;keynum++ ) {
-            key = inifile->readKeyValue("SMUDGE", keynum);
+        for (int keynum = 0 ; ; ++keynum) {
+            INIKey key = inifile->readKeyValue("SMUDGE", keynum);
+            unsigned short tx, ty;
             /* , is the char which separate terraintype from action. */
             if( sscanf(key->first.c_str(), "%d", &linenum) == 1 &&
                     sscanf(key->second.c_str(), "SC%d", &smudgenum) == 1 ) {
+
                 translateCoord(linenum, &tx, &ty);
                 if( tx < x || ty < y || tx > x+width || ty > height+y ) {
                     continue;
@@ -373,27 +341,28 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
                 linenum = (ty-y)*width + tx - x;
                 overlaymatrix[linenum] |= (smudgenum<<4);
             } else if( sscanf(key->first.c_str(), "%d", &linenum) == 1 &&
-                       sscanf(key->second.c_str(), "CR%d", &smudgenum) == 1 ) {
+                    sscanf(key->second.c_str(), "CR%d", &smudgenum) == 1 ) {
                 //} else if( sscanf(line, "%d=CR%d", &linenum, &smudgenum) == 2 ) {
                 translateCoord(linenum, &tx, &ty);
-                if( tx < x || ty < y || tx > x+width || ty > height+y ) {
-                    continue;
-                }
-
-                linenum = (ty-y)*width + tx - x;
-                overlaymatrix[linenum] |= ((smudgenum+6)<<4);
+            if( tx < x || ty < y || tx > x+width || ty > height+y ) {
+                continue;
             }
+
+            linenum = (ty-y)*width + tx - x;
+            overlaymatrix[linenum] |= ((smudgenum+6)<<4);
+        }
         }
     } catch(int) {}
 
-    p::uspool->preloadUnitAndStructures(missionData.buildlevel);
-    p::uspool->generateProductionGroups();
+}
 
+void CnCMap::load_structure_positions()
+{
     try {
-        for( keynum = 0;;keynum++ ) {
-            key = inifile->readKeyValue("STRUCTURES", keynum);
-            /* , is the char which separate terraintype from action. */
-            int tmpval = lexical_cast<int>(key->first);
+        for (int keynum = 0 ; ; ++keynum) {
+            INIKey key = inifile->readKeyValue("STRUCTURES", keynum);
+            // Currently unused, can't be duplicate anyway
+            // int tmpval = lexical_cast<int>(key->first);
             tokenizer<> tok(key->second);
             if (std::distance(tok.begin(), tok.end()) != 6) {
                 game.log << "Map loader: Malformed line in STRUCTURES section: " << key->second;
@@ -407,6 +376,7 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
             int facing  = lexical_cast<int>(*it++);
             string trigger = *it++;
 
+            unsigned short tx, ty;
             translateCoord(linenum, &tx, &ty);
             facing = min(31,facing>>3);
             if( tx < x || ty < y || tx > x+width || ty > height+y ) {
@@ -418,19 +388,25 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
         }
     } catch(int) {}
 
-    try {
+}
+
+void CnCMap::load_unit_positions()
+{
+try {
         char type[128];
         char owner[128];
         char action[128];
         char trigger[128];
         int linenum;
         int tmpval;
-        for( keynum = 0;;keynum++ ) {
-            key = inifile->readKeyValue("UNITS", keynum);
+        int health, facing;
+        for (int keynum = 0 ; ; ++keynum) {
+            INIKey key = inifile->readKeyValue("UNITS", keynum);
             /* , is the char which separate terraintype from action. */
             if( sscanf(key->first.c_str(), "%d", &tmpval) == 1 &&
                     sscanf(key->second.c_str(), "%[^,],%[^,],%d,%d,%d,%[^,],%s", owner, type,
                            &health, &linenum, &facing, action, trigger ) == 7  ) {
+                unsigned short tx, ty;
                 translateCoord(linenum, &tx, &ty);
                 facing = min(31,facing>>3);
                 if( tx < x || ty < y || tx > x+width || ty > height+y ) {
@@ -443,19 +419,24 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
         }
     } catch(int) {}
 
-    /*infantry*/
+}
+
+void CnCMap::load_infantry_positions()
+{
     try {
         char type[128];
         char owner[128];
         char action[128];
         char trigger[128];
         int tmpval, linenum;
-        for( keynum = 0;;keynum++ ) {
-            key = inifile->readKeyValue("INFANTRY", keynum);
+        int health, subpos, facing;
+        for (int keynum = 0 ; ; ++keynum) {
+            INIKey key = inifile->readKeyValue("INFANTRY", keynum);
             /* , is the char which separate terraintype from action. */
             if( sscanf(key->first.c_str(), "%d", &tmpval ) == 1  &&
                     sscanf(key->second.c_str(), "%[^,],%[^,],%d,%d,%d,%[^,],%d,%s", owner, type,
-                           &health, &linenum, &subpos, action, &facing, trigger ) == 8  ) {
+                        &health, &linenum, &subpos, action, &facing, trigger ) == 8  ) {
+                unsigned short tx, ty;
                 translateCoord(linenum, &tx, &ty);
                 facing = min(31,facing>>3);
                 if( tx < x || ty < y || tx > x+width || ty > height+y ) {
@@ -467,6 +448,46 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
             }
         }
     } catch(int) {}
+}
+
+void CnCMap::advancedSections()
+{
+    load_waypoints();
+
+    try {
+        SHPImage image("SHADOW.SHP", mapscaleq);
+        numShadowImg = image.getNumImg();
+        shadowimages.resize(numShadowImg);
+        for (int i = 0; i < 48; ++i) {
+            image.getImageAsAlpha(i, &shadowimages[i]);
+        }
+    } catch(ImageNotFound&) {
+        game.log << "Unable to load \"shadow.shp\"" << endl;
+        numShadowImg = 0;
+    }
+
+    // load the smudge marks and the tiberium/ore to the imagepool
+    if (missionData.theater_prefix != "INT") {
+        load_resources();
+    }
+
+    overlaymatrix.resize(width*height, 0);
+    load_terrain();
+
+    if (maptype == GAME_RA){
+        unOverlayPack();
+    } else {
+        loadOverlay();
+    }
+
+    load_smudge_positions();
+
+    p::uspool->preloadUnitAndStructures(missionData.buildlevel);
+    p::uspool->generateProductionGroups();
+
+    load_structure_positions();
+    load_unit_positions();
+    load_infantry_positions();
 }
 
 
@@ -530,7 +551,7 @@ void CnCMap::loadBin()
     delete[] mapdata;
 }
 
-void CnCMap::unMapPack(shared_ptr<INIFile> inifile)
+void CnCMap::unMapPack()
 {
     int tmpval;
     unsigned int curpos;
@@ -671,7 +692,7 @@ void CnCMap::parseBin(TileList* bindata)
 
 /////// Overlay loading routines
 
-void CnCMap::loadOverlay(shared_ptr<INIFile> inifile)
+void CnCMap::loadOverlay()
 {
     INIKey key;
     unsigned int linenum;
@@ -696,7 +717,7 @@ const char* RAOverlayNames[] = { "SBAG", "CYCL", "BRIK", "FENC", "WOOD",
     "GEM04", "V12", "V13", "V14", "V15", "V16", "V17", "V18", "FPLS",
     "WCRATE", "SCRATE", "FENC", "SBAG" };
 
-void CnCMap::unOverlayPack(shared_ptr<INIFile> inifile)
+void CnCMap::unOverlayPack()
 {
     unsigned int curpos, tilepos;
     unsigned char xtile, ytile;

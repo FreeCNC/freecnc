@@ -273,11 +273,12 @@ private:
     MissionData missionData;
     /// Load the ini part of the map
     void loadIni();
+
     /// The map section of the ini
-    void simpleSections(shared_ptr<INIFile> inifile);
+    void simpleSections();
 
     /// The advanced section of the ini
-    void advancedSections(shared_ptr<INIFile> inifile);
+    void advancedSections();
 
     /// Load the bin part of the map (TD)
     void loadBin();
@@ -286,14 +287,26 @@ private:
 
     void load_resources();
 
+    void load_waypoints();
+
+    void load_terrain();
+
+    void load_smudge_positions();
+
+    void load_structure_positions();
+
+    void load_unit_positions();
+
+    void load_infantry_positions();
+
     /// Load the overlay section of the map (TD)
-    void loadOverlay(shared_ptr<INIFile> inifile);
+    void loadOverlay();
 
     /// Extract RA map data
-    void unMapPack(shared_ptr<INIFile> inifile);
+    void unMapPack();
 
     /// Extract RA overlay data
-    void unOverlayPack(shared_ptr<INIFile> inifile);
+    void unOverlayPack();
 
     /// load the palette
     /// The only thing map specific about this function is the theatre (whose
@@ -382,6 +395,9 @@ private:
     /// When converting WW style linenum values, do we use 64 or 128 as our
     /// modulus/divisor?
     bool translate_64;
+
+    // Only valid whilst the map is loading
+    shared_ptr<INIFile> inifile;
 };
 
 #endif
