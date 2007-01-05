@@ -1,4 +1,4 @@
-0.3 - "The reckoning"
+0.3 - "FreeCNC Forever"
 * Migrate to the new VFS
 * Remove code relating to various unimplemented features (replays and
   multiplayer)
