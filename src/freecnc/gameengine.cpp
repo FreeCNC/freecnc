@@ -124,7 +124,7 @@ void GameEngine::parse_options(int argc, char** argv)
 {
     po::options_description general("General options");
     general.add_options()
-        ("help,h", "show this message")
+        ("help", "show this message")
         ("version,v", "print version")
         ("basedir", po::value<string>(&config.basedir)->default_value("."),
             "use this location to find the data files");

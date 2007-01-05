@@ -1,5 +1,4 @@
 0.3 - "The reckoning"
-* -h currently means --help and --height!
 * Migrate to the new VFS
 * Remove code relating to various unimplemented features (replays and
   multiplayer)
