@@ -100,12 +100,12 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
             current_min_pos = current_pos;
         }
 
+        // Check if we have reached our desired minimum distance to target
+        // Currently the length of the path is limited to 100
         if (current_node->h <= ((unsigned int)max_dist) * STRAIGHT || current_node->g >= 100) {
-            /* desired min dist to target, 0 to go all the way. Currently the length of the path is limited to 100 */
             break;
         }
 
-        /* Walk in all directions */
         for (current_direction = 0; current_direction < 8; current_direction++) {
             switch (current_direction) {
             case 0:
@@ -279,4 +279,3 @@ Path::Path(unsigned int start_pos, unsigned int end_pos, unsigned char max_dist)
     }
     delete[] directions;
 }
-
