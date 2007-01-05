@@ -26,9 +26,9 @@ namespace
     };
 
     struct NodeComp {
-            bool operator()(Node* x, Node* y) {
-                return x->key > y->key;
-            }
+        bool operator()(Node* x, Node* y) {
+            return x->key > y->key;
+        }
     };
 
     const int DIAGONAL = 14;
