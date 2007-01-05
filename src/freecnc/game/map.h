@@ -97,6 +97,11 @@ struct TemplateTilePair {
 typedef std::map<std::string, TemplateImage*> TemplateCache;
 typedef std::vector<TemplateTilePair* > TemplateTileCache;
 
+struct MapLoadingError : std::runtime_error
+{
+    MapLoadingError(const string& message) : std::runtime_error(message) {}
+};
+
 class CnCMap {
 public:
     CnCMap();

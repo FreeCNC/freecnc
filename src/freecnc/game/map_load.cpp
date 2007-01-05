@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include <boost/lexical_cast.hpp>
+#include <boost/tokenizer.hpp>
 
 #include "../lib/compression.h"
 #include "../lib/inifile.h"
@@ -15,8 +16,8 @@
 #include "playerpool.h"
 #include "unitandstructurepool.h"
 
-using std::runtime_error;
 using boost::lexical_cast;
+using boost::tokenizer;
 
 /** Loads the maps ini file containing info on dimensions, units, trees
  * and so on.
@@ -32,11 +33,11 @@ void CnCMap::loadIni()
     // Load the INIFile
     try {
         inifile = GetConfig(map_filename);
-    } catch (runtime_error&) {
+    } catch (std::runtime_error&) {
         string s("Map loader: The map \"");
         s += map_filename;
-        s += "\" not found.  Check your installation and files.ini.";
-        throw runtime_error(s);
+        s += "\" was not found.  Check your installation and files.ini.";
+        throw MapLoadingError(s);
     }
 
     p::ppool = new PlayerPool(inifile, 0);
@@ -65,7 +66,7 @@ void CnCMap::loadIni()
         try {
             pips = new SHPImage("pips.shp", mapscaleq);
         } catch(ImageNotFound&) {
-            throw runtime_error("Map loader: Unable to load the pips graphics");
+            throw MapLoadingError("Map loader: Unable to load the pips graphics");
         }
     }
     pipsnum = pc::imagepool->size()<<16;
@@ -80,7 +81,7 @@ void CnCMap::loadIni()
         }
         moveflash = new SHPImage(flash_filename.c_str(), mapscaleq);
     } catch (ImageNotFound&) {
-        throw runtime_error("Unable to load the movement acknowledgement pulse graphic");
+        throw MapLoadingError("Unable to load the movement acknowledgement pulse graphic");
     }
 
     flashnum = pc::imagepool->size()<<16;
@@ -113,7 +114,7 @@ void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
         variable = strvars[iter];
         *variable = inifile->readString("BASIC", key);
         if (0 == *variable) {
-            throw runtime_error("Error loading map: missing \"" + string(key) + "\"");
+            throw MapLoadingError("Error loading map: missing \"" + string(key) + "\"");
         }
         ++iter;
     }
@@ -130,7 +131,7 @@ void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
             string s("Map loader: Unable to find key \"");
             s += key;
             s += "\"";
-            throw runtime_error(s);
+            throw MapLoadingError(s);
         }
 
         *variable = temp;
@@ -139,7 +140,7 @@ void CnCMap::simpleSections(shared_ptr<INIFile> inifile) {
 
     missionData.theater = inifile->readString("MAP", "THEATER");
     if (0 == missionData.theater) {
-        throw runtime_error("Map loader: Unable to find \"THEATER\" section");
+        throw MapLoadingError("Map loader: Unable to find \"THEATER\" section");
     }
     missionData.theater_prefix = string(missionData.theater, 3);
 
@@ -169,7 +170,7 @@ void CnCMap::load_resources()
     } else if (maptype == GAME_RA) {
         resource_name = "GOLD01.";
     } else {
-        throw runtime_error("Map loader: Unsupported map type: " + string(missionData.theater));
+        throw MapLoadingError("Map loader: Unsupported map type: " + string(missionData.theater));
     }
 
     resource_name += missionData.theater_prefix;
@@ -178,7 +179,7 @@ void CnCMap::load_resources()
         resourcebases.push_back(pc::imagepool->size());
         pc::imagepool->push_back(image);
     } catch (ImageNotFound&) {
-        throw runtime_error("Map loader: Could not load \"" + resource_name + "\"");
+        throw MapLoadingError("Map loader: Could not load \"" + resource_name + "\"");
     }
 
     // No craters or scorch marks for interior?
@@ -193,21 +194,17 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
     unsigned int keynum;
     int i;
     //char *line;
-    char trigger[128];
-    char action[128];
-    char type[128];
-    char owner[128];
     int facing, health, subpos;
-    int linenum, smudgenum, tmpval;
     unsigned short tx, ty, xsize, ysize, tmp2;
     std::map<std::string, unsigned int> imagelist;
     std::map<std::string, unsigned int>::iterator imgpos;
     TerrainEntry tmpterrain;
     INIKey key;
 
-    unsigned short xwalk, ywalk, ttype;
+    unsigned short xwalk, ywalk;
 
     try {
+        int tmpval;
         for (keynum = 0; ; keynum++) {
             key = inifile->readKeyValue("WAYPOINTS", keynum);
             if (sscanf(key->first.c_str(), "%d", &tmpval) == 1) {
@@ -252,41 +249,55 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
     try {
         for( keynum = 0; ;keynum++ ) {
             bool bad = false;
-            char shpname[128];
+
             key = inifile->readKeyValue("TERRAIN", keynum);
             /* , is the char which separate terraintype from action. */
 
-            if( sscanf(key->first.c_str(), "%d", &linenum) == 1 &&
-                    sscanf(key->second.c_str(), "%[^,],", shpname) == 1 ) {
-                /* Set the next entry in the terrain vector to the correct values.
-                 * the map-array and shp files vill be set later */
-                translateCoord(linenum, &tx, &ty);
+            int linenum = lexical_cast<int>(key->first);
+            string::size_type comma_pos =  key->second.find(",");
+            if (comma_pos == string::npos) {
+                continue;
+            }
+            string shpname(key->second, 0, comma_pos);
 
-                if( tx < x || ty < y || tx > x+width || ty > height+y ) {
-                    continue;
-                }
+            /* Set the next entry in the terrain vector to the correct values.
+             * the map-array and shp files vill be set later */
+            translateCoord(linenum, &tx, &ty);
 
-                if( shpname[0] == 't' || shpname[0] == 'T' )
-                    ttype = t_tree;
-                else if( shpname[0] == 'r' || shpname[0] == 'R' )
-                    ttype = t_rock;
-                else
-                    ttype = t_other_nonpass;
+            if( tx < x || ty < y || tx > x+width || ty > height+y ) {
+                continue;
+            }
 
-                /* calculate the new pos based on size and blocked */
-                xsize = arts->readInt(shpname, "XSIZE",1);
-                ysize = arts->readInt(shpname, "YSIZE",1);
+            unsigned char ttype;
 
-                for( ywalk = 0; ywalk < ysize && ywalk + ty < height+y; ywalk++ ) {
-                    for( xwalk = 0; xwalk < xsize && xwalk + tx < width + x; xwalk++ ) {
-                        sprintf(type, "NOTBLOCKED%d", ywalk*xsize+xwalk);
-                        if( arts->readInt(shpname, type) == INIERROR ) {
-                            terraintypes[(ywalk+ty-y)*width+xwalk+tx-x] = ttype;
-                        }
+            if( shpname[0] == 't' || shpname[0] == 'T' )
+                ttype = t_tree;
+            else if( shpname[0] == 'r' || shpname[0] == 'R' )
+                ttype = t_rock;
+            else
+                ttype = t_other_nonpass;
+
+            /* calculate the new pos based on size and blocked */
+            xsize = arts->readInt(shpname.c_str(), "XSIZE",1);
+            ysize = arts->readInt(shpname.c_str(), "YSIZE",1);
+
+            for( ywalk = 0; ywalk < ysize && ywalk + ty < height+y; ywalk++ ) {
+                for( xwalk = 0; xwalk < xsize && xwalk + tx < width + x; xwalk++ ) {
+                    string type("NOTBLOCKED");
+                    type += lexical_cast<int>(ywalk*xsize+xwalk);
+                    int value = arts->readInt(shpname.c_str(), type.c_str());
+                    if (value == INIERROR) {
+                        terraintypes[(ywalk+ty-y)*width+xwalk+tx-x] = ttype;
+                    } else {
+                        // Now what?
                     }
                 }
+            }
 
-                linenum = xsize*ysize;
+            linenum = xsize*ysize;
+
+            {
+                string type;
                 do {
                     if (linenum == 0) {
                         game.log << "BUG: Could not find an entry in art.ini for " << shpname << "" << endl;
@@ -294,50 +305,49 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
                         break;
                     }
                     linenum--;
-                    sprintf(type, "NOTBLOCKED%d", linenum);
-                } while(arts->readInt(shpname, type) == INIERROR);
-                if (bad)
-                    continue;
+                    type = "NOTBLOCKED" + lexical_cast<string>(linenum);
+                } while(arts->readInt(shpname.c_str(), type.c_str()) == INIERROR);
+            }
+            if (bad)
+                continue;
 
-                tmpterrain.xoffset = -(linenum%ysize)*24;
-                tmpterrain.yoffset = -(linenum/ysize)*24;
+            tmpterrain.xoffset = -(linenum%ysize)*24;
+            tmpterrain.yoffset = -(linenum/ysize)*24;
 
-                tx += linenum%ysize;
-                if( tx >= width+x ) {
-                    tmpterrain.xoffset += 1+tx-(width+x);
-                    tx = width+x-1;
-                }
-                ty += linenum/ysize;
-                if( ty >= height+y ) {
-                    tmpterrain.yoffset += 1+ty-(height+y);
-                    ty = height+y-1;
-                }
+            tx += linenum%ysize;
+            if( tx >= width+x ) {
+                tmpterrain.xoffset += 1+tx-(width+x);
+                tx = width+x-1;
+            }
+            ty += linenum/ysize;
+            if( ty >= height+y ) {
+                tmpterrain.yoffset += 1+ty-(height+y);
+                ty = height+y-1;
+            }
 
-                linenum = normaliseCoord(tx, ty);
-                strcat(shpname, ".");
-                strncat(shpname, missionData.theater, 3);
+            linenum = normaliseCoord(tx, ty);
+            shpname += "." + missionData.theater_prefix;
 
-                /* search the map for the image */
-                imgpos = imagelist.find(shpname);
+            /* search the map for the image */
+            imgpos = imagelist.find(shpname);
 
-                /* set up the overlay matrix and load some shps */
-                if( imgpos != imagelist.end() ) {
-                    /* this tile already has a number */
-                    overlaymatrix[linenum] |= HAS_TERRAIN;
-                    tmpterrain.shpnum = imgpos->second << 16;
-                    terrains[linenum] = tmpterrain;
-                } else {
-                    /* a new tile */
-                    imagelist[shpname] = pc::imagepool->size();
-                    overlaymatrix[linenum] |= HAS_TERRAIN;
-                    tmpterrain.shpnum = pc::imagepool->size()<<16;
-                    terrains[linenum] = tmpterrain;
-                    try {
-                        SHPImage* image = new SHPImage(shpname, mapscaleq);
-                        pc::imagepool->push_back(image);
-                    } catch (ImageNotFound&) {
-                        throw runtime_error("Map loader: Could not load \"" + string(shpname) + "\"");
-                    }
+            /* set up the overlay matrix and load some shps */
+            if( imgpos != imagelist.end() ) {
+                /* this tile already has a number */
+                overlaymatrix[linenum] |= HAS_TERRAIN;
+                tmpterrain.shpnum = imgpos->second << 16;
+                terrains[linenum] = tmpterrain;
+            } else {
+                /* a new tile */
+                imagelist[shpname] = pc::imagepool->size();
+                overlaymatrix[linenum] |= HAS_TERRAIN;
+                tmpterrain.shpnum = pc::imagepool->size()<<16;
+                terrains[linenum] = tmpterrain;
+                try {
+                    SHPImage* image = new SHPImage(shpname.c_str(), mapscaleq);
+                    pc::imagepool->push_back(image);
+                } catch (ImageNotFound&) {
+                    throw MapLoadingError("Map loader: Could not load \"" + string(shpname) + "\"");
                 }
             }
         }
@@ -350,6 +360,7 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
     }
 
     try {
+        int smudgenum, linenum;
         for( keynum = 0;;keynum++ ) {
             key = inifile->readKeyValue("SMUDGE", keynum);
             /* , is the char which separate terraintype from action. */
@@ -382,22 +393,38 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
         for( keynum = 0;;keynum++ ) {
             key = inifile->readKeyValue("STRUCTURES", keynum);
             /* , is the char which separate terraintype from action. */
-            if( sscanf(key->first.c_str(), "%d", &tmpval) == 1 &&
-                    sscanf(key->second.c_str(), "%[^,],%[^,],%d,%d,%d,%s", owner, type,
-                           &health, &linenum, &facing, trigger ) == 6  ) {
-                translateCoord(linenum, &tx, &ty);
-                facing = min(31,facing>>3);
-                if( tx < x || ty < y || tx > x+width || ty > height+y ) {
-                    continue;
-                }
-                linenum = (ty-y)*width + tx - x;
-                p::uspool->createStructure(type, linenum, p::ppool->getPlayerNum(owner),
-                        health, facing, false);
+            int tmpval = lexical_cast<int>(key->first);
+            tokenizer<> tok(key->second);
+            if (std::distance(tok.begin(), tok.end()) != 6) {
+                game.log << "Map loader: Malformed line in STRUCTURES section: " << key->second;
+                continue;
             }
+            tokenizer<>::iterator it = tok.begin();
+            string owner = *it++;
+            string type = *it++;
+            int health  = lexical_cast<int>(*it++);
+            int linenum = lexical_cast<int>(*it++);
+            int facing  = lexical_cast<int>(*it++);
+            string trigger = *it++;
+
+            translateCoord(linenum, &tx, &ty);
+            facing = min(31,facing>>3);
+            if( tx < x || ty < y || tx > x+width || ty > height+y ) {
+                continue;
+            }
+            linenum = (ty-y)*width + tx - x;
+            p::uspool->createStructure(type.c_str(), linenum,
+                    p::ppool->getPlayerNum(owner.c_str()), health, facing, false);
         }
     } catch(int) {}
 
     try {
+        char type[128];
+        char owner[128];
+        char action[128];
+        char trigger[128];
+        int linenum;
+        int tmpval;
         for( keynum = 0;;keynum++ ) {
             key = inifile->readKeyValue("UNITS", keynum);
             /* , is the char which separate terraintype from action. */
@@ -418,6 +445,11 @@ void CnCMap::advancedSections(shared_ptr<INIFile> inifile) {
 
     /*infantry*/
     try {
+        char type[128];
+        char owner[128];
+        char action[128];
+        char trigger[128];
+        int tmpval, linenum;
         for( keynum = 0;;keynum++ ) {
             key = inifile->readKeyValue("INFANTRY", keynum);
             /* , is the char which separate terraintype from action. */
@@ -464,7 +496,7 @@ void CnCMap::loadBin()
     binfile = VFS_Open(bin_filename.c_str());
 
     if(binfile == NULL) {
-        throw runtime_error("Map loader: Unable to open " + bin_filename);
+        throw MapLoadingError("Map loader: Unable to open " + bin_filename);
     }
 
     /* Seek the beginning of the map.
@@ -617,7 +649,7 @@ void CnCMap::parseBin(TileList* bindata)
                 tileimg = loadTile(templini, templ, tile, &tiletype);
 
                 if (tileimg == NULL) {
-                    throw runtime_error("Map loader: Error loading tiles");
+                    throw MapLoadingError("Map loader: Error loading tiles");
                 }
 
                 tileidx = tileimages.size();
@@ -730,7 +762,7 @@ void CnCMap::parseOverlay(const unsigned int& linenum, const string& name)
         try {
             frame = pc::imgcache->loadImage(shpname.c_str()) >> 16;
         } catch (ImageNotFound&) {
-            throw runtime_error("Unable to load overlay \"" + shpname + "\" or \"" + name + ".SHP\"");
+            throw MapLoadingError("Unable to load overlay \"" + shpname + "\" or \"" + name + ".SHP\"");
         }
     }
 
@@ -749,7 +781,7 @@ void CnCMap::parseOverlay(const unsigned int& linenum, const string& name)
             if ('E' == name[1]) i = 3;
         }
         if (0 == i) {
-            throw runtime_error("Resource hack for \"" + string(name) + "\" failed.");
+            throw MapLoadingError("Resource hack for \"" + string(name) + "\" failed.");
         }
         map<string, unsigned char>::iterator t = resourcenames.find(name);
         if (resourcenames.end() == t) {
@@ -794,7 +826,7 @@ void CnCMap::loadPal(SDL_Color *palette)
     palfile = VFS_Open(palname.c_str());
 
     if (palfile == NULL) {
-        throw runtime_error("Unable to locate palette (\"" + palname + "\").");
+        throw MapLoadingError("Unable to locate palette (\"" + palname + "\").");
     }
 
     /* Load the palette */
@@ -829,8 +861,8 @@ SDL_Surface *CnCMap::loadTile(shared_ptr<INIFile> templini, unsigned short templ
      * templates.ini . the three first
      * chars in the name of the theater eg. .DES .TEM .WIN */
 
-    tile_filename += boost::lexical_cast<string>(templ);
-    tile_number += boost::lexical_cast<string>(tile);
+    tile_filename += lexical_cast<string>(templ);
+    tile_number += lexical_cast<string>(tile);
 
     *tiletype = templini->readInt(tile_filename.c_str(), tile_number.c_str(), 0);
 
@@ -860,7 +892,7 @@ SDL_Surface *CnCMap::loadTile(shared_ptr<INIFile> templini, unsigned short templ
         } catch(ImageNotFound&) {
             game.log << "Unable to locate template " << templ << ", " << tile << " (\"" << tile_filename << "\") in mix! using tile 0, 0 instead" << endl;
             if (templ == 0 && tile == 0) {
-                throw runtime_error("Map loader: Unable to load tile 0,0.  Can't proceed");
+                throw MapLoadingError("Map loader: Unable to load tile 0,0.  Can't proceed");
             }
             return loadTile(templini, 0, 0, tiletype);
         }
