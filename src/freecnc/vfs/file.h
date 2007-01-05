@@ -1,178 +1,104 @@
 #ifndef _VFS_FILE_H
 #define _VFS_FILE_H
-//
-// The File interface provides a thin wrapper over raw archive calls. This is
-// what all client code uses, they never touch the archives directly.
-//
 
-#include <cassert>
 #include <string>
 #include <vector>
 #include <boost/noncopyable.hpp>
 
-#include "archive.h"
-
 namespace VFS
-{
+{   
     class File : private boost::noncopyable
     {
     public:
-        File(Archive& arch, int filenum, bool writable)
-            : archive(arch), filenum(filenum), iswritable(writable)
-        {}
+        virtual ~File() {}
 
-        ~File()
-        {
-            archive.close(filenum);
-        }
+        // Reads `count' bytes or until EOF from the file into `buf'.
+        // Returns bytes read.
+        int read(std::vector<char>& buf, int count);
+
+        // Reads `count' bytes or until EOF from the file into a string and
+        // returns it.
+        std::string read(int count);
+        
+        // Reads until `delim' or EOF from the file into `buf'.
+        // The delimiter is discarded.
+        // Returns bytes read, including the delimiter.
+        int read(std::vector<char>& buf, char delim);
+        
+        // Reads until `delim' or EOF from the file into a string and returns it.
+        // The delimiter is discarded.
+        std::string read(char delim);
+        
+        // Reads a line from the file and returns it. The linebreak is discarded.
+        std::string readline();
         
         //---------------------------------------------------------------------
 
-        // Reads from the file until count or eof has been reached.
-        // buf: The buffer to read to.
-        // count: Amount of bytes to read. 
-        // returns: Amount of bytes read.
-        int read(std::vector<char>& buf, int count)
-        {
-            assert(!iswritable);
-            return archive.read(filenum, buf, count);
-        }
+        // Writes the contents of `buf' to the file.
+        // Returns bytes written.
+        int write(std::vector<char>& buf);
         
-        // Reads from the file until delim or EOF has been reached.
-        // buf: The buffer to read to.
-        // delim: The delimiting character, it is discarded in the result.
-        // returns: Amount of bytes read, including the delimiter.
-        int read(std::vector<char>&buf, char delim)
-        {
-            assert(!iswritable);
-            return archive.read(filenum, buf, delim);
-        }
+        // Writes `str' to the file.
+        // Returns bytes written.
+        int write(const std::string& str);
         
-        // Reads some text form the file.
-        // count: Amount of bytes to read.
-        std::string read(int count)
-        {
-            std::vector<char> buf;
-            read(buf, count);
-            return std::string(buf.begin(), buf.end());
-        }
-        
-        // Reads from the file until delim has been reached
-        // delim: The delimiting character, it is discarded in the result.
-        std::string read(char delim)
-        {
-            std::vector<char> buf;
-            read(buf, delim);
-            return std::string(buf.begin(), buf.end());
-        }
-        
-        // Reads a line from the file, the linebreak is discarded.
-        std::string readline()
-        {
-            return read('\n'); 
-        }
-        
-        //---------------------------------------------------------------------
-
-        // Writes the contents of buf to the file.
-        // returns: Amount of bytes written.
-        int write(std::vector<char>& buf)
-        {
-            assert(iswritable);
-            return archive.write(filenum, buf);
-        }
-        
-        // Writes a string of text to the file.
-        // returns: Amount of bytes written.
-        int write(const std::string& str)
-        {
-           std::vector<char> buf(str.begin(), str.end());
-           return write(buf);
-        }
-        
-        // Writes a line of text to the file, appending a linebreak.
-        // returns: Amount of bytes written.
-        int writeline(const std::string& line)
-        {
-           return write(line + '\n');
-        }
+        // Writes `line' to the file, appending a linebreak.
+        // Returns bytes written.
+        int writeline(const std::string& line);
 
         // Flushes the file
-        void flush()
-        {
-            assert(iswritable);
-            archive.flush(filenum);
-        }        
+        void flush();
 
         //---------------------------------------------------------------------
         
-        // Whether the file is at the of its data stream
-        bool eof() const
-        {
-            return archive.eof(filenum);
-        }
+        // Seeks from the current position in the file.
+        void seek_cur(int offset) { do_seek(offset, 0); }
         
-        // Seeks from current position.
-        // offset: Position to seek to from the current position. May be negative.
-        void seek_cur(int offset = 0)
-        {
-            assert(tell() - offset >= 0);
-            archive.seek_cur(filenum, offset);
-        }
+        // Seeks from the end of the file.
+        void seek_end(int offset = 0) { do_seek(offset, 1); }
         
-        // Seeks from end of the file.
-        // offset: Position to seek to from the end of the file. Must be negative.
-        void seek_end(int offset = 0)
-        {
-            assert(offset <= 0);
-            archive.seek_end(filenum, offset);
-        }
-
-        // Seeks from the beginning of the file.
-        // pos: Position to seek to from the start of the file.
-        void seek_start(int pos = 0)
-        {
-            assert(pos >= 0);
-            archive.seek_start(filenum, pos);
-        }
-
-        // Returns the current position in the file.
-        int tell() const
-        {
-            return archive.tell(filenum);
-        }
-        
-        //---------------------------------------------------------------------
+        // Seeks form the beginning of the file.
+        void seek_start(int offset = 0) { do_seek(offset, -1); }
        
-        // Returns the name of the file
-        std::string name() const
-        {
-            return archive.name(filenum);
-        }
-
-        // Returns the full path of the file, with the archive root included
-        std::string fullname() const
-        {
-            return "[" + archive.archive_path() + " -> " + archive.name(filenum) + "]";
-        }         
-                
-        // Returns size of the file
-        int size() const
-        {
-            return archive.size(filenum);
-        }
+        //---------------------------------------------------------------------
         
-        // Returns whether or not the file is writable
-        bool writable() const
-        {
-            return iswritable;
-        }
+        // Name of the archive the file is in.
+        std::string archive() const { return archive_; }
+        
+        // Name of the file.
+        std::string name() const { return name_; }
 
-    private:
-        Archive& archive;
-        int filenum;
-        bool iswritable;
+        // Whether the stream is at the end-of-file.
+        bool eof() const { return eof_; }
+        
+        // Current position in the file.
+        int pos() const { return pos_; }
+        
+        // Size of the file in bytes.
+        int size() const { return size_; }
+        
+        // Whether the file is readable or writable.
+        bool writable() const { return writable_; }
+        
+    protected:
+        std::string archive_;
+        std::string name_;
+
+        bool eof_;
+        int pos_;
+        int size_;
+        bool writable_;
+
+        virtual void do_flush() = 0;
+        virtual int do_read(std::vector<char>& buf, int count) = 0;
+        virtual void do_seek(int pos, int orig) = 0; // orig = -1 - start, 0 - cur, 1 - end
+        virtual int do_write(std::vector<char>& buf) = 0;
     };
+
+    struct FileNotFound : std::runtime_error
+    {
+        FileNotFound(const std::string& message) : std::runtime_error(message) {}
+    };    
 }
 
 #endif

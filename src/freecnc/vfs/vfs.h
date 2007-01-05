@@ -53,12 +53,7 @@ namespace VFS
         // in that directory.
         ArchiveVectorVector archives;
     };
-    
-    struct FileNotFound : std::runtime_error
-    {
-        FileNotFound(const std::string& message) : std::runtime_error(message) {}
-    };
-    
+
     struct DirNotFound : std::runtime_error
     {
         DirNotFound(const std::string& message) : std::runtime_error(message) {}

@@ -1,4 +1,3 @@
-#include <sstream>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
@@ -7,7 +6,6 @@
 #include "mixarchive.h"
 #include "vfs.h"
 
-using std::ostringstream;;
 using std::string;
 using std::vector;
 using boost::shared_ptr;
@@ -61,9 +59,7 @@ namespace VFS
 
         fs::path pth(dir, fs::no_check);
         if (!fs::exists(pth) || !fs::is_directory(pth)) {
-            ostringstream temp;
-            temp << "Directory does not exist: " << dir;
-            throw DirNotFound(temp.str());
+            throw DirNotFound(("Directory does not exist: " + dir).c_str());
         }
 
         // Add the directory
@@ -73,7 +69,7 @@ namespace VFS
         vector<fs::path> mixfiles;
         if (list_files(pth, ".mix", mixfiles)) {
             for (vector<fs::path>::iterator it = mixfiles.begin(); it != mixfiles.end(); ++it) {
-                //vec.push_back(shared_ptr<MixArchive>(new MixArchive(*it)))
+                vec.push_back(shared_ptr<MixArchive>(new MixArchive(*it)));
             }
         }
 
@@ -87,7 +83,7 @@ namespace VFS
         fs::path pth(dir, fs::no_check);
         string native_path = pth.native_directory_string();
         for (ArchiveVectorVector::iterator it = archives.begin(); it != archives.end(); ++it) {
-            if ((*it)[0]->archive_path() == native_path) {
+            if ((*it)[0]->path() == native_path) {
                 archives.erase(it);
                 break;
             }
@@ -114,14 +110,15 @@ namespace VFS
         for (ArchiveVectorVector::iterator it = archives.begin(); it != archives.end(); ++it) {
             ArchiveVector subarchives = *it;
             for (ArchiveVector::iterator subit = subarchives.begin(); subit != subarchives.end(); ++subit) {
-                int filenum = (*subit)->open(filename, writable);
-                if (filenum != -1) {
-                    return shared_ptr<File>(new File(*(*subit).get(), filenum, writable));
+                try {
+                    return (*subit)->open(filename, writable);
+                } catch(FileNotFound&) {
+                    // Ignore
+                } catch(ArchiveNotWritable&) {
+                    // Ignore
                 }
             }
         }
-        ostringstream temp;
-        temp << "File not found: " << filename;
-        throw FileNotFound(temp.str());
+        throw FileNotFound(("File not found: " + filename).c_str());
     }
 }

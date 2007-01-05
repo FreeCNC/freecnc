@@ -2,179 +2,123 @@
 #include <boost/filesystem/operations.hpp>
 #include "dirarchive.h"
 
-using std::map;
 using std::string;
 using std::vector;
 using boost::shared_ptr;
 
 namespace fs = boost::filesystem;
-
-typedef VFS::DirArchiveFile DirFile;
-typedef shared_ptr<DirFile> DirFilePtr;
-typedef map<int, DirFilePtr> DirFileMap;
     
 namespace VFS
 {
     //-------------------------------------------------------------------------
-    // DirArchiveFile helper class
+    // DirArchiveFile
     //-------------------------------------------------------------------------
 
-    struct DirArchiveFile : private boost::noncopyable
+    class DirFile : public File
     {
+    public:
+        DirFile(const fs::path& dir, const string& filename, bool writable);
+        ~DirFile();
+        
+    protected:
+        void do_flush();
+        int do_read(vector<char>& buf, int count);
+        void do_seek(int pos, int orig);
+        int do_write(vector<char>& buf);
+        
+    private:
         FILE* handle;
-        string name;
-        bool writable;
-
-        DirArchiveFile(const fs::path& dir, const string& name, bool writable)
-            : handle(0), name(name), writable(writable)
-        {
-            fs::path pth(dir / name);
-            if (fs::exists(pth) && fs::is_directory(pth)) {
-                return;
-            } else {
-                handle = fopen(pth.native_directory_string().c_str(), writable ? "wb" : "rb");
-            }
-        }
-
-        ~DirArchiveFile()
-        {
-            if (handle) {
-                fclose(handle);
-            }
-        }
     };
+
+    //-------------------------------------------------------------------------
+    
+    DirFile::DirFile(const fs::path& dir, const string& filename, bool writable)
+    {
+        // Info
+        archive_ = dir.native_directory_string();
+        name_ = filename;
+
+        eof_ = false;
+        pos_ = 0;
+        writable_ = writable;
+       
+        // Open file
+        fs::path pth(dir / filename);
+        if (fs::exists(pth) && fs::is_directory(pth)) {
+            throw FileNotFound("");
+        } else {
+            handle = fopen(pth.native_directory_string().c_str(), writable ? "wb" : "rb");
+            if (!handle) {
+                throw FileNotFound(""); // Improve this
+            }
+        }
+        
+        // Calculate size
+        do_seek(0, 1);
+        size_ = ftell(handle);
+        do_seek(0, -1);
+    }
+    
+    DirFile::~DirFile()
+    {
+        if (handle) {
+            fclose(handle);
+        }
+    }
+  
+    //-------------------------------------------------------------------------
+    
+    void DirFile::do_flush()
+    {
+        fflush(handle);
+    }
+    
+    int DirFile::do_read(vector<char>& buf, int count)
+    {
+        buf.resize(count);
+        int bytesread = (int)fread(&buf[0], sizeof(char), buf.size(), handle);
+        buf.resize(bytesread);
+        eof_ = feof(handle) != 0;
+        pos_ = ftell(handle);
+        return bytesread;
+    }
+
+    void DirFile::do_seek(int offset, int orig)
+    {
+        int origin;
+        switch (orig) {
+            case -1: origin = SEEK_SET; break;
+            case  0: origin = SEEK_CUR; break;
+            case  1: origin = SEEK_END; break;
+            default: return;
+        }
+        fseek(handle, offset, origin);
+        eof_ = feof(handle) != 0;
+        pos_ = ftell(handle);
+    }
+    
+    int DirFile::do_write(vector<char>& buf)
+    {
+        int byteswritten = (int)fwrite(&buf[0], sizeof(char), buf.size(), handle);
+        eof_ = feof(handle) != 0;
+        pos_ = ftell(handle);
+        return byteswritten;
+    }    
 
     //-------------------------------------------------------------------------
     // DirArchive
     //-------------------------------------------------------------------------
   
-    DirArchive::DirArchive(const fs::path& dir)
-        : dir(dir), filenum(0)
-    {
-    }
+    DirArchive::DirArchive(const fs::path& dir) : dir(dir) {}    
+    DirArchive::~DirArchive() {}
     
-    DirArchive::~DirArchive()
-    {
-    }
-    
-    string DirArchive::archive_path()
+    string DirArchive::path()
     {
         return dir.native_directory_string();
     }
     
-    //-------------------------------------------------------------------------
-    
-    int DirArchive::open(const std::string& filename, bool writable)
+    shared_ptr<File> DirArchive::open(const std::string& filename, bool writable)
     {
-        DirFilePtr file(new DirFile(dir, filename, writable));
-        if (file->handle) {
-            files.insert(DirFileMap::value_type(filenum, file));
-            return filenum++;
-        } else {
-            return -1;
-        }
+        return shared_ptr<File>(new DirFile(dir, filename, writable));
     }
-    
-    void DirArchive::close(int filenum)
-    {
-        files.erase(filenum);
-    }
-
-    //-------------------------------------------------------------------------
-
-    int DirArchive::read(int filenum, vector<char>& buf, int count)
-    {
-        DirFilePtr file = files.find(filenum)->second;
-        buf.resize(count);
-        int bytesread = (int)fread(&buf[0], sizeof(char), buf.size(), file->handle);
-        buf.resize(bytesread);
-        return bytesread;
-    }
-    
-    int DirArchive::read(int filenum, vector<char>& buf, char delim)
-    {
-        DirFilePtr file = files.find(filenum)->second;        
-        int totalbytesread = 0, bytesread = 0, i = 0;
-        char buffer[1024];
-        while (true) {
-            bytesread = (int)fread(buffer, sizeof(char), sizeof(buffer), file->handle);
-            for (i = 0; i < bytesread; ++i) {
-                if (buffer[i] == delim) {
-                    buf.reserve(buf.size() + i + 1);
-                    buf.insert(buf.end(), &buffer[0], &buffer[i]);
-                    fseek(file->handle, -(bytesread - i - 1), SEEK_CUR);
-                    return totalbytesread + i + 1;
-                }
-            }
-            totalbytesread += bytesread;
-            if (feof(file->handle)) {
-                buf.reserve(buf.size() + bytesread);
-                buf.insert(buf.end(), &buffer[0], &buffer[bytesread]);
-                return totalbytesread;
-            }
-        }
-        return 0;
-    }
-    
-    int DirArchive::write(int filenum, vector<char>& buf)
-    {
-        DirFilePtr file = files.find(filenum)->second;
-        return (int)fwrite(&buf[0], sizeof(char), buf.size(), file->handle);
-    }
-    
-    void DirArchive::flush(int filenum)
-    {
-        DirFilePtr file = files.find(filenum)->second;
-        fflush(file->handle);
-    }
-    
-    //-------------------------------------------------------------------------
-       
-    bool DirArchive::eof(int filenum) const
-    {
-        DirFilePtr file = files.find(filenum)->second;
-        return feof(file->handle) > 0;
-    }
-
-    void DirArchive::seek_cur(int filenum, int offset)
-    {
-        DirFilePtr file = files.find(filenum)->second;
-        fseek(file->handle, offset, SEEK_CUR);
-    }
-    
-    void DirArchive::seek_end(int filenum, int offset)
-    {
-        DirFilePtr file = files.find(filenum)->second;
-        fseek(file->handle, offset, SEEK_END);
-    }
-
-    void DirArchive::seek_start(int filenum, int offset)
-    {
-        DirFilePtr file = files.find(filenum)->second;
-        fseek(file->handle, offset, SEEK_SET);
-    }
-        
-    int DirArchive::tell(int filenum) const
-    {
-        DirFilePtr file = files.find(filenum)->second;
-        return ftell(file->handle);
-    }
-
-    //-------------------------------------------------------------------------
-    
-    string DirArchive::name(int filenum) const
-    {
-        DirFilePtr file = files.find(filenum)->second;
-        return file->name;
-    }
-
-    int DirArchive::size(int filenum) const
-    {
-        DirFilePtr file = files.find(filenum)->second;
-        int curpos = ftell(file->handle);
-        fseek(file->handle, 0, SEEK_END);
-        int size = ftell(file->handle);
-        fseek(file->handle, curpos, SEEK_SET);
-        return size;
-    }    
 }

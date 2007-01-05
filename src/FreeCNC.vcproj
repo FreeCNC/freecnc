@@ -645,6 +645,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\freecnc\vfs\file.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\freecnc\vfs\file.h"
 				>
 			</File>
