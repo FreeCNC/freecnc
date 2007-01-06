@@ -1,7 +1,11 @@
 #include <cstdio>
+#include <sstream>
+#include <stdexcept>
 #include <boost/filesystem/operations.hpp>
 #include "mixarchive.h"
 
+using std::ostringstream;
+using std::runtime_error;
 using std::string;
 using std::vector;
 using boost::shared_ptr;
@@ -50,7 +54,9 @@ namespace VFS
         fs::path pth(dir / filename);
         handle = fopen(pth.native_file_string().c_str(), "rb");
         if (!handle) {
-            throw FileNotFound(""); // Improve this
+            ostringstream temp;
+            temp << "fopen failed for '" << name_ << "' in '" << archive_ << "': " << errno << ": " << strerror(errno);
+            throw runtime_error(temp.str());
         }
         fseek(handle, lower_boundary, SEEK_SET);
     }
@@ -69,7 +75,7 @@ namespace VFS
         // TODO: Test that this actually works 
         count = pos_ + count > upper_boundary ? upper_boundary - count : count;
         buf.resize(count);
-        int bytesread = (int)fread(&buf[0], sizeof(char), buf.size(), handle);
+        int bytesread = static_cast<int>(fread(&buf[0], sizeof(char), buf.size(), handle));
         buf.resize(bytesread);
 
         int tell = ftell(handle);
@@ -122,14 +128,12 @@ namespace VFS
     shared_ptr<File> MixArchive::open(const std::string& filename, bool writable)
     {
         if (writable) {
-            throw ArchiveNotWritable();
+            return shared_ptr<File>();
         }
         
-        throw FileNotFound("");
-
         // TODO: Locate file in mix index, get upper and lower boundries
         
-        return shared_ptr<File>(new MixFile(mixfile, filename, 0, 0));
+        return shared_ptr<File>();
     }
 
     string MixArchive::path()

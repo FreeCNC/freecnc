@@ -1,7 +1,6 @@
 #ifndef _VFS_FILE_H
 #define _VFS_FILE_H
 
-#include <stdexcept>
 #include <string>
 #include <vector>
 #include <boost/noncopyable.hpp>
@@ -94,12 +93,7 @@ namespace VFS
         virtual int do_read(std::vector<char>& buf, int count) = 0;
         virtual void do_seek(int pos, int orig) = 0; // orig = -1 - start, 0 - cur, 1 - end
         virtual int do_write(std::vector<char>& buf) = 0;
-    };
-
-    struct FileNotFound : std::runtime_error
-    {
-        FileNotFound(const std::string& message) : std::runtime_error(message) {}
-    };    
+    }; 
 }
 
 #endif

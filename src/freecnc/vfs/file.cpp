@@ -1,11 +1,12 @@
 #include <algorithm>
-#include <cassert>
+#include <stdexcept>
 #include <string>
 
 #include "file.h"
 
 using std::distance;
 using std::find;
+using std::logic_error;
 using std::string;
 using std::vector;
 
@@ -13,13 +14,15 @@ namespace VFS
 {
     int File::read(vector<char>& buf, int count)
     {
-        assert(!writable_);
+        if (writable_) { throw logic_error("File not readable"); }
+
         return do_read(buf, count);
     }
 
     string File::read(int count)
     {
-        assert(!writable_);
+        if (writable_) { throw logic_error("File not readable"); }
+
         vector<char> buf;
         do_read(buf, count);
         return string(buf.begin(), buf.end());
@@ -27,7 +30,8 @@ namespace VFS
     
     int File::read(vector<char>& buf, char delim)
     {
-        assert(!writable_);
+        if (writable_) { throw logic_error("File not readable"); }
+        
         vector<char> buffer;
         vector<char>::iterator it;
         while (!eof_) {
@@ -35,7 +39,7 @@ namespace VFS
             it = find(buffer.begin(), buffer.end(), delim);
             buf.insert(buf.end(), buffer.begin(), it);
             if (it != buffer.end()) { // Found delim
-                do_seek((int)-(distance(it, buffer.end()) - 1), 0);
+                do_seek(static_cast<int>(-(distance(it, buffer.end()) - 1)), 0);
                 break;
             }
         }
@@ -64,7 +68,8 @@ namespace VFS
  
     int File::write(const string& str)
     {
-        assert(writable_);
+        if (!writable_) { throw logic_error("File not writable"); }
+
         vector<char> buf(str.begin(), str.end());
         return do_write(buf);
     }  
@@ -76,7 +81,8 @@ namespace VFS
 
     void File::flush()
     {
-        assert(writable_);
+        if (!writable_) { throw logic_error("File not writable"); }
+
         do_flush();
     }     
 }

@@ -44,7 +44,7 @@ namespace
 }
 
 namespace VFS
-{
+{   
     VFS::VFS()
     {
     }
@@ -56,12 +56,13 @@ namespace VFS
     bool VFS::add(const string& dir)
     {
         ArchiveVector vec;
-
         fs::path pth(dir, fs::no_check);
-        if (!fs::exists(pth) || !fs::is_directory(pth)) {
-            throw DirNotFound(("Directory does not exist: " + dir).c_str());
-        }
 
+        // Check that the directory exists
+        if (!fs::exists(pth) || !fs::is_directory(pth)) {
+            return false;
+        }
+        
         // Add the directory
         vec.push_back(shared_ptr<DirArchive>(new DirArchive(pth)));
 
@@ -75,6 +76,7 @@ namespace VFS
 
         // Add the loaded archives to the VFS manager
         archives.push_back(vec);
+
         return true;
     }
 
@@ -110,15 +112,12 @@ namespace VFS
         for (ArchiveVectorVector::iterator it = archives.begin(); it != archives.end(); ++it) {
             ArchiveVector subarchives = *it;
             for (ArchiveVector::iterator subit = subarchives.begin(); subit != subarchives.end(); ++subit) {
-                try {
-                    return (*subit)->open(filename, writable);
-                } catch(FileNotFound&) {
-                    // Ignore
-                } catch(ArchiveNotWritable&) {
-                    // Ignore
+                shared_ptr<File> file = (*subit)->open(filename, writable);
+                if (file) {
+                    return file;
                 }
             }
         }
-        throw FileNotFound(("File not found: " + filename).c_str());
+        return shared_ptr<File>();
     }
 }

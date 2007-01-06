@@ -5,7 +5,6 @@
 // the right archive when opening files.
 //
 
-#include <stdexcept>
 #include <string>
 #include <vector>
 #include <boost/noncopyable.hpp>
@@ -17,12 +16,10 @@ namespace VFS
 {
     class Archive;
 
-    // Find better names for these
-    typedef std::vector<boost::shared_ptr<Archive> > ArchiveVector; 
-    typedef std::vector<ArchiveVector> ArchiveVectorVector;
-
     class VFS : private boost::noncopyable
     {
+        typedef std::vector<boost::shared_ptr<Archive> > ArchiveVector; 
+        typedef std::vector<ArchiveVector> ArchiveVectorVector;
     public:
         VFS();
         ~VFS();
@@ -52,11 +49,6 @@ namespace VFS
         // directory that was added, and the remaining members are archives located
         // in that directory.
         ArchiveVectorVector archives;
-    };
-
-    struct DirNotFound : std::runtime_error
-    {
-        DirNotFound(const std::string& message) : std::runtime_error(message) {}
     };
 }
 

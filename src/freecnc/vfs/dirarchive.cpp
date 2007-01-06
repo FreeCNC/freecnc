@@ -1,7 +1,11 @@
 #include <cstdio>
+#include <sstream>
+#include <stdexcept>
 #include <boost/filesystem/operations.hpp>
 #include "dirarchive.h"
 
+using std::ostringstream;
+using std::runtime_error;
 using std::string;
 using std::vector;
 using boost::shared_ptr;
@@ -17,7 +21,7 @@ namespace VFS
     class DirFile : public File
     {
     public:
-        DirFile(const fs::path& dir, const string& filename, bool writable);
+        DirFile(const string& path, const string& archive, const string& name, bool writable);
         ~DirFile();
         
     protected:
@@ -32,25 +36,22 @@ namespace VFS
 
     //-------------------------------------------------------------------------
     
-    DirFile::DirFile(const fs::path& dir, const string& filename, bool writable)
+    DirFile::DirFile(const string& path, const string& archive, const string& name, bool writable)
     {
         // Info
-        archive_ = dir.native_directory_string();
-        name_ = filename;
+        archive_ = archive;
+        name_ = name;
 
         eof_ = false;
         pos_ = 0;
         writable_ = writable;
        
         // Open file
-        fs::path pth(dir / filename);
-        if (fs::exists(pth) && fs::is_directory(pth)) {
-            throw FileNotFound("");
-        } else {
-            handle = fopen(pth.native_directory_string().c_str(), writable ? "wb" : "rb");
-            if (!handle) {
-                throw FileNotFound(""); // Improve this
-            }
+        handle = fopen(path.c_str(), writable ? "wb" : "rb");
+        if (!handle) {
+            ostringstream temp;
+            temp << "fopen failed for '" << name_ << "' in '" << archive_ << "': " << errno << ": " << strerror(errno);
+            throw runtime_error(temp.str());
         }
         
         // Calculate size
@@ -76,7 +77,7 @@ namespace VFS
     int DirFile::do_read(vector<char>& buf, int count)
     {
         buf.resize(count);
-        int bytesread = (int)fread(&buf[0], sizeof(char), buf.size(), handle);
+        int bytesread = static_cast<int>(fread(&buf[0], sizeof(char), buf.size(), handle));
         buf.resize(bytesread);
         eof_ = feof(handle) != 0;
         pos_ = ftell(handle);
@@ -99,7 +100,7 @@ namespace VFS
     
     int DirFile::do_write(vector<char>& buf)
     {
-        int byteswritten = (int)fwrite(&buf[0], sizeof(char), buf.size(), handle);
+        int byteswritten = static_cast<int>(fwrite(&buf[0], sizeof(char), buf.size(), handle));
         eof_ = feof(handle) != 0;
         pos_ = ftell(handle);
         return byteswritten;
@@ -119,6 +120,11 @@ namespace VFS
     
     shared_ptr<File> DirArchive::open(const std::string& filename, bool writable)
     {
-        return shared_ptr<File>(new DirFile(dir, filename, writable));
+        fs::path filepath(dir / filename);
+        if (fs::exists(filepath) && !fs::is_directory(filepath)) {
+            return shared_ptr<File>(new DirFile(filepath.native_directory_string(), path(), filename, writable));
+        } else {
+            return shared_ptr<File>();
+        }
     }
 }

@@ -11,7 +11,6 @@
 #include "vfs/vfs.h"
 
 using VFS::File;
-using VFS::FileNotFound;
 
 enum GameType
 {
