@@ -135,7 +135,7 @@ void GameEngine::parse_options(int argc, char** argv)
     game.add_options()
         ("mod", po::value<string>(&config.mod)->default_value("td"),
             "specify which game to load: td or ra")
-        ("map", po::value<string>(&config.map)->default_value("SCG01EA"),
+        ("map,m", po::value<string>(&config.map)->default_value("SCG01EA"),
             "start on this mission")
         ("fullscreen", po::bool_switch(&config.fullscreen)->default_value(false),
             "start fullscreen")
