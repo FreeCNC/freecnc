@@ -3,6 +3,7 @@
 
 #include "map.h"
 #include "path.h"
+#include "../freecnc.h"
 
 namespace
 {

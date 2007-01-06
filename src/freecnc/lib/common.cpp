@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cctype>
 
+#include "../freecnc.h"
 #include "inifile.h"
 
 using std::cout;

@@ -13,6 +13,8 @@ class SHPImage;
 
 class CnCMap;
 
+struct SDL_Color;
+
 struct TerrainEntry
 {
     unsigned int shpnum;
@@ -278,7 +280,7 @@ private:
     void simpleSections();
 
     /// The advanced section of the ini
-    void advancedSections();
+    void advanced_sections();
 
     /// Load the bin part of the map (TD)
     void loadBin();
@@ -287,17 +289,17 @@ private:
 
     void load_resources();
 
-    void load_waypoints();
+    void load_waypoint(const INISectionItem&);
 
-    void load_terrain();
+    void load_terrain(const INISectionItem&);
 
-    void load_smudge_positions();
+    void load_smudge_position(const INISectionItem&);
 
-    void load_structure_positions();
+    void load_structure_position(const INISectionItem&);
 
-    void load_unit_positions();
+    void load_unit_position(const INISectionItem&);
 
-    void load_infantry_positions();
+    void load_infantry_position(const INISectionItem&);
 
     /// Load the overlay section of the map (TD)
     void loadOverlay();

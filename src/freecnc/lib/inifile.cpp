@@ -6,6 +6,7 @@
 #include <stdexcept>
 
 #include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "../freecnc.h"
 #include "../legacyvfs/vfs_public.h"
@@ -46,6 +47,16 @@ INIKey INIFile::readKeyValue(const char* section, unsigned int keynum)
         throw 0;
 
     return key;
+}
+
+INISection* INIFile::section(string section)
+{
+    boost::to_upper(section);
+    map<string, INISection>::iterator sec = inidata.find(section);
+    if (sec == inidata.end()) {
+        return NULL;
+    }
+    return &sec->second;
 }
 
 /** Use inside a loop to read all keys in a section when extraction in numeric
