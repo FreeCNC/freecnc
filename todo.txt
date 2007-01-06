@@ -10,6 +10,8 @@
 * Fix sidebar graphic glitches
 
 Unassigned, unsorted, incomplete:
+* Video playback has been reported to deadlock on some systems (no details
+  given, presumably dual core/proc).
 * Music playlists
 * Money tick looping speed.
 * Moneycounter/buildqueue doesn't stop when mission is completed.
