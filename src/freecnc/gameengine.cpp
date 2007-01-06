@@ -65,6 +65,8 @@ void GameEngine::reconfigure()
 void GameEngine::startup(int argc, char** argv)
 {
     parse_options(argc, argv);
+    
+    vfs.add(game.config.basedir + "/data");
 
     string logfile = game.config.basedir + "/freecnc.log";
     log.open(logfile.c_str());

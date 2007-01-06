@@ -39,7 +39,6 @@ private:
     void drawLine(short startx, short starty,
                   short stopx, short stopy, unsigned short width, unsigned int colour);
     SDL_Surface* screen;
-    SDL_Surface* icon;
     unsigned short width;
     unsigned short height;
     unsigned short tilewidth;

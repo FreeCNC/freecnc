@@ -16,9 +16,20 @@ GraphicsEngine::GraphicsEngine()
 
     SDL_WM_SetCaption(window_title.c_str(), NULL);
 
-    icon = SDL_LoadBMP("data/gfx/icon.bmp");
-    if (icon != 0)
-        SDL_WM_SetIcon(icon, NULL);
+    // Load icon
+    {
+        SDL_Surface* icon = 0;
+        shared_ptr<File> icon_file = game.vfs.open("base/icon.bmp");
+        if (icon_file) {
+            vector<char> buffer;
+            icon_file->read(buffer, icon_file->size());
+            icon = SDL_LoadBMP_RW(SDL_RWFromMem(&buffer[0], buffer.size()), 1);
+            if (icon != 0) {
+                SDL_WM_SetIcon(icon, NULL);
+                SDL_FreeSurface(icon);
+            }
+        }
+    }
 
     screen = SDL_SetVideoMode(width, height, game.config.bpp, SDL_SWSURFACE);
 
@@ -50,7 +61,7 @@ GraphicsEngine::~GraphicsEngine()
     logger->renderGameMsg(false);
     delete pc::msg;
     pc::msg = NULL;
-    SDL_FreeSurface(icon);
+    //SDL_FreeSurface(icon);
 }
 
 /** Setup the vars for the current mission.
