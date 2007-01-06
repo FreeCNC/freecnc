@@ -131,6 +131,8 @@ void GameEngine::parse_options(int argc, char** argv)
 
     po::options_description game("Game options");
     game.add_options()
+        ("mod", po::value<string>(&config.mod)->default_value("td"),
+            "specify which game to load: td or ra")
         ("map", po::value<string>(&config.map)->default_value("SCG01EA"),
             "start on this mission")
         ("fullscreen", po::bool_switch(&config.fullscreen)->default_value(false),
@@ -144,8 +146,6 @@ void GameEngine::parse_options(int argc, char** argv)
 
     po::options_description config_only("Config only options");
     config_only.add_options()
-        ("gametype", po::value<int>()->default_value(GAME_TD),
-            "Specify if the game is TD or RA")
         ("play_intro", po::value<bool>(&config.play_intro)->default_value(true),
             "enable/disable the intro")
         ("scale_movies", po::value<bool>(&config.scale_movies)->default_value(true),
@@ -185,8 +185,8 @@ void GameEngine::parse_options(int argc, char** argv)
     po::store(po::parse_config_file(cfgfile, config_file_options), vm);
     po::notify(vm);
 
-    // This is ugly, but not sure how permanent gametype will be.
-    config.gametype = static_cast<GameType>(vm["gametype"].as<int>());
+    // Temp
+    config.gametype = static_cast<GameType>(config.mod == "td" ? 1 : 2);
 
     // Values that are now no longer configurable
     config.buildable_ratio = 0.7;

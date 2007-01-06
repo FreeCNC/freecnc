@@ -23,10 +23,10 @@ struct GameConfig
     string basedir, homedir;
 
     // Game options
+    string mod;
     string map;
     bool fullscreen;
-    int width, height;
-    int bpp;
+    int width, height, bpp;
     GameType gametype;
 
     // Config only options
