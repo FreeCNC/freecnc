@@ -320,8 +320,8 @@ private:
     void parseOverlay(const unsigned int& linenum, const std::string& name);
 
     /// load a specified tile
-    SDL_Surface *loadTile(shared_ptr<INIFile> templini, unsigned short templ, unsigned char tile,
-            unsigned int* tiletype);
+    SDL_Surface *loadTile(shared_ptr<INIFile> templini, unsigned int templ,
+        unsigned int tile, unsigned int* tiletype);
 
     /// width of map in tiles
     unsigned short width;

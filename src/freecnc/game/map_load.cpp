@@ -869,7 +869,7 @@ void CnCMap::loadPal(SDL_Color *palette)
  * @param the tilenumber.
  * @returns a SDL_Surface containing the tile.
  */
-SDL_Surface *CnCMap::loadTile(shared_ptr<INIFile> templini, unsigned short templ, unsigned char tile, unsigned int* tiletype)
+SDL_Surface *CnCMap::loadTile(shared_ptr<INIFile> templini, unsigned int templ, unsigned int tile, unsigned int* tiletype)
 {
     TemplateImage *theaterfile;
 
