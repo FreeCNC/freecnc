@@ -689,6 +689,30 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="win32"
+			>
+			<File
+				RelativePath=".\freecnc\win32\icon.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\win32\resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\win32\resource.rc"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\win32\text_window.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\win32\text_window.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\freecnc\basictypes.h"
 			>

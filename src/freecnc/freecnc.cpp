@@ -1,21 +1,16 @@
 //
 // Entry point, engine initialization
 //
-
 #include <exception>
-#include <iostream>
-
-#if _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
-
 #include "SDL.h"
-
 #include "freecnc.h"
 
-using std::cout;
-using std::cerr;
+#if _WIN32
+#include "win32/text_window.h"
+#else
+#include <iostream>
+#endif
+
 using std::exception;
 
 GameEngine game;
@@ -27,18 +22,18 @@ int main(int argc, char** argv)
     try {
         game.startup(argc, argv);
         game.run();
-    } catch (GameOptionsUsageMessage& usage) {
+    } catch (GameOptionsUsageMessage& e) {
         #if _WIN32
-        MessageBox(0, usage.what(), "Command line options - FreeCNC", MB_ICONINFORMATION|MB_OK);
+        Win32::text_window("Command line options", e.what());
         #else
-        cout << usage.what() << endl;
+        std::cout << e.what() << endl;
         #endif
         return 1;
-    } catch (exception& e) {
+    } catch (std::exception& e) {
         #if _WIN32
-        MessageBox(0, e.what(), "Fatal error - FreeCNC", MB_ICONERROR|MB_OK);
+        Win32::text_window("Fatal Error", e.what());
         #else
-        cerr << "Fatal Error: " << e.what() << endl;
+        std::cerr << "Fatal Error: " << e.what() << endl;
         #endif
         return 1;
     }
