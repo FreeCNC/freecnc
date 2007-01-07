@@ -7,14 +7,21 @@
 #define MAXSTRINGLENGTH 128
 #define INIERROR 0x7fffffff
 
-typedef std::map<std::string,std::string> INISection;
+#include "../basictypes.h"
+
+typedef map<string, string> INISection;
 typedef INISection::const_iterator INIKey;
 typedef INISection::value_type INISectionItem;
+
+struct INIFileNotFound : std::runtime_error
+{
+    INIFileNotFound(const string& message) : std::runtime_error(message) { }
+};
 
 class INIFile
 {
 public:
-    explicit INIFile(const char* filename);
+    INIFile(const string& filename);
 
     /// @TODO Would be nice if there was a version that returned a non-copy.
     char* readString(const char* section, const char* value);
@@ -28,9 +35,9 @@ public:
 
     INIKey readKeyValue(const char* section, unsigned int keynum);
     INIKey readIndexedKeyValue(const char* section, unsigned int keynum, const char* prefix=0);
-    std::string readSection(unsigned int secnum);
+    string readSection(unsigned int secnum);
 private:
-    std::map<std::string, INISection> inidata;
+    map<string, INISection> inidata;
 };
 
 #endif

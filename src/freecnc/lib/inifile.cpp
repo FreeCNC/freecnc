@@ -16,6 +16,7 @@
 using std::runtime_error;
 using boost::lexical_cast;
 using boost::to_upper;
+using boost::trim;
 
 namespace
 {
@@ -24,13 +25,70 @@ namespace
     boost::char_separator<char> section_sep("[]");
 }
 
-/** Use inside a loop to read all keys of a section.  Do not depend on the
- * order in which keys are read.
- *
- * @param section The name of the section from which to read.
- * @param keynum Will skip (keynum-1) entries in section.
- * @returns an iterator to the keynum'th key in section.
- */
+INIFile::INIFile(const string& filename)
+{
+    string cursection_name;
+    INISection cursection;
+
+    shared_ptr<File> inifile = game.vfs.open(filename);
+
+    if (inifile == NULL) {
+        throw INIFileNotFound("INIFile: Unable to open" + filename);
+    }
+
+    int linenum = 0;
+    // parse the inifile and write data to inidata
+    for (string line; !inifile->eof(); line = inifile->readline()) {
+        const char* str = line.c_str();
+        while ((*str) == ' ' || (*str) == '\t') {
+            str++;
+        }
+        if ((*str) == ';') {
+            continue;
+        }
+
+        if (*str == '[') {
+            // This isn't perfect, but it's better than what was before...
+            LineTokenizer section_name(line, section_sep);
+            if (std::distance(section_name.begin(), section_name.end()) == 1) {
+                if (cursection_name != "") {
+                    inidata[cursection_name] = cursection;
+                    cursection.clear();
+                }
+                cursection_name = *section_name.begin();
+                to_upper(cursection_name);
+                trim(cursection_name);
+            }
+        } else if (cursection_name != "") {
+            LineTokenizer data(line, keyvalue_sep);
+
+            if (std::distance(data.begin(), data.end()) != 2) {
+                game.log << "INIFile: Syntax error at line " << linenum << endl;
+                continue;
+            }
+            LineTokenizer::iterator it(data.begin());
+
+            string key = *it++;
+            to_upper(key);
+            trim(key);
+
+            string value = *it++;
+            trim(value);
+
+            if ((key.length() == 0) || (value.length() == 0)) {
+                game.log << "INIFile: Syntax error at line " << linenum << endl;
+                continue;
+            }
+            cursection[key] = value;
+        }
+        ++linenum;
+    }
+    if (cursection_name != "") {
+        inidata[cursection_name] = cursection;
+    }
+}
+
+// Deprecated
 INIKey INIFile::readKeyValue(const char* section, unsigned int keynum)
 {
     map<string, INISection>::iterator sec;
@@ -208,65 +266,4 @@ int INIFile::readInt(const char* section, const char* value, unsigned int deflt)
         return deflt;
     else
         return tmp;
-}
-
-INIFile::INIFile(const char* filename)
-{
-    string cursection_name;
-    INISection cursection;
-
-    shared_ptr<File> inifile = game.vfs.open(filename);
-
-    if (inifile == NULL) {
-        string s = "Unable to open ";
-        s += filename;
-        throw runtime_error(s);
-    }
-
-    int linenum = 0;
-    // parse the inifile and write data to inidata
-    for (string line; !inifile->eof(); line = inifile->readline()) {
-        const char* str = line.c_str();
-        while ((*str) == ' ' || (*str) == '\t') {
-            str++;
-        }
-        if ((*str) == ';') {
-            continue;
-        }
-
-        if (*str == '[') {
-            // This isn't perfect, but it's better than what was before...
-            LineTokenizer section_name(line, section_sep);
-            if (std::distance(section_name.begin(), section_name.end()) == 1) {
-                if (cursection_name != "") {
-                    inidata[cursection_name] = cursection;
-                    cursection.clear();
-                }
-                cursection_name = *section_name.begin();
-                to_upper(cursection_name);
-            }
-        } else if (cursection_name != "") {
-            LineTokenizer data(line, keyvalue_sep);
-
-            if (std::distance(data.begin(), data.end()) != 2) {
-                game.log << "INIFile: Syntax error at line " << linenum << endl;
-                continue;
-            }
-            LineTokenizer::iterator it(data.begin());
-
-            string key(*it++);
-            string value(*it++);
-
-            if ((key.length() == 0) || (value.length() == 0)) {
-                game.log << "INIFile: Syntax error at line " << linenum << endl;
-                continue;
-            }
-            to_upper(key);
-            cursection[key] = value;
-        }
-        ++linenum;
-    }
-    if (cursection_name != "") {
-        inidata[cursection_name] = cursection;
-    }
 }
