@@ -1,12 +1,15 @@
 0.3 - "FreeCNC Forever"
 * Migrate to the new VFS
+    In progress
+* New config format for specifying required and optional files
 * Remove code relating to various unimplemented features (replays and
   multiplayer)
 * Fix 64bit issues
     Most of these should be fixed with the new VFS
 * Move the pointers to unit and structure over to shared_ptr and remove the
   refcounting.
-* Rewrite the path finder to not suck as much.
+* Rewrite INIFile to use Spirit and not allocate char buffers
+* Rewrite the path finder to not suck as much
 * Fix sidebar graphic glitches
 
 Unassigned, unsorted, incomplete:
