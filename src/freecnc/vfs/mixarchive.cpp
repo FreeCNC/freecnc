@@ -179,9 +179,8 @@ namespace VFS
         
         fclose(mix);
         
-        int real_data_size = 0;
-
         // Build index
+        int real_data_size = 0;
         for (int i = 0; i < index_buf.size(); i+=3) {
             // index_buf[i] = id, index_buf[i+1] = offset, index_buf[i+2] = size
             real_data_size += index_buf[i+2];
