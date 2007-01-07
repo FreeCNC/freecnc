@@ -1,3 +1,4 @@
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
@@ -9,24 +10,29 @@
 using std::string;
 using std::vector;
 using boost::shared_ptr;
+using boost::to_upper;
 
 namespace fs = boost::filesystem;
 
 namespace 
 {
-    bool check_extension(const fs::path& pth, const string& extension)
+    bool check_extension(const fs::path& pth, const string& ext)
     {
-        return fs::extension(pth) == extension;
+        string path_ext(fs::extension(pth));
+        to_upper(path_ext);
+        return path_ext == ext;
     }
 
-    bool list_files(const fs::path& pth, const string& extension, vector<fs::path>& results)
+    bool list_files(const fs::path& pth, string ext, vector<fs::path>& results)
     {
         if (!fs::exists(pth)) {
             return false;
         }
+        
+        to_upper(ext);
 
         if (!fs::is_directory(pth)) {
-            if (check_extension(pth, extension)) {
+            if (check_extension(pth, ext)) {
                 results.push_back(pth);
                 return true;
             }
@@ -35,7 +41,7 @@ namespace
         
         fs::directory_iterator files(pth), end;
         for (; files != end; ++files) {
-            if (!fs::is_directory(*files) && check_extension(*files, extension)) {
+            if (!fs::is_directory(*files) && check_extension(*files, ext)) {
                 results.push_back(*files);
             }
         }
