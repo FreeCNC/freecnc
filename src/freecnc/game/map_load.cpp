@@ -21,6 +21,12 @@ using boost::bind;
 using boost::lexical_cast;
 using boost::tokenizer;
 
+namespace
+{
+    typedef tokenizer<boost::char_separator<char> > comma_splitter;
+    boost::char_separator<char> comma_sep(",");
+}
+
 /** Loads the maps ini file containing info on dimensions, units, trees
  * and so on.
  */
@@ -232,12 +238,13 @@ void CnCMap::load_terrain(const INISectionItem& key)
 
     unsigned char ttype;
 
-    if( shpname[0] == 't' || shpname[0] == 'T' )
+    if (shpname[0] == 't' || shpname[0] == 'T') {
         ttype = t_tree;
-    else if( shpname[0] == 'r' || shpname[0] == 'R' )
+    } else if (shpname[0] == 'r' || shpname[0] == 'R') {
         ttype = t_rock;
-    else
+    } else {
         ttype = t_other_nonpass;
+    }
 
     /* calculate the new pos based on size and blocked */
     unsigned int xsize = arts->readInt(shpname.c_str(), "XSIZE",1);
@@ -342,12 +349,12 @@ void CnCMap::load_structure_position(const INISectionItem& key)
 {
     // Currently unused, can't be duplicate anyway
     // int tmpval = lexical_cast<int>(key.first);
-    tokenizer<> tok(key.second);
+    comma_splitter tok(key.second, comma_sep);
     if (std::distance(tok.begin(), tok.end()) != 6) {
         game.log << "Map loader: Malformed line in STRUCTURES section: " << key.second << endl;
         return;
     }
-    tokenizer<>::iterator it = tok.begin();
+    comma_splitter::iterator it = tok.begin();
     string owner = *it++;
     string type = *it++;
     int health  = lexical_cast<int>(*it++);
@@ -370,12 +377,12 @@ void CnCMap::load_unit_position(const INISectionItem& key)
 {
     // Currently unused, can't be duplicate anyway
     // int tmpval = lexical_cast<int>(key.first);
-    tokenizer<> tok(key.second);
+    comma_splitter tok(key.second, comma_sep);
     if (std::distance(tok.begin(), tok.end()) != 7) {
         game.log << "Map loader: Malformed line in UNITS section: " << key.second << endl;
         return;
     }
-    tokenizer<>::iterator it = tok.begin();
+    comma_splitter::iterator it = tok.begin();
     string owner = *it++;
     string type = *it++;
     int health  = lexical_cast<int>(*it++);
@@ -399,12 +406,12 @@ void CnCMap::load_infantry_position(const INISectionItem& key)
 {
     // Currently unused, can't be duplicate anyway
     // int tmpval = lexical_cast<int>(key.first);
-    tokenizer<> tok(key.second);
+    comma_splitter tok(key.second, comma_sep);
     if (std::distance(tok.begin(), tok.end()) != 8) {
         game.log << "Map loader: Malformed line in INFANTRY section: " << key.second << endl;
         return;
     }
-    tokenizer<>::iterator it = tok.begin();
+    comma_splitter::iterator it = tok.begin();
     string owner = *it++;
     string type = *it++;
     int health  = lexical_cast<int>(*it++);
@@ -446,7 +453,7 @@ void CnCMap::advanced_sections()
 
     overlaymatrix.resize(width*height, 0);
 
-    if (maptype == GAME_RA){
+    if (maptype == GAME_RA) {
         unOverlayPack();
     } else {
         loadOverlay();
