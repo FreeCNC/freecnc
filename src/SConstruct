@@ -7,6 +7,8 @@ from sys import platform
 source = glob("freecnc/*.cpp")
 source += glob("freecnc/*/*.cpp")
 source += glob("freecnc/*/*/*.cpp")
+source = [f for f in source if "win32" not in f]
+
 #luasource += glob("#/lua/*.c")
 
 env = Environment()
@@ -14,7 +16,6 @@ env = Environment()
 # Don't clutter the source tree with multiple .sconsign files
 env.SConsignFile()
 
-# TODO: What about native mingw32?
 if platform == "win32":
     print "ERROR: Use the project files instead."
     Exit(1)
