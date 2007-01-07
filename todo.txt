@@ -12,6 +12,9 @@
 * Rewrite the path finder to not suck as much
 * Fix sidebar graphic glitches
 
+* Current behaviour for SCons wrt location of binary file isn't optimal for Just
+  Working(TM).
+
 Unassigned, unsorted, incomplete:
 * Video playback has been reported to deadlock on some systems (no details
   given, presumably dual core/proc).
