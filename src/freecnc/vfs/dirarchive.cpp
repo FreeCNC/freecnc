@@ -32,6 +32,7 @@ namespace VFS
         int do_write(vector<char>& buf);
         
     private:
+        void update_state();
         FILE* handle;
     };
 
@@ -56,9 +57,9 @@ namespace VFS
         }
         
         // Calculate size
-        do_seek(0, 1);
+        fseek(handle, 0, SEEK_END);
         size_ = ftell(handle);
-        do_seek(0, -1);
+        fseek(handle, 0, SEEK_SET);
     }
     
     DirFile::~DirFile()
@@ -66,6 +67,12 @@ namespace VFS
         if (handle) {
             fclose(handle);
         }
+    }
+    
+    void DirFile::update_state()
+    {
+        eof_ = feof(handle) != 0;
+        pos_ = ftell(handle);
     }
   
     //-------------------------------------------------------------------------
@@ -80,8 +87,7 @@ namespace VFS
         buf.resize(count);
         int bytesread = static_cast<int>(fread(&buf[0], sizeof(char), buf.size(), handle));
         buf.resize(bytesread);
-        eof_ = feof(handle) != 0;
-        pos_ = ftell(handle);
+        update_state();
         return bytesread;
     }
 
@@ -95,15 +101,13 @@ namespace VFS
             default: return;
         }
         fseek(handle, offset, origin);
-        eof_ = feof(handle) != 0;
-        pos_ = ftell(handle);
+        update_state();
     }
     
     int DirFile::do_write(vector<char>& buf)
     {
         int byteswritten = static_cast<int>(fwrite(&buf[0], sizeof(char), buf.size(), handle));
-        eof_ = feof(handle) != 0;
-        pos_ = ftell(handle);
+        update_state();
         return byteswritten;
     }    
 
