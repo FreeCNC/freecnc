@@ -7,6 +7,7 @@
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 #include "../lib/compression.h"
 #include "../lib/inifile.h"
@@ -20,6 +21,7 @@
 using boost::bind;
 using boost::lexical_cast;
 using boost::tokenizer;
+using boost::replace_tail;
 
 namespace
 {
@@ -834,31 +836,27 @@ void CnCMap::parseOverlay(const unsigned int& linenum, const string& name)
 
 void CnCMap::loadPal(SDL_Color *palette)
 {
-    VFile *palfile;
     int i;
     string palname = missionData.theater;
     if (palname.length() > 8) {
-        palname.insert(8, ".PAL");
+        replace_tail(palname, palname.length() - 8, ".PAL");
     } else {
         palname += ".PAL";
     }
-    /* Seek the palette file in the mix */
-    palfile = VFS_Open(palname.c_str());
 
-    if (palfile == NULL) {
+    vector<char> paldata(3 * 256);
+    shared_ptr<File> palfile = game.vfs.open(palname);
+
+    if (!palfile) {
         throw MapLoadingError("Unable to locate palette (\"" + palname + "\").");
     }
+    palfile->read(paldata, 3 * 256);
 
-    /* Load the palette */
     for (i = 0; i < 256; i++) {
-        palfile->readByte(&palette[i].r, 1);
-        palfile->readByte(&palette[i].g, 1);
-        palfile->readByte(&palette[i].b, 1);
-        palette[i].r <<= 2;
-        palette[i].g <<= 2;
-        palette[i].b <<= 2;
+        palette[i].r = paldata[i * 3] << 2;
+        palette[i].g = paldata[i * 3 + 1] << 2;
+        palette[i].b = paldata[i * 3 + 2] << 2;
     }
-    VFS_Close(palfile);
 }
 
 /** load a tile from the mixfile.

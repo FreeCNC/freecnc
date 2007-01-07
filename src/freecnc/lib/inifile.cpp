@@ -192,9 +192,9 @@ char* INIFile::readString(const char* section, const char* value)
     INIKey key;
 
     string s = section;
-    transform (s.begin(),s.end(), s.begin(), toupper);
+    to_upper(s);
     string v = value;
-    transform (v.begin(),v.end(), v.begin(), toupper);
+    to_upper(v);
 
     sec = inidata.find(s);
     if (sec == inidata.end()) {
