@@ -1,6 +1,7 @@
 #ifndef _VFS_MIXARCHIVE_H
 #define _VFS_MIXARCHIVE_H
 
+#include <map>
 #include <string>
 #include <boost/filesystem/path.hpp>
 #include <boost/smart_ptr.hpp>
@@ -11,6 +12,8 @@ namespace VFS
 {    
     class MixArchive : public Archive
     {
+        typedef std::pair<int, int> IndexValue;
+        typedef std::map<unsigned int, IndexValue> Index;
     public:
         MixArchive(const boost::filesystem::path& mixfile);
         ~MixArchive();
@@ -20,6 +23,7 @@ namespace VFS
 
     private:
         boost::filesystem::path mixfile;
+        Index index;
     };
 }
 

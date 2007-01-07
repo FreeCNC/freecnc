@@ -51,7 +51,7 @@ namespace VFS
         handle = fopen(path.c_str(), writable ? "wb" : "rb");
         if (!handle) {
             ostringstream temp;
-            temp << "fopen failed for '" << name_ << "' in '" << archive_ << "': " << errno << ": " << strerror(errno);
+            temp << "DirArchive: fopen failed for '" << name_ << "' in '" << archive_ << "': " << errno << ": " << strerror(errno);
             throw runtime_error(temp.str());
         }
         
@@ -122,10 +122,12 @@ namespace VFS
     shared_ptr<File> DirArchive::open(const std::string& filename, bool writable)
     {
         fs::path filepath(dir / filename);
-        if (fs::exists(filepath) && !fs::is_directory(filepath)) {
-            return shared_ptr<File>(new DirFile(filepath.native_directory_string(), path(), filename, writable));
-        } else {
+        
+        // If we open for reading and the file doesnt exist, or if the path is a directory, return 0.
+        if ((!writable && !fs::exists(filepath)) || (fs::exists(filepath) && fs::is_directory(filepath))) {
             return shared_ptr<File>();
         }
+
+        return shared_ptr<File>(new DirFile(filepath.native_directory_string(), path(), filename, writable));
     }
 }
