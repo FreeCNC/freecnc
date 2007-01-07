@@ -4,7 +4,6 @@
 #include <stdexcept>
 
 #include "../lib/compression.h"
-#include "../lib/inifile.h"
 #include "../sound/sound_public.h"
 #include "../legacyvfs/vfs_public.h"
 #include "graphicsengine.h"
@@ -89,9 +88,8 @@ VQAMovie::VQAMovie(const char* filename) : vqafile(0), CBF_LookUp(0),
     CBPOffset = 0; // Starting offset of CBP Look up table must be zero
     CBPChunks = 0; // Number of CBPChunks 
 
-    shared_ptr<INIFile> inif = GetConfig("freecnc.ini");
-    scaleVideo = inif->readInt("video", "scaleMovies", 0);
-    videoScaleQuality = inif->readInt("video", "movieQuality", 0);
+    scaleVideo = game.config.scale_movies;
+    videoScaleQuality = game.config.scaler_quality;
 
     //logger->debug("Video is %dfps %d %d %d\n", header.FrameRate, header.Freq, header.Channels, header.Bits);
 
