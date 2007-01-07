@@ -81,8 +81,7 @@ void GameEngine::startup(int argc, char** argv)
         // Legacy VFS / logging / conf parsing
         VFS_PreInit(config.basedir.c_str());
 
-        string legacy_logfile = game.config.basedir + "/freecnc-legacy.log";
-        logger = new Logger(legacy_logfile.c_str(),0);
+        logger = new Logger();
 
         VFS_Init(config.basedir.c_str());
         VFS_LoadGame(config.gametype);
