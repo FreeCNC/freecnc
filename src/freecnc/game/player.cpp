@@ -36,6 +36,12 @@ Player::Player(const char *pname, shared_ptr<INIFile> mapini) {
     unallycalls = 0;
     playerstart = 0;
     defeated = false;
+
+    money = mapini->readInt(playername, "Credits", 0) * 100;
+    queues[0] = new BQueue(this);
+    /// @TODO Only play sound if this is the local player
+    counter.reset(new MoneyCounter(&money, this, &counter));
+
     if( !strcasecmp(playername, "goodguy") ) {
         playerside = PS_GOOD;
         unitpalnum = 0;
@@ -53,7 +59,9 @@ Player::Player(const char *pname, shared_ptr<INIFile> mapini) {
         unitpalnum = 0;
         structpalnum = 0;
     } else if( !strncasecmp(playername, "multi", 5) ) {
-        playerside = PS_MULTI;
+        // Workaround for inability to specify a side for multi
+        // playerside = PS_MULTI; // actual value set later
+        playerside = PS_GOOD;
         if (playername[5] < 49 || playername[5] > 57) {
             game.log << "Invalid builtin multi name: " << playername << "" << endl;
             /// @TODO Nicer error handling here
@@ -61,16 +69,22 @@ Player::Player(const char *pname, shared_ptr<INIFile> mapini) {
         } else {
             multiside = playername[5] - 48;
         }
+        /*
         if (multiside > 0) {
             unitpalnum = multiside - 1;
             structpalnum = multiside - 1;
         } else {
             unitpalnum = structpalnum = 0;
-        }
+        }*/
+        unitpalnum = 3;
+        structpalnum = 3;
         playerstart = p::ppool->getAStart();
         if (playerstart != 0) {
             // conversion algorithm from loadmap.cpp
             playerstart = p::ccmap->normaliseCoord(playerstart);
+        }
+        if (money == 0) {
+            money = 10000;
         }
     } else {
         game.log << "Player Side \"" << pname << "\" not recognised, using gdi instead" << endl;
@@ -78,7 +92,6 @@ Player::Player(const char *pname, shared_ptr<INIFile> mapini) {
         unitpalnum = 0;
         structpalnum = 0;
     }
-    money = mapini->readInt(playername, "Credits", 0) * 100;
     powerGenerated = powerUsed = radarstat = 0;
     unitkills = unitlosses = structurekills = structurelosses = 0;
 
@@ -89,10 +102,6 @@ Player::Player(const char *pname, shared_ptr<INIFile> mapini) {
     mapBuildable.resize(mapsize);
 
     allmap = buildall = buildany = infmoney = false;
-
-    queues[0] = new BQueue(this);
-    /// @TODO Only play sound if this is the local player
-    counter.reset(new MoneyCounter(&money, this, &counter));
 }
 
 Player::~Player()
