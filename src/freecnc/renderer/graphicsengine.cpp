@@ -875,8 +875,8 @@ void GraphicsEngine::renderLoading(const std::string& buff, SDL_Surface* logo)
     if (curimg != NULL) {
         // This used to center the text, but since moving to a fixed width
         // message pool, this isn't quite centerred
-        dest.x = (width-curimg->w)/2;
-        dest.y = (height-curimg->h)/2;
+        dest.x = (width - curimg->w)/2;
+        dest.y = (height - curimg->h)/2 + 30;
         dest.w = curimg->w;
         dest.h = curimg->h;
         SDL_BlitSurface(curimg, NULL, screen, &dest);
