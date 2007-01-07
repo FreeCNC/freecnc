@@ -15,7 +15,6 @@ class INIFile
 {
 public:
     explicit INIFile(const char* filename);
-    ~INIFile();
 
     /// @TODO Would be nice if there was a version that returned a non-copy.
     char* readString(const char* section, const char* value);
@@ -30,8 +29,6 @@ public:
     INIKey readKeyValue(const char* section, unsigned int keynum);
     INIKey readIndexedKeyValue(const char* section, unsigned int keynum, const char* prefix=0);
     std::string readSection(unsigned int secnum);
-
-
 private:
     std::map<std::string, INISection> inidata;
 };

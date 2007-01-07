@@ -67,6 +67,10 @@ void GameEngine::startup(int argc, char** argv)
     parse_options(argc, argv);
     
     vfs.add(game.config.basedir + "/data");
+    vfs.add(game.config.basedir + "/data/settings");
+    // Temp
+    vfs.add(game.config.basedir + "/data/settings/td");
+    vfs.add(game.config.basedir + "/data/mix");
 
     string logfile = game.config.basedir + "/freecnc.log";
     log.open(logfile.c_str());

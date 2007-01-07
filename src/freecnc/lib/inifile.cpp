@@ -7,6 +7,7 @@
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/tokenizer.hpp>
 
 #include "../freecnc.h"
 #include "../legacyvfs/vfs_public.h"
@@ -14,6 +15,14 @@
 
 using std::runtime_error;
 using boost::lexical_cast;
+using boost::to_upper;
+
+namespace
+{
+    typedef boost::tokenizer<boost::char_separator<char> > LineTokenizer;
+    boost::char_separator<char> keyvalue_sep("=");
+    boost::char_separator<char> section_sep("[]");
+}
 
 /** Use inside a loop to read all keys of a section.  Do not depend on the
  * order in which keys are read.
@@ -51,7 +60,7 @@ INIKey INIFile::readKeyValue(const char* section, unsigned int keynum)
 
 INISection* INIFile::section(string section)
 {
-    boost::to_upper(section);
+    to_upper(section);
     map<string, INISection>::iterator sec = inidata.find(section);
     if (sec == inidata.end()) {
         return NULL;
@@ -201,22 +210,12 @@ int INIFile::readInt(const char* section, const char* value, unsigned int deflt)
         return tmp;
 }
 
-/** Constructor, opens the file
- * @param the name of the inifile to open.
- */
 INIFile::INIFile(const char* filename)
 {
-    char line[1024];
-    char key[1024];
-    char value[1024];
-    unsigned int i;
-    char* str;
-
-    VFile* inifile;
-    string cursectionName;
+    string cursection_name;
     INISection cursection;
 
-    inifile = VFS_Open(filename);
+    shared_ptr<File> inifile = game.vfs.open(filename);
 
     if (inifile == NULL) {
         string s = "Unable to open ";
@@ -224,69 +223,50 @@ INIFile::INIFile(const char* filename)
         throw runtime_error(s);
     }
 
-    cursectionName = "";
-
+    int linenum = 0;
     // parse the inifile and write data to inidata
-    while (inifile->getLine(line, 1024) != NULL) {
-        str = line;
+    for (string line; !inifile->eof(); line = inifile->readline()) {
+        const char* str = line.c_str();
         while ((*str) == ' ' || (*str) == '\t') {
             str++;
         }
         if ((*str) == ';') {
             continue;
         }
-        if (sscanf(str, "[%[^]]]", key) == 1) {
-            if (cursectionName != "") {
-                inidata[cursectionName] = cursection;
-                cursection.clear();
-            }
-            for (i = 0; key[i] != '\0'; i++) {
-                key[i] = toupper(key[i]);
-            }
-            cursectionName = key;
-        } else if (cursectionName != "" &&
-                   sscanf(str, "%[^=]=%[^\r\n;]", key, value) == 2) {
-            for (i = 0; key[i] != '\0'; i++) {
-                key[i] = toupper(key[i]);
-            }
-            if (strlen(key) > 0) {
-                str = key+strlen(key)-1;
-                while ((*str) == ' ' || (*str) == '\t') {
-                    (*str) = '\0';
-                    if (str == key) {
-                        break;
-                    }
-                    str--;
+
+        if (*str == '[') {
+            // This isn't perfect, but it's better than what was before...
+            LineTokenizer section_name(line, section_sep);
+            if (std::distance(section_name.begin(), section_name.end()) == 1) {
+                if (cursection_name != "") {
+                    inidata[cursection_name] = cursection;
+                    cursection.clear();
                 }
+                cursection_name = *section_name.begin();
+                to_upper(cursection_name);
             }
-            if (strlen(value) > 0) {
-                str = value+strlen(value)-1;
-                while ((*str) == ' ' || (*str) == '\t') {
-                    (*str) = '\0';
-                    if (str == value) {
-                        break;
-                    }
-                    str--;
-                }
+        } else if (cursection_name != "") {
+            LineTokenizer data(line, keyvalue_sep);
+
+            if (std::distance(data.begin(), data.end()) != 2) {
+                game.log << "INIFile: Syntax error at line " << linenum << endl;
+                continue;
             }
-            str = value;
-            while ((*str) == ' ' || (*str) == '\t') {
-                str++;
+            LineTokenizer::iterator it(data.begin());
+
+            string key(*it++);
+            string value(*it++);
+
+            if ((key.length() == 0) || (value.length() == 0)) {
+                game.log << "INIFile: Syntax error at line " << linenum << endl;
+                continue;
             }
-            cursection[(string)key] = (string)str;
+            to_upper(key);
+            cursection[key] = value;
         }
+        ++linenum;
     }
-    if (cursectionName != "") {
-        inidata[cursectionName] = cursection;
-        cursection.clear();
+    if (cursection_name != "") {
+        inidata[cursection_name] = cursection;
     }
-
-    VFS_Close(inifile);
 }
-
-/** Destructor, closes the file */
-INIFile::~INIFile()
-{
-    // delete all entries in inidata
-}
-
