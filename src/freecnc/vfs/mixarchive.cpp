@@ -49,7 +49,7 @@ namespace VFS
     class MixFile : public File
     {
     public:
-        MixFile(const fs::path& mixfile, const string& name, int lower_boundary, int size);
+        MixFile(const string& archive, const string& name, int lower_boundary, int size);
         ~MixFile();
         
     protected:
@@ -64,10 +64,10 @@ namespace VFS
         int upper_boundary;
     };
     
-    MixFile::MixFile(const fs::path& mixfile, const string& name, int lower_boundary, int size)
+    MixFile::MixFile(const string& archive, const string& name, int lower_boundary, int size)
     {
         // Info
-        archive_ = mixfile.native_file_string();
+        archive_ = archive;
         name_ = name;
 
         eof_ = false;
@@ -79,7 +79,7 @@ namespace VFS
         this->upper_boundary = lower_boundary + size;
        
         // Open file
-        handle = fopen(mixfile.native_file_string().c_str(), "rb");
+        handle = fopen(archive_.c_str(), "rb");
         if (!handle) {
             ostringstream temp;
             temp << "MixArchive: fopen failed for '" << name_ << "' in '" << archive_ << "': " << errno << ": " << strerror(errno);
@@ -152,10 +152,10 @@ namespace VFS
     MixArchive::MixArchive(const fs::path& mixfile)
         : mixfile(mixfile)
     {
-        FILE* mix = fopen(mixfile.native_file_string().c_str(), "rb");
+        FILE* mix = fopen(path().c_str(), "rb");
         if (!mix) {
             ostringstream temp;
-            temp << "MixArchive: fopen failed for '" + mixfile.native_file_string() << "': " << errno << ": " << strerror(errno);
+            temp << "MixArchive: fopen failed for '" + path() << "': " << errno << ": " << strerror(errno);
             throw runtime_error(temp.str());
         }
         
@@ -163,7 +163,7 @@ namespace VFS
         vector<char> header_buf(6);
         if (static_cast<int>(fread(&header_buf[0], sizeof(char), header_buf.size(), mix)) != 6) {
             fclose(mix);
-            throw runtime_error("MixArchive: Invalid header in '" + mixfile.native_file_string() + "'");
+            throw runtime_error("MixArchive: Invalid header in '" + path() + "'");
         }
         
         int file_count = *reinterpret_cast<unsigned short*>(&header_buf[0]);
@@ -174,7 +174,7 @@ namespace VFS
         vector<unsigned int> index_buf(file_count*3);
         if (static_cast<int>(fread(&index_buf[0], sizeof(unsigned int), file_count*3, mix)) != file_count*3) {
             fclose(mix);
-            throw runtime_error("MixArchive: Invalid file index in '" + mixfile.native_file_string() + "'");
+            throw runtime_error("MixArchive: Invalid file index in '" + path() + "'");
         }
         
         fclose(mix);
@@ -187,14 +187,14 @@ namespace VFS
             std::pair<Index::iterator, bool> ret = index.insert(Index::value_type(index_buf[i], IndexValue(base_offset + index_buf[i+1], index_buf[i+2])));
             if (!ret.second) {
                 ostringstream temp;
-                temp << "MixArchive: Duplicate index '" << index_buf[i] << "' found in '" << mixfile.native_file_string() << "'";
+                temp << "MixArchive: Duplicate index '" << index_buf[i] << "' found in '" << path() << "'";
                 throw runtime_error(temp.str());
             }            
         }
        
         // Validate data size
         if (data_size != real_data_size) {
-            throw runtime_error("MixArchive: Invalid data size in '" + mixfile.native_file_string() + "'");
+            throw runtime_error("MixArchive: Invalid data size in '" + path() + "'");
         }
     }
 
@@ -217,7 +217,7 @@ namespace VFS
         unsigned int id = calc_id(filename);
         Index::iterator it = index.find(id);
         if (it != index.end()) {
-            return shared_ptr<File>(new MixFile(mixfile, filename, it->second.first, it->second.second));
+            return shared_ptr<File>(new MixFile(path(), filename, it->second.first, it->second.second));
         }
                 
         return shared_ptr<File>();
