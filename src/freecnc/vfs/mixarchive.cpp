@@ -161,34 +161,42 @@ namespace VFS
         
         // Parse header
         vector<char> header_buf(6);
-        if (fread(&header_buf[0], sizeof(char), header_buf.size(), mix) != 6) {
+        if (static_cast<int>(fread(&header_buf[0], sizeof(char), header_buf.size(), mix)) != 6) {
             fclose(mix);
             throw runtime_error("MixArchive: Invalid header in '" + mixfile.native_file_string() + "'");
         }
+        
         int file_count = *reinterpret_cast<unsigned short*>(&header_buf[0]);
         int data_size = *reinterpret_cast<unsigned int*>(&header_buf[2]);
-
         int base_offset = file_count * 12 + 6;
         
         // Parse file index
         vector<unsigned int> index_buf(file_count*3);
-        if (fread(&index_buf[0], sizeof(unsigned int), file_count*3, mix) != file_count*3) {
+        if (static_cast<int>(fread(&index_buf[0], sizeof(unsigned int), file_count*3, mix)) != file_count*3) {
             fclose(mix);
             throw runtime_error("MixArchive: Invalid file index in '" + mixfile.native_file_string() + "'");
         }
         
-        // Validate data size
-        /*if (index_buf[index_buf.size()-2] + index_buf[index_buf.size()-1] != data_size) {
-            fclose(mix);
-            throw runtime_error("MixArchive: Invalid data size in '" + mixfile.native_file_string() + "'");
-        }*/
+        fclose(mix);
         
-        // Build index        
+        int real_data_size = 0;
+
+        // Build index
         for (int i = 0; i < index_buf.size(); i+=3) {
-            index.insert(Index::value_type(index_buf[i], IndexValue(base_offset + index_buf[i+1], index_buf[i+2])));
+            // index_buf[i] = id, index_buf[i+1] = offset, index_buf[i+2] = size
+            real_data_size += index_buf[i+2];
+            std::pair<Index::iterator, bool> ret = index.insert(Index::value_type(index_buf[i], IndexValue(base_offset + index_buf[i+1], index_buf[i+2])));
+            if (!ret.second) {
+                ostringstream temp;
+                temp << "MixArchive: Duplicate index '" << index_buf[i] << "' found in '" << mixfile.native_file_string() << "'";
+                throw runtime_error(temp.str());
+            }            
         }
        
-        fclose(mix);
+        // Validate data size
+        if (data_size != real_data_size) {
+            throw runtime_error("MixArchive: Invalid data size in '" + mixfile.native_file_string() + "'");
+        }
     }
 
     MixArchive::~MixArchive()
