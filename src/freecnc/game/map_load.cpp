@@ -23,7 +23,7 @@ using boost::tokenizer;
 
 namespace
 {
-    typedef tokenizer<boost::char_separator<char> > comma_splitter;
+    typedef tokenizer<boost::char_separator<char> > CharTokenizer;
     boost::char_separator<char> comma_sep(",");
 }
 
@@ -349,12 +349,12 @@ void CnCMap::load_structure_position(const INISectionItem& key)
 {
     // Currently unused, can't be duplicate anyway
     // int tmpval = lexical_cast<int>(key.first);
-    comma_splitter tok(key.second, comma_sep);
+    CharTokenizer tok(key.second, comma_sep);
     if (std::distance(tok.begin(), tok.end()) != 6) {
         game.log << "Map loader: Malformed line in STRUCTURES section: " << key.second << endl;
         return;
     }
-    comma_splitter::iterator it = tok.begin();
+    CharTokenizer::iterator it = tok.begin();
     string owner = *it++;
     string type = *it++;
     int health  = lexical_cast<int>(*it++);
@@ -377,12 +377,12 @@ void CnCMap::load_unit_position(const INISectionItem& key)
 {
     // Currently unused, can't be duplicate anyway
     // int tmpval = lexical_cast<int>(key.first);
-    comma_splitter tok(key.second, comma_sep);
+    CharTokenizer tok(key.second, comma_sep);
     if (std::distance(tok.begin(), tok.end()) != 7) {
         game.log << "Map loader: Malformed line in UNITS section: " << key.second << endl;
         return;
     }
-    comma_splitter::iterator it = tok.begin();
+    CharTokenizer::iterator it = tok.begin();
     string owner = *it++;
     string type = *it++;
     int health  = lexical_cast<int>(*it++);
@@ -406,12 +406,12 @@ void CnCMap::load_infantry_position(const INISectionItem& key)
 {
     // Currently unused, can't be duplicate anyway
     // int tmpval = lexical_cast<int>(key.first);
-    comma_splitter tok(key.second, comma_sep);
+    CharTokenizer tok(key.second, comma_sep);
     if (std::distance(tok.begin(), tok.end()) != 8) {
         game.log << "Map loader: Malformed line in INFANTRY section: " << key.second << endl;
         return;
     }
-    comma_splitter::iterator it = tok.begin();
+    CharTokenizer::iterator it = tok.begin();
     string owner = *it++;
     string type = *it++;
     int health  = lexical_cast<int>(*it++);
