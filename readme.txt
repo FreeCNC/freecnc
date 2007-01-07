@@ -16,8 +16,9 @@
   5.4. Tiberian Dawn Demo
   5.5. Red Alert
   5.6. Red Alert Demo
-6. Running the game [to be added]
-  6.1. Selecting a map
+6. Running the game
+  6.1. New features
+  6.2. Selecting a map
 7. Credits
   7.1. Team
   7.2. Previous team members
@@ -51,7 +52,7 @@ This section will outline how to compile FreeCNC.
 
 4.1. Requirements
 ==============================
- 
+
   Compilers:
   - GCC G++ version 3.3 or newer.
   - Visual C++ 2005 (express will work).
@@ -61,18 +62,18 @@ This section will outline how to compile FreeCNC.
   - SDL_mixer 1.2.7.
   - Boost 1.33.1.
 
-  In addition, on other platforms than windows you will need scons and python
+  In addition, on other platforms than Windows you will need scons and python
   to build.
 
 4.2. Compiling with scons & GCC
 ===============================
 
-  Simply running "scons" should work.
+  Simply running "scons" in the source directory should work.
 
 4.3. Compiling with Visual C++
 ==============================
 
-  First of all make sure you have added boost, sdl and sdl mixer include & lib
+  First of all make sure you have added boost, SDL and SDL mixer include & lib
   files to the Visual C++ search paths.
 
   After that is done, simply opening the solution file and building should do
@@ -87,7 +88,7 @@ files. (Note that Tiberian Dawn is the first version of Command & Conquer)
 
 FreeCNC supports the following (english only) versions of C&C:
 - Tiberian Dawn DOS
-- Tiberian Dawn Gold
+- Tiberian Dawn Gold (this version is part of The First Decade)
 - Tiberian Dawn Demo
 
 You can use the convert ops expansion pack datafiles in conjunction with any
@@ -183,7 +184,17 @@ located.
 6. Running the game
 -------------------------------------------------------------------------------
 
-6.1. Selecting a map
+6.1. New features
+=================
+
+  FreeCNC has a few features not present in the original C&C:
+    * Dragging the mouse with the right mouse button down will pan the map
+    * The sidebar can be toggled with the new style sidebar as well
+    * Mouse wheel will scroll both columns of the sidebar
+    * Unit and structure production is can be queued
+    * Support for arbitrary resolutions
+
+6.2. Selecting a map
 ====================
 
   To select a specific map, launch with freecnc -map <mapname>.
@@ -214,6 +225,9 @@ located.
   If you're interested to see what the multiplayer maps look like, the third
   letter is 'M'.
 
+  Finally, the funpark missions are SCJ01EA up to SCJ05EA (yes we know the
+  dinosaurs' movements are "interesting").
+
 -------------------------------------------------------------------------------
 7. Credits
 -------------------------------------------------------------------------------
@@ -223,7 +237,7 @@ located.
 
   Euan MacGregor (zx64) - euan@freecnc.org
   developer
-  
+
   Stijn Gijsen (gonewacko) - stijn@freecnc.org
   website developer
 
@@ -240,12 +254,15 @@ located.
   developer
 
   Kareem Dana (kareemy) - email unknown
-  developer
+  project starter, developer
 
   Sander van Geloven (Pander) - email uknown
-  not sure
+  patch contributor
 
   Tim Johansson (Tim^) - email unknown
+  project starter, developer
+
+  Jos Bol (Gandalf) - email unknown
   project starter, developer
 
 7.3. Thanks
