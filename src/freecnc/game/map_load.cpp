@@ -41,7 +41,7 @@ void CnCMap::loadIni()
     // Load the INIFile
     try {
         inifile = GetConfig(map_filename);
-    } catch (std::runtime_error&) {
+    } catch (INIFileNotFound&) {
         throw MapLoadingError("Map loader: The map \"" + map_filename +
             "\" was not found.  Check your installation and files.ini");
     }
