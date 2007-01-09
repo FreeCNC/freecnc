@@ -39,15 +39,20 @@ INIFile::INIFile(const string& filename)
     int linenum = 0;
     // parse the inifile and write data to inidata
     for (string line; !inifile->eof(); line = inifile->readline()) {
-        const char* str = line.c_str();
-        while ((*str) == ' ' || (*str) == '\t') {
-            str++;
+        string::const_iterator s(line.begin()), end(line.end());
+        while ((s != end) && ((*s) == ' ' || (*s) == '\t')) {
+            ++s;
         }
-        if ((*str) == ';') {
+
+        if (s == end) {
             continue;
         }
 
-        if (*str == '[') {
+        if ((*s) == ';') {
+            continue;
+        }
+
+        if (*s == '[') {
             // This isn't perfect, but it's better than what was before...
             LineTokenizer section_name(line, section_sep);
             if (std::distance(section_name.begin(), section_name.end()) == 1) {
@@ -58,12 +63,18 @@ INIFile::INIFile(const string& filename)
                 cursection_name = *section_name.begin();
                 to_upper(cursection_name);
                 trim(cursection_name);
+            } else {
+                game.log << "INIFile: Malformed section in " << filename
+                         << " at line " << linenum << " (" << line << ")"
+                         << endl;
             }
         } else if (cursection_name != "") {
             LineTokenizer data(line, keyvalue_sep);
 
             if (std::distance(data.begin(), data.end()) != 2) {
-                game.log << "INIFile: Syntax error at line " << linenum << endl;
+                game.log << "INIFile: Missing key/value error in " << filename
+                         << " at line " << linenum << " (" << line << ")"
+                         << endl;
                 continue;
             }
             LineTokenizer::iterator it(data.begin());
@@ -73,10 +84,13 @@ INIFile::INIFile(const string& filename)
             trim(key);
 
             string value = *it++;
+            // TODO: Trim comments
             trim(value);
 
             if ((key.length() == 0) || (value.length() == 0)) {
-                game.log << "INIFile: Syntax error at line " << linenum << endl;
+                game.log << "INIFile: Empty key/value error in " << filename
+                         << " at line " << linenum << " (" << line << ")"
+                         << endl;
                 continue;
             }
             cursection[key] = value;
