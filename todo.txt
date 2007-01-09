@@ -11,6 +11,8 @@
 * Rewrite INIFile to use Spirit and not allocate char buffers
 * Rewrite the path finder to not suck as much
 * Fix sidebar graphic glitches
+* Some tiles next to rocks/trees are no longer passable, e.g. blocking the
+  top of SCG01EA or right next to the tall rock in SCB01EA.
 
 * Current behaviour for SCons wrt location of binary file isn't optimal for Just
   Working(TM).
