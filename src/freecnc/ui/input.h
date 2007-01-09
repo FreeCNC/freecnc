@@ -50,7 +50,7 @@ private:
 
     unsigned short width;
     unsigned short height;
-    unsigned char done, donecount, finaldelay, gamemode;
+    unsigned char done, donecount;
     SDL_Rect *maparea;
     unsigned short tabwidth;
     unsigned char tilewidth;

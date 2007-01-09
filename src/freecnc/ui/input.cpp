@@ -21,7 +21,6 @@ SDL_Rect Input::markrect;
  */
 Input::Input(unsigned short screenwidth, unsigned short screenheight, SDL_Rect *maparea) :
     width(screenwidth), height(screenheight), done(0), donecount(0),
-    finaldelay(game.config.final_delay), gamemode(0),
     maparea(maparea), tabwidth(pc::sidebar->getTabLocation()->w),
     tilewidth(p::ccmap->getMapTile(0)->w), lplayer(p::ppool->getLPlayer()),
     kbdmod(k_none), lmousedown(m_none), rmousedown(m_none),
@@ -131,8 +130,7 @@ void Input::handle()
             } else if (event.key.keysym.sym == SDLK_s) {
                 selected.stop();
             } else if (event.key.keysym.sym == SDLK_a) {
-                if (gamemode == 0) {
-                    break;
+                /*
                 }
                 Player* tplayer = p::ppool->getPlayer(selected.getOwner());
                 if (tplayer == 0) {
@@ -147,6 +145,7 @@ void Input::handle()
                         // tried to unally with self
                     }
                 }
+                */
             } else {
                 unsigned char k_temp = kbdmod;
                 switch (event.key.keysym.sym) {
@@ -385,7 +384,7 @@ void Input::handle()
             logger->gameMsg("MISSION FAILED");
         }
     }
-    if (donecount > finaldelay) {
+    if (donecount > game.config.final_delay) {
         done = 1;
     }
 }
