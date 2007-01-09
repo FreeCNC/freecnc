@@ -86,7 +86,8 @@ namespace Sound
                 sample += delta;
             }
 
-            *formatted_output++ = Clip<short>(sample);
+            sample = Clip<short>(sample);
+            *formatted_output++ = sample;
 
             index += index_adjustment[code & 7];
             index = Clip<unsigned char>(index, 0, 88);
