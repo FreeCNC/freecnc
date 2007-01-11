@@ -180,13 +180,12 @@ SDL_Color SHPImage::alphapal[6] = {{0x00,0x00,0x00,0x00}, {0x33,0x33,0x33,0x33},
 SHPImage::SHPImage(const char *fname, char scaleq) : SHPBase(fname, scaleq)
 {
     int i, j;
-    VFile *imgfile;
-    imgfile = VFS_Open(fname);
+    shared_ptr<File> imgfile = game.vfs.open(fname);
     if (!imgfile) {
         throw ImageNotFound("SHPImage: File '" + string(fname) + "' not found");
     }
-    shpdata.resize(imgfile->fileSize());
-    imgfile->readByte(&shpdata[0], imgfile->fileSize());
+    shpdata.resize(imgfile->size());
+    imgfile->read(shpdata, imgfile->size());
 
     // Header
     header.NumImages = readword(shpdata,0);
@@ -210,7 +209,6 @@ SHPImage::SHPImage(const char *fname, char scaleq) : SHPBase(fname, scaleq)
         header.RefFormat[i] = readbyte(shpdata, j);
         j += 1;
     }
-    VFS_Close(imgfile);
 }
 
 /** Extract a frame from a SHP into two SDL_Surface* (shadow is separate)
