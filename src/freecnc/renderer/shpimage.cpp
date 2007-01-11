@@ -182,8 +182,8 @@ SHPImage::SHPImage(const char *fname, char scaleq) : SHPBase(fname, scaleq)
     int i, j;
     VFile *imgfile;
     imgfile = VFS_Open(fname);
-    if (0 == imgfile) {
-        throw ImageNotFound();
+    if (!imgfile) {
+        throw ImageNotFound("SHPImage: File '" + string(fname) + "' not found");
     }
     shpdata = new unsigned char[imgfile->fileSize()];
     imgfile->readByte(shpdata, imgfile->fileSize());
@@ -404,9 +404,8 @@ Dune2Image::Dune2Image(const char *fname, char scaleq) : SHPBase(fname,scaleq)
 
     imgfile = VFS_Open(fname);
     if( imgfile == NULL ) {
-        game.log << "(Dune2Image) File " << fname << " not found" << endl;
         shpdata = NULL;
-        throw ImageNotFound();
+        throw ImageNotFound("Dune2Image loader: File '" + string(fname) + "' not found");
     }
     //shpdata = mixes->extract(fname);
     shpdata = new unsigned char[imgfile->fileSize()];
@@ -524,8 +523,9 @@ TemplateImage::TemplateImage(const char *fname, char scaleq, bool ratemp)
     : SHPBase(fname, scaleq), ratemp(ratemp)
 {
     tmpfile = VFS_Open(fname);
-    if (tmpfile == NULL)
-        throw ImageNotFound();
+    if (tmpfile == NULL) {
+        throw ImageNotFound("TemplateImage: File '" + string(fname) + "' not found");
+    }
 }
 
 TemplateImage::~TemplateImage()

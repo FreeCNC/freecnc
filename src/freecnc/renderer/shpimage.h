@@ -121,6 +121,9 @@ private:
     VFile* tmpfile;
 };
 
-class ImageNotFound {};
+struct ImageNotFound : public std::runtime_error
+{
+    ImageNotFound(const string& msg) : std::runtime_error(msg) {}
+};
 
 #endif

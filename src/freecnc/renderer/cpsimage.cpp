@@ -13,7 +13,7 @@ CPSImage::CPSImage(const char* fname, int scaleq) : cpsdata(0), image(0) {
     this->scaleq = scaleq;
     imgfile = VFS_Open(fname);
     if (imgfile == NULL) {
-        throw ImageNotFound();
+        throw ImageNotFound("CPS loader: " + string(fname) + " not found");
     }
     imgsize = imgfile->fileSize();
     image = NULL;

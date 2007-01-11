@@ -36,7 +36,7 @@ ImageCacheEntry& ImageCache::getImage(unsigned int imgnum)
     std::map<unsigned int, ImageCacheEntry>::iterator cachepos;
 
     if (imgnum == (unsigned int)-1) {
-        throw ImageNotFound();
+        throw ImageNotFound("Image Cache: Invalid number");
     }
 
     //game.log << "Debug: ImageCache::getImage " << imgnum << " " << cache.size();
@@ -95,7 +95,7 @@ unsigned int ImageCache::loadImage(const char* fname, int scaleq) {
         }
     }
     if ((unsigned int)-1 == namecache[name]) {
-        throw ImageNotFound();
+        throw ImageNotFound("Image cache: '" + name + "' not found");
     }
     return cachentry->second;
 }
