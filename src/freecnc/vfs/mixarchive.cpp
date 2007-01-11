@@ -70,9 +70,9 @@ namespace VFS
         
     protected:
         void do_flush() {}
-        int do_read(vector<char>& buf, int count);
+        int do_read(vector<unsigned char>& buf, int count);
         void do_seek(int pos, int orig);
-        int do_write(vector<char>& buf) { return 0; }
+        int do_write(const vector<unsigned char>& buf) { return 0; }
         
     private:
         void update_state();
@@ -119,7 +119,7 @@ namespace VFS
     
     //-------------------------------------------------------------------------
     
-    int MixFile::do_read(vector<char>& buf, int count)
+    int MixFile::do_read(vector<unsigned char>& buf, int count)
     {
         if (eof_) {
             return 0;

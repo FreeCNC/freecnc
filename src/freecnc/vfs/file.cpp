@@ -12,7 +12,7 @@ using std::vector;
 
 namespace VFS
 {
-    int File::read(vector<char>& buf, int count)
+    int File::read(vector<unsigned char>& buf, int count)
     {
         if (writable_) { throw logic_error("File not readable"); }
 
@@ -23,17 +23,17 @@ namespace VFS
     {
         if (writable_) { throw logic_error("File not readable"); }
 
-        vector<char> buf;
+        vector<unsigned char> buf;
         do_read(buf, count);
         return string(buf.begin(), buf.end());
     }
     
-    int File::read(vector<char>& buf, char delim)
+    int File::read(vector<unsigned char>& buf, char delim)
     {
         if (writable_) { throw logic_error("File not readable"); }
         
-        vector<char> buffer;
-        vector<char>::iterator it;
+        vector<unsigned char> buffer;
+        vector<unsigned char>::iterator it;
         while (!eof_) {
             do_read(buffer, 1024);
             it = find(buffer.begin(), buffer.end(), delim);
@@ -48,16 +48,16 @@ namespace VFS
         
     string File::read(char delim)
     {
-        vector<char> buf;
+        vector<unsigned char> buf;
         read(buf, delim);
         return string(buf.begin(), buf.end());
     }
     
     string File::readline()
     {
-        vector<char> buf;
+        vector<unsigned char> buf;
         if (read(buf, '\n') > 0) {
-            vector<char>::iterator end = buf.end();
+            vector<unsigned char>::iterator end = buf.end();
             return string(buf.begin(), *buf.rbegin() == '\r' ? --end : end);
         } else {
             return "";
@@ -70,7 +70,7 @@ namespace VFS
     {
         if (!writable_) { throw logic_error("File not writable"); }
 
-        vector<char> buf(str.begin(), str.end());
+        vector<unsigned char> buf(str.begin(), str.end());
         return do_write(buf);
     }  
     

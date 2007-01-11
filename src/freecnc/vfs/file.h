@@ -14,7 +14,7 @@ namespace VFS
 
         // Reads `count' bytes or until EOF from the file into `buf'.
         // Returns bytes read.
-        int read(std::vector<char>& buf, int count);
+        int read(std::vector<unsigned char>& buf, int count);
 
         // Reads `count' bytes or until EOF from the file into a string and
         // returns it.
@@ -23,7 +23,7 @@ namespace VFS
         // Reads until `delim' or EOF from the file into `buf'.
         // The delimiter is discarded.
         // Returns bytes read, including the delimiter.
-        int read(std::vector<char>& buf, char delim);
+        int read(std::vector<unsigned char>& buf, char delim);
         
         // Reads until `delim' or EOF from the file into a string and returns it.
         // The delimiter is discarded.
@@ -36,7 +36,7 @@ namespace VFS
 
         // Writes the contents of `buf' to the file.
         // Returns bytes written.
-        int write(std::vector<char>& buf);
+        int write(const std::vector<unsigned char>& buf);
         
         // Writes `str' to the file.
         // Returns bytes written.
@@ -90,9 +90,9 @@ namespace VFS
         bool writable_;
 
         virtual void do_flush() = 0;
-        virtual int do_read(std::vector<char>& buf, int count) = 0;
+        virtual int do_read(std::vector<unsigned char>& buf, int count) = 0;
         virtual void do_seek(int pos, int orig) = 0; // orig = -1 - start, 0 - cur, 1 - end
-        virtual int do_write(std::vector<char>& buf) = 0;
+        virtual int do_write(const std::vector<unsigned char>& buf) = 0;
     }; 
 }
 

@@ -28,9 +28,9 @@ namespace VFS
         
     protected:
         void do_flush();
-        int do_read(vector<char>& buf, int count);
+        int do_read(vector<unsigned char>& buf, int count);
         void do_seek(int pos, int orig);
-        int do_write(vector<char>& buf);
+        int do_write(const vector<unsigned char>& buf);
         
     private:
         void update_state();
@@ -83,7 +83,7 @@ namespace VFS
         fflush(handle);
     }
     
-    int DirFile::do_read(vector<char>& buf, int count)
+    int DirFile::do_read(vector<unsigned char>& buf, int count)
     {
         buf.resize(count);
         int bytesread = static_cast<int>(fread(&buf[0], sizeof(char), buf.size(), handle));
@@ -105,7 +105,7 @@ namespace VFS
         update_state();
     }
     
-    int DirFile::do_write(vector<char>& buf)
+    int DirFile::do_write(const vector<unsigned char>& buf)
     {
         int byteswritten = static_cast<int>(fwrite(&buf[0], sizeof(char), buf.size(), handle));
         update_state();

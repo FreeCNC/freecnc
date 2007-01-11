@@ -844,7 +844,7 @@ void CnCMap::loadPal(SDL_Color *palette)
         palname += ".PAL";
     }
 
-    vector<char> paldata(3 * 256);
+    vector<unsigned char> paldata(3 * 256);
     shared_ptr<File> palfile = game.vfs.open(palname);
 
     if (!palfile) {

@@ -21,7 +21,7 @@ GraphicsEngine::GraphicsEngine()
         SDL_Surface* icon = 0;
         shared_ptr<File> icon_file = game.vfs.open("base/icon.bmp");
         if (icon_file) {
-            vector<char> buffer;
+            vector<unsigned char> buffer;
             icon_file->read(buffer, icon_file->size());
             icon = SDL_LoadBMP_RW(SDL_RWFromMem(&buffer[0], buffer.size()), 1);
             if (icon != 0) {
