@@ -72,11 +72,9 @@ void GameEngine::startup(int argc, char** argv)
     vfs.add(game.config.basedir + "/data/settings/td");
     vfs.add(game.config.basedir + "/data/mix");
 
-    string logfile = game.config.basedir + "/freecnc.log";
-    log.open(logfile.c_str());
-    
+    log.open((game.config.basedir + "/freecnc.log").c_str());
     log << "GameEngine: Bootstrapping engine..." << endl;
-    
+
     try { 
         // Legacy VFS / logging / conf parsing
         VFS_PreInit(config.basedir.c_str());

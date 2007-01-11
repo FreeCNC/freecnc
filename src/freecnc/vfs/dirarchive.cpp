@@ -3,6 +3,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <boost/filesystem/operations.hpp>
+
 #include "dirarchive.h"
 
 using std::ostringstream;

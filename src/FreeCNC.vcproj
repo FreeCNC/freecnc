@@ -335,6 +335,32 @@
 			Name="lib"
 			>
 			<File
+				RelativePath=".\freecnc\lib\blowfish.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\freecnc\lib\blowfish.h"
+				>
+			</File>
+			<File
 				RelativePath=".\freecnc\lib\common.cpp"
 				>
 			</File>
@@ -372,6 +398,14 @@
 			</File>
 			<File
 				RelativePath=".\freecnc\lib\logger.h"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\lib\westwood_key.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\lib\westwood_key.h"
 				>
 			</File>
 		</Filter>

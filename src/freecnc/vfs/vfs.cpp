@@ -76,7 +76,7 @@ namespace VFS
         vector<fs::path> mixfiles;
         if (list_files(pth, ".mix", mixfiles)) {
             for (vector<fs::path>::iterator it = mixfiles.begin(); it != mixfiles.end(); ++it) {
-                vec.push_back(shared_ptr<MixArchive>(new MixArchive(*it)));
+                vec.push_back(shared_ptr<MixArchive>(new MixArchive(*it, std::vector<std::string>())));
             }
         }
 
