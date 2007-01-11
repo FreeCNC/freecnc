@@ -185,18 +185,18 @@ SHPImage::SHPImage(const char *fname, char scaleq) : SHPBase(fname, scaleq)
     if (!imgfile) {
         throw ImageNotFound("SHPImage: File '" + string(fname) + "' not found");
     }
-    shpdata = new unsigned char[imgfile->fileSize()];
-    imgfile->readByte(shpdata, imgfile->fileSize());
+    shpdata.resize(imgfile->fileSize());
+    imgfile->readByte(&shpdata[0], imgfile->fileSize());
 
     // Header
     header.NumImages = readword(shpdata,0);
     header.Width = readword(shpdata, 6);
 
     header.Height = readword(shpdata, 8);
-    header.Offset = new unsigned int[header.NumImages + 2];
-    header.Format = new unsigned char[header.NumImages + 2];
-    header.RefOffs = new unsigned int[header.NumImages + 2];
-    header.RefFormat = new unsigned char[header.NumImages + 2];
+    header.Offset.resize(header.NumImages + 2);
+    header.Format.resize(header.NumImages + 2);
+    header.RefOffs.resize(header.NumImages + 2);
+    header.RefFormat.resize(header.NumImages + 2);
 
     // "Offsets"
     j = 14;
@@ -211,16 +211,6 @@ SHPImage::SHPImage(const char *fname, char scaleq) : SHPBase(fname, scaleq)
         j += 1;
     }
     VFS_Close(imgfile);
-}
-
-/** Destructor, freas the memory used by the shpimage. */
-SHPImage::~SHPImage()
-{
-    delete[] shpdata;
-    delete[] header.Offset;
-    delete[] header.Format;
-    delete[] header.RefOffs;
-    delete[] header.RefFormat;
 }
 
 /** Extract a frame from a SHP into two SDL_Surface* (shadow is separate)
@@ -357,7 +347,7 @@ void SHPImage::DecodeSprite(unsigned char *imgdst, unsigned short imgnum)
         case FORMAT_80:
             len = header.Offset[imgnum + 1] - header.Offset[imgnum];
             imgsrc = new unsigned char[len];
-            memcpy(imgsrc, shpdata + header.Offset[imgnum], len);
+            memcpy(imgsrc, &shpdata[0] + header.Offset[imgnum], len);
             memset(imgdst, 0, sizeof(imgdst));
             Compression::decode80(imgsrc, imgdst);
             break;
@@ -370,7 +360,7 @@ void SHPImage::DecodeSprite(unsigned char *imgdst, unsigned short imgnum)
             DecodeSprite(imgdst, i);
             len = header.Offset[imgnum + 1] - header.Offset[imgnum];
             imgsrc = new unsigned char[len];
-            memcpy(imgsrc, shpdata + header.Offset[imgnum], len);
+            memcpy(imgsrc, &shpdata[header.Offset[imgnum]], len);
             Compression::decode40(imgsrc, imgdst);
             break;
         }
@@ -378,7 +368,7 @@ void SHPImage::DecodeSprite(unsigned char *imgdst, unsigned short imgnum)
             DecodeSprite(imgdst, imgnum - 1);
             len = header.Offset[imgnum + 1] - header.Offset[imgnum];
             imgsrc = new unsigned char[len];
-            memcpy(imgsrc, shpdata + header.Offset[imgnum], len);
+            memcpy(imgsrc, &shpdata[header.Offset[imgnum]], len);
             Compression::decode40(imgsrc, imgdst);
             break;
         default:
@@ -400,24 +390,16 @@ void SHPImage::DecodeSprite(unsigned char *imgdst, unsigned short imgnum)
  */
 Dune2Image::Dune2Image(const char *fname, char scaleq) : SHPBase(fname,scaleq)
 {
-    VFile *imgfile;
+    shared_ptr<File> file = game.vfs.open(fname);
 
-    imgfile = VFS_Open(fname);
-    if( imgfile == NULL ) {
-        shpdata = NULL;
+    if (!file) {
         throw ImageNotFound("Dune2Image loader: File '" + string(fname) + "' not found");
     }
-    //shpdata = mixes->extract(fname);
-    shpdata = new unsigned char[imgfile->fileSize()];
-    imgfile->readByte(shpdata, imgfile->fileSize());
-    VFS_Close(imgfile);
+
+    shpdata.resize(file->size());
+    file->read(shpdata, file->size());
 }
 
-/** Destructor, frees up the memory used by a dune2 shp. */
-Dune2Image::~Dune2Image()
-{
-    delete[] shpdata;
-}
 
 /** Decode a image in the dune2 shp.
  * @param the number of the image to decode.
@@ -425,34 +407,26 @@ Dune2Image::~Dune2Image()
  */
 SDL_Surface *Dune2Image::getImage(unsigned short imgnum)
 {
-    SDL_Surface *image, *optimage;
-    unsigned int startpos;
-    unsigned char *d, *data;
+    unsigned int startpos = getD2Header(imgnum);
+    vector<unsigned char> data(header.cx * header.cy);
 
-    startpos = getD2Header( imgnum );
+    if (~header.compression & 2) {
+        vector<unsigned char> temp_buff(header.size_out);
+        int size = Compression::decode80(&shpdata[startpos], &temp_buff[0]);
+        Compression::decode20(&temp_buff[0], &data[0], size);
+    } else {
+        Compression::decode20(&shpdata[startpos], &data[0], header.size_out);
+    }
 
-    data = new unsigned char[header.cx * header.cy];
-
-    if( ~header.compression & 2 ) {
-        d = new unsigned char[header.size_out];
-
-        memset(d, 0, header.size_out);
-
-        Compression::decode20( d, data, Compression::decode80( shpdata+startpos, d ) );
-
-        delete[] d;
-    } else
-        Compression::decode20( shpdata+startpos, data, header.size_out );
-
-    image = SDL_CreateRGBSurfaceFrom(data, header.cx, header.cy,
-                                     8, header.cx, 0, 0, 0, 0);
+    SDL_Surface* image = SDL_CreateRGBSurfaceFrom(&data[0], header.cx,
+            header.cy, 8, header.cx, 0, 0, 0, 0);
 
     /// @bug TEMPORARY HACK
     // The index 0x0c is used to give some cursors shadows, this is defined in
     // the palette as (0,0,0), which is also the colour of the index 0, which
     // has to be set transparent.  Not sure why it kills 0x0c as well as 0x0.
     // 0x0c does not get killed in 8 bit mode.
-    for (int pos = 0; pos < header.cx*header.cy; ++pos) {
+    for (int pos = 0; pos < header.cx * header.cy; ++pos) {
         if (data[pos] == 0x0c)
             data[pos] = 0x9a;
     }
@@ -460,6 +434,7 @@ SDL_Surface *Dune2Image::getImage(unsigned short imgnum)
     SDL_SetColors(image, palette[0], 0, 256);
     SDL_SetColorKey(image, SDL_SRCCOLORKEY, 0);
 
+    SDL_Surface *optimage;
     if (scaleq >= 0) {
         optimage = scale(image, scaleq);
         SDL_SetColorKey(optimage, SDL_SRCCOLORKEY, 0);
@@ -467,7 +442,6 @@ SDL_Surface *Dune2Image::getImage(unsigned short imgnum)
         optimage = SDL_DisplayFormat(image);
     }
     SDL_FreeSurface(image);
-    delete[] data;
 
     return optimage;
 }
@@ -489,30 +463,29 @@ unsigned int Dune2Image::getD2Header(unsigned short imgnum)
         return 0;
     }
 
-    if( readword(shpdata, 4) ) {
-        curpos = readword(shpdata, imgnum*2 + 2 );
+    if (readword(shpdata, 4)) {
+        curpos = readword(shpdata, imgnum * 2 + 2);
     } else {
-        curpos = readlong(shpdata, imgnum*4 + 2) + 2;
+        curpos = readlong(shpdata, imgnum * 4 + 2) + 2;
     }
 
     header.compression = readword(shpdata, curpos);
-    curpos+=2;
+    curpos += 2;
     header.cy = readbyte(shpdata, curpos);
-    curpos++;
+    ++curpos;
     header.cx = readword(shpdata, curpos);
     curpos += 2;
     header.cy2 = readbyte(shpdata, curpos);
-    curpos++;
+    ++curpos;
     header.size_in = readword(shpdata, curpos);
     curpos += 2;
     header.size_out = readword(shpdata, curpos);
     curpos += 2;
 
-    if( header.compression & 1 )
+    if (header.compression & 1)
         curpos += 16;
 
     return curpos;
-
 }
 
 //-----------------------------------------------------------------------------

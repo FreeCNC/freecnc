@@ -11,10 +11,10 @@ struct SHPHeader {
     unsigned short  NumImages;
     unsigned short  Width;
     unsigned short  Height;
-    unsigned int* Offset;
-    unsigned char*  Format;
-    unsigned int* RefOffs;
-    unsigned char*  RefFormat;
+    vector<unsigned int> Offset;
+    vector<unsigned char>  Format;
+    vector<unsigned int> RefOffs;
+    vector<unsigned char>  RefFormat;
 };
 
 struct Dune2Header {
@@ -67,11 +67,8 @@ inline unsigned int SHPBase::getColour(SDL_PixelFormat* fmt, unsigned char palnu
 class SHPImage : SHPBase {
 public:
     SHPImage(const char *fname, char scaleq);
-    ~SHPImage();
-
     void getImage(unsigned short imgnum, SDL_Surface **img, SDL_Surface **shadow, unsigned char palnum);
     void getImageAsAlpha(unsigned short imgnum, SDL_Surface **img);
-
     unsigned int getWidth() const { return header.Width; }
     unsigned int getHeight() const { return header.Height; }
     unsigned short getNumImg() const { return header.NumImages; }
@@ -81,7 +78,7 @@ private:
     static SDL_Color alphapal[6];
 
     void DecodeSprite(unsigned char *imgdst, unsigned short imgnum);
-    unsigned char *shpdata;
+    vector<unsigned char> shpdata;
     SHPHeader header;
 };
 
@@ -93,13 +90,10 @@ class Dune2Image : SHPBase
 {
 public:
     Dune2Image(const char *fname, char scaleq);
-    ~Dune2Image();
-
     SDL_Surface* getImage(unsigned short imgnum);
-
 private:
     unsigned int getD2Header(unsigned short imgnum);
-    unsigned char* shpdata;
+    vector<unsigned char> shpdata;
     Dune2Header header;
 };
 
@@ -112,10 +106,8 @@ class TemplateImage : SHPBase
 public:
     TemplateImage(const char *fname, char scaleq, bool ratemp = false);
     ~TemplateImage();
-
     unsigned short getNumTiles();
     SDL_Surface* getImage(unsigned short imgnum);
-
 private:
     bool ratemp;
     VFile* tmpfile;

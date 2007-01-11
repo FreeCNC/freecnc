@@ -3,22 +3,22 @@
 
 #include "../lib/compression.h"
 #include "../lib/inifile.h"
-#include "../legacyvfs/vfs_public.h"
 #include "shpimage.h"
 #include "cpsimage.h"
 #include "../lib/fcncendian.h"
 
-CPSImage::CPSImage(const char* fname, int scaleq) : cpsdata(0), image(0) {
-    VFile* imgfile;
+CPSImage::CPSImage(const char* fname, int scaleq) : image(0)
+{
     this->scaleq = scaleq;
-    imgfile = VFS_Open(fname);
-    if (imgfile == NULL) {
+    shared_ptr<File> imgfile = game.vfs.open(fname);
+    if (!imgfile) {
         throw ImageNotFound("CPS loader: " + string(fname) + " not found");
     }
-    imgsize = imgfile->fileSize();
-    image = NULL;
-    cpsdata = new unsigned char[imgsize];
-    imgfile->readByte(cpsdata, imgsize);
+
+    imgsize = imgfile->size();
+    cpsdata.resize(imgsize);
+    imgfile->read(cpsdata, imgfile->size());
+
     header.size    = readword(cpsdata,0);
     header.unknown = readword(cpsdata,2);
     header.imsize  = readword(cpsdata,4);
@@ -29,12 +29,10 @@ CPSImage::CPSImage(const char* fname, int scaleq) : cpsdata(0), image(0) {
         // magic here to select appropriate palette
         offset = 10;
     }
-    VFS_Close(imgfile);
 }
 
 CPSImage::~CPSImage()
 {
-    delete[] cpsdata;
     SDL_FreeSurface(image);
 }
 
@@ -55,7 +53,7 @@ void CPSImage::readPalette()
 
 SDL_Surface* CPSImage::getImage()
 {
-    if (image == NULL) {
+    if (!image) {
         loadImage();
     }
     return image;
@@ -63,29 +61,23 @@ SDL_Surface* CPSImage::getImage()
 
 void CPSImage::loadImage()
 {
-    unsigned int len;
-    unsigned char* imgsrc;
-    unsigned char *imgdst;
-    SDL_Surface* imgtmp;
-    len = imgsize-offset;
-    imgsrc = new unsigned char[len];
-    imgdst = new unsigned char[header.imsize];
-    memcpy(imgsrc, cpsdata + offset, len);
-    memset(imgdst, 0, header.imsize);
-    Compression::decode80(imgsrc, imgdst);
-    imgtmp = SDL_CreateRGBSurfaceFrom(imgdst,320,200,8,320,0,0,0,0);
-    SDL_SetColors(imgtmp,palette,0,256);
-    SDL_SetColorKey(imgtmp,SDL_SRCCOLORKEY,0);
-    delete[] imgsrc;
-    delete[] cpsdata;
-    cpsdata = NULL;
+//    unsigned int len = imgsize - offset;
+
+    vector<unsigned char> image_data(header.imsize);
+    Compression::decode80(&cpsdata[0] + offset, &image_data[0]);
+
+    SDL_Surface* imgtmp = SDL_CreateRGBSurfaceFrom(&image_data[0], 320, 200, 8,
+        320, 0, 0, 0, 0);
+    SDL_SetColors(imgtmp, palette, 0, 256);
+    SDL_SetColorKey(imgtmp, SDL_SRCCOLORKEY, 0);
+
+    vector<unsigned char>().swap(cpsdata);
+
     if (scaleq >= 0) {
-        image = scaler.scale(imgtmp,scaleq);
-        SDL_SetColorKey(image,SDL_SRCCOLORKEY,0);
+        image = scaler.scale(imgtmp, scaleq);
+        SDL_SetColorKey(image, SDL_SRCCOLORKEY, 0);
     } else {
         image = SDL_DisplayFormat(imgtmp);
     }
     SDL_FreeSurface(imgtmp);
-    delete[] imgdst;
 }
-

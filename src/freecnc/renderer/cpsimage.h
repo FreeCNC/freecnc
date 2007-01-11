@@ -23,8 +23,10 @@ public:
 private:
     void loadImage();
     void readPalette();
+
     unsigned int imgsize, offset;
-    unsigned char* cpsdata;
+    vector<unsigned char> cpsdata;
+
     SDL_Color palette[256];
     CPSHeader header;
     int scaleq;
