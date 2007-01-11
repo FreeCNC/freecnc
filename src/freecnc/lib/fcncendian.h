@@ -28,7 +28,7 @@
 // Byteswaps endianness of a short (16 bit integer).
 // x: The short to swap.
 // returns: The swapped short.
-inline unsigned short SwapEndian(unsigned short x)
+inline unsigned short swap_endian(unsigned short x)
 {
     return (x << 8) | (x >> 8);
 }
@@ -36,7 +36,7 @@ inline unsigned short SwapEndian(unsigned short x)
 // Byteswaps endianness of an int (32 bit integer).
 // x: The int to swap.
 // returns: The swapped int.
-inline unsigned int SwapEndian(unsigned int x)
+inline unsigned int swap_endian(unsigned int x)
 {
     return (x << 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x >> 24);
 }
@@ -45,12 +45,12 @@ inline unsigned int SwapEndian(unsigned int x)
 // This has no effect on a little-endian system.
 // x: The short to swap.
 // returns: The swapped short.
-inline unsigned short SwapLittleEndian(unsigned short x)
+inline unsigned short swap_little_endian(unsigned short x)
 {
     #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
     return x;
     #else 
-    return SwapEndian(x);
+    return swap_endian(x);
     #endif
 }
 
@@ -58,12 +58,12 @@ inline unsigned short SwapLittleEndian(unsigned short x)
 // This has no effect on a little-endian system.
 // x: The int to swap.
 // returns: The swapped int.
-inline unsigned int SwapLittleEndian(unsigned int x)
+inline unsigned int swap_little_endian(unsigned int x)
 {
     #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
     return x;
     #else 
-    return SwapEndian(x);
+    return swap_endian(x);
     #endif
 }
 
@@ -71,12 +71,12 @@ inline unsigned int SwapLittleEndian(unsigned int x)
 // This has no effect on a big-endian system.
 // x: The short to swap.
 // returns: The swapped short.
-inline unsigned short SwapBigEndian(unsigned short x)
+inline unsigned short swap_big_endian(unsigned short x)
 {
     #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
     return x;
     #else 
-    return SwapEndian(x);
+    return swap_endian(x);
     #endif
 }
 
@@ -84,12 +84,12 @@ inline unsigned short SwapBigEndian(unsigned short x)
 // This has no effect on a big-endian system.
 // x: The int to swap.
 // returns: The swapped int.
-inline unsigned int SwapBigEndian(unsigned int x)
+inline unsigned int swap_big_endian(unsigned int x)
 {
     #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
     return x;
     #else 
-    return SwapEndian(x);
+    return swap_endian(x);
     #endif
 }
 
