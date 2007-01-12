@@ -14,6 +14,7 @@
 
 using std::min;
 using std::ostringstream;
+using std::out_of_range;
 using std::runtime_error;
 using std::string;
 using std::vector;
@@ -97,7 +98,7 @@ namespace VFS
         handle = fopen(archive_.c_str(), "rb");
         if (!handle) {
             ostringstream temp;
-            temp << "MixArchive: fopen failed for '" << name_ << "' in '" << archive_ << "': " << errno << ": " << strerror(errno);
+            temp << "MixArchive: '" << name_ << "' in '" << archive_ << "': fopen failed: " << errno << ": " << strerror(errno);
             throw runtime_error(temp.str());
         }
         fseek(handle, lower_boundary, SEEK_SET);
@@ -136,28 +137,20 @@ namespace VFS
 
     void MixFile::do_seek(int offset, int orig)
     {
-        int origin, dest;
         switch (orig) {
-            case -1:
-                origin = SEEK_SET;
-                dest = lower_boundary + offset;
-                break;
-            case 0:
-                origin = SEEK_CUR;
-                dest = lower_boundary + pos_ + offset;
-                break;
-            case 1:
-                origin = SEEK_END;
-                dest = lower_boundary + size_ + offset;
-                break;
-            default:
-                return;
-        }
-        if (dest < lower_boundary || dest > lower_boundary + size_) {
-            return; 
+            case -1: offset += lower_boundary; break;         // From start of file
+            case  0: offset += lower_boundary + pos_; break;  // From current position
+            case  1: offset += lower_boundary + size_; break; // From end of file
+            default: return;
         }
 
-        fseek(handle, offset, origin);
+        if (offset < lower_boundary || offset > lower_boundary + size_) {
+            ostringstream temp;
+            temp << "MixArchive: '" << name_ << "' in '" << archive_ << "': Invalid seek (orig=" << orig << " offset=" << offset << " pos=" << pos_ << " lower_boundary=" << lower_boundary << " size=" << size_ << ")";
+            throw out_of_range(temp.str());
+        }
+
+        fseek(handle, offset, SEEK_SET);
         update_state();
     }
 
