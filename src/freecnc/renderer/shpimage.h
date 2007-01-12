@@ -5,7 +5,6 @@
 #include "../freecnc.h"
 
 class ImageProc;
-class VFile;
 
 struct SHPHeader {
     unsigned short  NumImages;
@@ -101,16 +100,19 @@ private:
 // TemplateImage
 //-----------------------------------------------------------------------------
 
+class File;
+
 class TemplateImage : SHPBase
 {
 public:
     TemplateImage(const char *fname, char scaleq, bool ratemp = false);
-    ~TemplateImage();
     unsigned short getNumTiles();
     SDL_Surface* getImage(unsigned short imgnum);
 private:
     bool ratemp;
-    VFile* tmpfile;
+    unsigned int c_tiles, width, height, img_offset;
+    vector<unsigned char> image_index;
+    shared_ptr<File> datafile;
 };
 
 struct ImageNotFound : public std::runtime_error
