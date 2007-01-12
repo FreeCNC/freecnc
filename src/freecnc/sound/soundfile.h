@@ -14,8 +14,14 @@ enum {
 };
 
 namespace Sound {
-    void IMADecode(unsigned char *output, unsigned char *input, unsigned short compressed_size, int& sample, int& index);
-    void WSADPCM_Decode(unsigned char *output, unsigned char *input, unsigned short compressed_size, unsigned short uncompressed_size);
+    typedef vector<unsigned char> Chunk;
+    // TODO: Convert input types below to using the iterator
+    // This is pending migraing VQA to new VFS
+    //typedef Chunk::const_iterator ChunkIterator;
+    typedef const unsigned char* ChunkIterator;
+
+    void IMADecode(unsigned char *output, ChunkIterator input, unsigned short compressed_size, int& sample, int& index);
+    void WSADPCM_Decode(unsigned char *output, ChunkIterator input, unsigned short compressed_size, unsigned short uncompressed_size);
 }
 
 class SoundFile
