@@ -11,8 +11,8 @@
 
 #include "../lib/compression.h"
 #include "../lib/inifile.h"
+#include "../lib/fcncendian.h"
 #include "../renderer/renderer_public.h"
-#include "../legacyvfs/vfs_public.h"
 #include "game.h"
 #include "map.h"
 #include "playerpool.h"
@@ -503,53 +503,33 @@ struct tiledata
 
 void CnCMap::loadBin()
 {
-    unsigned int index = 0;
-    //    unsigned char templ, tile;
-    int xtile, ytile;
-    VFile *binfile;
-    string bin_filename(missionData.mapname);
+    vector<TileList> mapdata(width * height);
+    vector<TileList>::iterator map_it = mapdata.begin();
 
-    TileList *mapdata;
-
-    mapdata = new TileList[width*height];
-
-    bin_filename += ".BIN";
-
-    binfile = VFS_Open(bin_filename.c_str());
-
-    if(binfile == NULL) {
-        throw MapLoadingError("Map loader: Unable to open " + bin_filename);
+    shared_ptr<File> binfile = game.vfs.open(game.config.map + ".BIN");
+    if (!binfile) {
+        throw MapLoadingError("Map loader: Unable to open " + game.config.map + ".BIN");
     }
 
-    /* Seek the beginning of the map.
-     * It's at begining of bin + maxwidth * empty y cells + empty x cells
-     * times 2 sinse each entry is 2 bytes
-     */
-    binfile->seekSet( (64*y + x) * 2 );
+    int unused_cells = 64 * y + x;
+    binfile->seek_start(unused_cells * 2);
 
-    for( ytile = 0; ytile < height; ytile++ ) {
-        for( xtile = 0; xtile < width; xtile++ ) {
-            unsigned short tmpread = 0;
-            /* Read template and tile */
-            mapdata[index].templateNum = 0;
-            binfile->readByte((unsigned char *)&(tmpread), 1);
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-            mapdata[index].templateNum = SDL_Swap16(tmpread);
-#else
-            mapdata[index].templateNum = tmpread;
-#endif
-            binfile->readByte(&(mapdata[index].tileNum), 1);
+    vector<unsigned char> data;
+    vector<unsigned char>::iterator it;
 
-            index++;
+    for (unsigned int ytile = 0; ytile < height; ++ytile) {
+        binfile->read(data, width * 2);
+        it = data.begin();
+
+        for (unsigned int xtile = 0; xtile < width; ++xtile) {
+            map_it->templateNum = read_byte(it);
+            map_it->tileNum = read_byte(it);
+            ++map_it;
         }
-        /* Skip til the end of the line and the onwards to the
-         * beginning of usefull data on the next line 
-         */
-        binfile->seekCur( 2*(64-width) );
+        // Go to next chunk of map data
+        binfile->seek_cur(2*(64-width));
     }
-    VFS_Close(binfile);
-    parseBin(mapdata);
-    delete[] mapdata;
+    parseBin(&mapdata[0]);
 }
 
 void CnCMap::unMapPack()
