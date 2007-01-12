@@ -10,6 +10,14 @@
 
 using std::runtime_error;
 
+namespace
+{
+    const int MAX_DECOMP_SIZE = 64000;
+
+    vector<unsigned char> temp_buff(MAX_DECOMP_SIZE);
+}
+
+
 WSA::WSA(const string& fname)
 {
     {
@@ -76,22 +84,15 @@ WSA::WSA(const string& fname)
 
 SDL_Surface* WSA::decode_frame(unsigned short framenum)
 {
-    SDL_Surface *tempframe;
-    // SDL_Surface *frame;
-
     unsigned int len_frame = offsets[framenum+1] - offsets[framenum];
     vector<unsigned char> image80(len_frame);
     memcpy(&image80[0], &wsadata[offsets[framenum]], len_frame);
 
-    // XXX: Can't work out the decompressed size?
-    unsigned char* image40 = new unsigned char[64000];
-    Compression::decode80(&image80[0], image40);
-    Compression::decode40(image40, &framedata[0]);
+    Compression::decode80(&image80[0], &temp_buff[0]);
+    Compression::decode40(&temp_buff[0], &framedata[0]);
 
-    tempframe = SDL_CreateRGBSurfaceFrom(&framedata[0], width, height, 8, width, 0, 0, 0, 0);
+    SDL_Surface* tempframe = SDL_CreateRGBSurfaceFrom(&framedata[0], width, height, 8, width, 0, 0, 0, 0);
     SDL_SetColors(tempframe, palette, 0, 256);
-
-    delete[] image40;
 
     return tempframe;
 }
@@ -110,7 +111,7 @@ void WSA::animate()
     dest.x = (pc::gfxeng->getWidth()-(width<<1))>>1;
     dest.y = (pc::gfxeng->getHeight()-(height<<1))>>1;
     fps = static_cast<float>((1024.0 / (float) delta) * 1024.0);
-    delay = static_cast<float>((1.0 / fps) * 1000.0);
+    delay = static_cast<float>((0.5 / fps) * 1000.0);
 
     pc::gfxeng->clearScreen();
     /* queue sound first, regardless of whats in the buffer already */
