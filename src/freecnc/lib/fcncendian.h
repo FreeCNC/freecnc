@@ -32,30 +32,8 @@ inline unsigned int swap_endian(unsigned int dword)
 
 //-----------------------------------------------------------------------------
 
-// Swaps `word' to system endianess from `byteorder'.
-// No swapping is performed on a system with the same endianness as `byteorder', or if byteorder is 0.
-inline unsigned short swap_sys_endian(unsigned short word, int byteorder)
-{
-    if (byteorder != 0 && byteorder != FCNC_BYTEORDER) {
-        word = swap_endian(word);
-    }
-    return word;
-}
-
-// Swaps `dword' to system endianess from `byteorder'.
-// No swapping is performed on a system with the same endianness as `byteorder', or if byteorder is 0.
-inline unsigned int swap_sys_endian(unsigned int dword, int byteorder)
-{
-    if (byteorder != 0 && byteorder != FCNC_BYTEORDER) {
-        dword = swap_endian(dword);
-    }
-    return dword;
-}
-
-//-----------------------------------------------------------------------------
-
-// Swaps `word' to litte-endian from system endianness.
-// No swapping is performed on a little-endian system.
+// Swaps `dword' to/from little endian.
+// No swapping is performed on a little endian system.
 inline unsigned short swap_little_endian(unsigned short word)
 {
     #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
@@ -65,8 +43,8 @@ inline unsigned short swap_little_endian(unsigned short word)
     #endif
 }
 
-// Swaps `dword' to litte-endian from system endianness.
-// No swapping is performed on a little-endian system.
+// Swaps `dword' to/from little endian.
+// No swapping is performed on a little endian system.
 inline unsigned int swap_little_endian(unsigned int dword)
 {
     #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
@@ -78,8 +56,8 @@ inline unsigned int swap_little_endian(unsigned int dword)
 
 //-----------------------------------------------------------------------------
 
-// Swaps `word' to big-endian from system endianness.
-// No swapping is performed on a big-endian system.
+// Swaps `word' to/from big endian.
+// No swapping is performed on a big endian system.
 inline unsigned short swap_big_endian(unsigned short word)
 {
     #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
@@ -89,8 +67,8 @@ inline unsigned short swap_big_endian(unsigned short word)
     #endif
 }
 
-// Swaps `dword' to big-endian from system endianness.
-// No swapping is performed on a big-endian system.
+// Swaps `dword' to/from big endian.
+// No swapping is performed on a big endian system.
 inline unsigned int swap_big_endian(unsigned int dword)
 {
     #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
@@ -112,25 +90,31 @@ inline unsigned char read_byte(Iterator& it)
     return byte;
 }
     
-// Reads a word from `it', swapping to system endianness from `byteorder'.
+// Reads a word from `it', converting to system endianness from `byteorder'.
 // The iterator is assumed to dereference contiguous bytes. It will be increased twice.
 // No swapping is performed on a system with the same endianness as `byteorder', or if byteorder is 0.
 template<class Iterator>
 inline unsigned short read_word(Iterator& it, int byteorder=0)
 {
-    unsigned short word = swap_sys_endian(*reinterpret_cast<unsigned short*>(&*it), byteorder);
-    ++it;
+    unsigned short word = *reinterpret_cast<unsigned short*>(&*it);
+    if (byteorder != 0) {
+        word = byteorder == FCNC_LIL_ENDIAN ? swap_little_endian(word) : swap_big_endian(word);
+    }
+    ++it;    
     ++it;
     return word;
 }
     
-// Reads a dword from `it', swapping to system endianness from `byteorder'.
+// Reads a dword from `it', converting to system endianness from `byteorder'.
 // The iterator is assumed to dereference contiguous bytes. It will be increased 4 times.
 // No swapping is performed on a system with the same endianness as `byteorder', or if byteorder is 0.
 template<class Iterator>
 inline unsigned int read_dword(Iterator& it, int byteorder=0)
 {
-    unsigned int dword = swap_sys_endian(*reinterpret_cast<unsigned int*>(&*it), byteorder);
+    unsigned int dword = *reinterpret_cast<unsigned int*>(&*it);
+    if (byteorder != 0) {
+        dword = byteorder == FCNC_LIL_ENDIAN ? swap_little_endian(dword) : swap_big_endian(dword);
+    }
     ++it;
     ++it;
     ++it;
