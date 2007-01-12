@@ -3,7 +3,6 @@
 #include "../lib/compression.h"
 #include "../lib/inifile.h"
 #include "../sound/sound_public.h"
-#include "../legacyvfs/vfs_public.h"
 #include "graphicsengine.h"
 #include "imageproc.h"
 #include "wsa.h"
@@ -11,109 +10,88 @@
 
 using std::runtime_error;
 
-WSA::WSA(const char* fname)
+WSA::WSA(const string& fname)
 {
-    int i, j;
+    {
+        shared_ptr<File> file = game.vfs.open(fname);
+        if (!file) {
+            throw WSAError("WSA: Unable to open '" + fname + "'");
+        }
+        wsadata.resize(file->size());
+        if (file->read(wsadata, file->size()) == 0) {
+            throw WSAError("WSA: Empty file (" + fname + ")");
+        }
+    }
+
     shared_ptr<INIFile> wsa_ini;
-    VFile* wfile;
-
-    /* Extract entire animation */
-    wfile = VFS_Open(fname);
-    if( wfile == NULL ) {
-        throw WSAError();
-    }
-    wsadata = new unsigned char[wfile->fileSize()];
-    wfile->readByte(wsadata, wfile->fileSize());
-    VFS_Close(wfile);
-
-    if (!wsadata) {
-        game.log << "WSA: no data for " << fname << endl;
-        throw WSAError();
-    }
-
     try {
         wsa_ini = GetConfig("wsa.ini");
     } catch(runtime_error&) {
-        game.log << "WSA: wsa.ini not found." << endl;
-        throw WSAError();
+        throw WSAError("WSA: wsa.ini not found");
     }
 
-    sndfile = wsa_ini->readString(fname, "sound");
-
-    /* Lets get the header */
-    header.NumFrames = readword(wsadata, 0);
-    header.xpos = readword(wsadata, 2);
-    header.ypos = readword(wsadata, 4);
-    header.width = readword(wsadata, 6);
-    header.height = readword(wsadata, 8);
-    header.delta = readlong(wsadata, 10);
-    header.offsets = new unsigned int[header.NumFrames + 2];
-    memset(header.offsets, 0, (header.NumFrames + 2) * sizeof(unsigned int));
-    j = 14; /* start of offsets */
-    for (i = 0; i < header.NumFrames + 2; i++) {
-        header.offsets[i] = readlong(wsadata, j) + 0x300;
-        j += 4;
+    // FIXME: readString is going away later on
+    char* tmp = wsa_ini->readString(fname.c_str(), "sound");
+    if (tmp != NULL) {
+        sndfile = tmp;
+        delete[] tmp;
     }
 
-    /* Read the palette */
-    for (i = 0; i < 256; i++) {
-        palette[i].r = readbyte(wsadata, j);
-        palette[i].g = readbyte(wsadata, j+1);
-        palette[i].b = readbyte(wsadata, j+2);
+    vector<unsigned char>::iterator it(wsadata.begin());
+    c_frames = read_word(it, FCNC_LIL_ENDIAN);
+    xpos = read_word(it, FCNC_LIL_ENDIAN);
+    ypos = read_word(it, FCNC_LIL_ENDIAN);
+    width = read_word(it, FCNC_LIL_ENDIAN);
+    height = read_word(it, FCNC_LIL_ENDIAN);
+    delta = read_dword(it, FCNC_LIL_ENDIAN);
+    offsets.resize(c_frames + 2);
+
+    for (int i = 0; i < c_frames + 2; ++i) {
+        offsets[i] = read_dword(it, FCNC_LIL_ENDIAN) + 0x300;
+    }
+
+    for (int i = 0; i < 256; i++) {
+        palette[i].r = read_byte(it);
+        palette[i].g = read_byte(it);
+        palette[i].b = read_byte(it);
         palette[i].r <<= 2;
         palette[i].g <<= 2;
         palette[i].b <<= 2;
-        j += 3;
     }
 
     /* framedata contains the raw frame data
      * the first frame has to be decoded over a zeroed frame
      * and then each subsequent frame, decoded over the previous one
      */
-    framedata = new unsigned char[header.height * header.width];
-    memset(framedata, 0, header.height * header.width);
+    framedata.resize(height * width);
 
-    if (header.offsets[header.NumFrames + 1] - 0x300) {
-        loop = 1;
-        header.NumFrames += 1; /* Add loop frame */
+    if (offsets[c_frames + 1] - 0x300) {
+        loop = true;
+        // Is this correct?
+        c_frames += 1; // Add loop frame
     } else {
-        loop = 0;
+        loop = false;
     }
 }
 
-WSA::~WSA()
+SDL_Surface* WSA::decode_frame(unsigned short framenum)
 {
-    delete[] wsadata;
-    delete[] header.offsets;
-    delete[] framedata;
-    delete[] sndfile;
-}
-
-SDL_Surface* WSA::decodeFrame(unsigned short framenum)
-{
-    unsigned int FrameLen;
-    unsigned char *image40, *image80;
     SDL_Surface *tempframe;
     // SDL_Surface *frame;
 
-    /* Get length of specific frame */
-    FrameLen = header.offsets[framenum+1] - header.offsets[framenum];
-    image80 = new unsigned char[FrameLen];
-    image40 = new unsigned char[64000]; /* Max space. We dont know how big
-                                               decompressed image will be */
+    unsigned int len_frame = offsets[framenum+1] - offsets[framenum];
+    vector<unsigned char> image80(len_frame);
+    memcpy(&image80[0], &wsadata[offsets[framenum]], len_frame);
 
-    memcpy(image80, wsadata + header.offsets[framenum], FrameLen);
-    Compression::decode80(image80, image40);
-    Compression::decode40(image40, framedata);
+    // XXX: Can't work out the decompressed size?
+    unsigned char* image40 = new unsigned char[64000];
+    Compression::decode80(&image80[0], image40);
+    Compression::decode40(image40, &framedata[0]);
 
-    tempframe = SDL_CreateRGBSurfaceFrom(framedata, header.width, header.height, 8, header.width, 0, 0, 0, 0);
+    tempframe = SDL_CreateRGBSurfaceFrom(&framedata[0], width, height, 8, width, 0, 0, 0, 0);
     SDL_SetColors(tempframe, palette, 0, 256);
 
-    // frame = SDL_DisplayFormat(tempframe);
-
     delete[] image40;
-    delete[] image80;
-    //SDL_FreeSurface(tempframe);
 
     return tempframe;
 }
@@ -127,33 +105,32 @@ void WSA::animate()
     ImageProc scaler;
 
     frame = NULL;
-    dest.w = header.width<<1;
-    dest.h = header.height<<1;
-    dest.x = (pc::gfxeng->getWidth()-(header.width<<1))>>1;
-    dest.y = (pc::gfxeng->getHeight()-(header.height<<1))>>1;
-    fps = static_cast<float>((1024.0 / (float) header.delta) * 1024.0);
+    dest.w = width<<1;
+    dest.h = height<<1;
+    dest.x = (pc::gfxeng->getWidth()-(width<<1))>>1;
+    dest.y = (pc::gfxeng->getHeight()-(height<<1))>>1;
+    fps = static_cast<float>((1024.0 / (float) delta) * 1024.0);
     delay = static_cast<float>((1.0 / fps) * 1000.0);
 
     pc::gfxeng->clearScreen();
     /* queue sound first, regardless of whats in the buffer already */
-    if (header.NumFrames == 0) {
+    if (c_frames == 0) {
         return;
     }
-    if (sndfile != NULL)
-        pc::sfxeng->PlaySound(sndfile);
-    for (i = 0; i < header.NumFrames; i++) {
+    int loopid;
+    if (!sndfile.empty()) {
+        loopid = pc::sfxeng->PlayLoopedSound(sndfile, 0);
+    }
+    for (i = 0; i < c_frames; i++) {
         /* FIXME: fill buffer a little before zero to prevent
          * slight audio pause? what value to use?
          */
-//        if (pc::sfxeng->getBufferLen() == 0 && sndfile != NULL)
-            pc::sfxeng->PlaySound(sndfile);
-        frame = decodeFrame(i);
+        frame = decode_frame(i);
         pc::gfxeng->drawVQAFrame(scaler.scale(frame,1));
         SDL_Delay((unsigned int)delay);
     }
     SDL_FreeSurface(frame);
-
-    /* Perhaps an emptyBuffer function to empty any left over sound
-     * in the buffer after the wsa finishes?
-     */
+    if (!sndfile.empty()) {
+        pc::sfxeng->StopLoopedSound(loopid);
+    }
 }

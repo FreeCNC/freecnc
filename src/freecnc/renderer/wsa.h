@@ -1,33 +1,32 @@
 #ifndef _RENDERER_WSAIMAGE_H
 #define _RENDERER_WSAIMAGE_H
 
-#include "SDL.h"
-
 #include "../freecnc.h"
 
-class WSA{
+struct WSAError : public std::runtime_error
+{
+    WSAError(const string& msg) : std::runtime_error(msg) { }
+};
+
+class WSA
+{
 public:
-    WSA(const char* fname);
-    ~WSA();
+    WSA(const string& fname);
     void animate();
-    class WSAError {};
 private:
-    SDL_Surface *decodeFrame(unsigned short framenum);
-    unsigned char *wsadata;
-    unsigned char *framedata;
+    SDL_Surface* decode_frame(unsigned short framenum);
+    vector<unsigned char> wsadata, framedata;
     SDL_Color palette[256];
-    unsigned char loop; /* Whether WSA loops or not */
-    char *sndfile;
-    struct WSAHeader {
-        unsigned short NumFrames;
-        unsigned short xpos;
-        unsigned short ypos;
-        unsigned short width;
-        unsigned short height;
-        unsigned int delta;
-        unsigned int *offsets;
-    };
-    WSAHeader header;
+    bool loop;
+    string sndfile;
+
+    unsigned short c_frames;
+    unsigned short xpos;
+    unsigned short ypos;
+    unsigned short width;
+    unsigned short height;
+    unsigned int delta;
+    vector<unsigned int> offsets;
 };
 
 #endif
