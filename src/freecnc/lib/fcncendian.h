@@ -130,7 +130,7 @@ inline unsigned short read_word(Iterator& it, int byteorder=0)
 template<class Iterator>
 inline unsigned int read_dword(Iterator& it, int byteorder=0)
 {
-    unsigned short dword = swap_sys_endian(*reinterpret_cast<unsigned int*>(&*it), byteorder);
+    unsigned int dword = swap_sys_endian(*reinterpret_cast<unsigned int*>(&*it), byteorder);
     ++it;
     ++it;
     ++it;
