@@ -32,9 +32,9 @@ inline unsigned int swap_endian(unsigned int dword)
 
 //-----------------------------------------------------------------------------
 
-// Swaps `dword' to/from little endian.
+// Swaps `dword' to little endian.
 // No swapping is performed on a little endian system.
-inline unsigned short swap_little_endian(unsigned short word)
+inline unsigned short little_endian(unsigned short word)
 {
     #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
     return word;
@@ -43,9 +43,9 @@ inline unsigned short swap_little_endian(unsigned short word)
     #endif
 }
 
-// Swaps `dword' to/from little endian.
+// Swaps `dword' to little endian.
 // No swapping is performed on a little endian system.
-inline unsigned int swap_little_endian(unsigned int dword)
+inline unsigned int little_endian(unsigned int dword)
 {
     #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
     return dword;
@@ -56,9 +56,9 @@ inline unsigned int swap_little_endian(unsigned int dword)
 
 //-----------------------------------------------------------------------------
 
-// Swaps `word' to/from big endian.
+// Swaps `word' to big endian.
 // No swapping is performed on a big endian system.
-inline unsigned short swap_big_endian(unsigned short word)
+inline unsigned short big_endian(unsigned short word)
 {
     #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
     return word;
@@ -67,9 +67,9 @@ inline unsigned short swap_big_endian(unsigned short word)
     #endif
 }
 
-// Swaps `dword' to/from big endian.
+// Swaps `dword' to big endian.
 // No swapping is performed on a big endian system.
-inline unsigned int swap_big_endian(unsigned int dword)
+inline unsigned int big_endian(unsigned int dword)
 {
     #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
     return dword;
@@ -98,7 +98,7 @@ inline unsigned short read_word(Iterator& it, int byteorder=0)
 {
     unsigned short word = *reinterpret_cast<unsigned short*>(&*it);
     if (byteorder != 0) {
-        word = byteorder == FCNC_LIL_ENDIAN ? swap_little_endian(word) : swap_big_endian(word);
+        word = byteorder == FCNC_LIL_ENDIAN ? little_endian(word) : big_endian(word);
     }
     ++it;    
     ++it;
@@ -113,7 +113,7 @@ inline unsigned int read_dword(Iterator& it, int byteorder=0)
 {
     unsigned int dword = *reinterpret_cast<unsigned int*>(&*it);
     if (byteorder != 0) {
-        dword = byteorder == FCNC_LIL_ENDIAN ? swap_little_endian(dword) : swap_big_endian(dword);
+        dword = byteorder == FCNC_LIL_ENDIAN ? little_endian(dword) : big_endian(dword);
     }
     ++it;
     ++it;
