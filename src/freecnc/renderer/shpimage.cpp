@@ -4,6 +4,7 @@
 
 #include "../lib/compression.h"
 #include "../lib/inifile.h"
+#include "../legacyvfs/vfs_public.h"
 #include "imageproc.h"
 #include "shpimage.h"
 #include "../lib/fcncendian.h"
@@ -492,70 +493,83 @@ unsigned int Dune2Image::getD2Header(unsigned short imgnum)
 TemplateImage::TemplateImage(const char *fname, char scaleq, bool ratemp)
     : SHPBase(fname, scaleq), ratemp(ratemp)
 {
-    datafile = game.vfs.open(fname);
-    if (!datafile) {
+    tmpfile = VFS_Open(fname);
+    if (tmpfile == NULL) {
         throw ImageNotFound("TemplateImage: File '" + string(fname) + "' not found");
     }
+}
 
-    vector<unsigned char> header(6);
-    datafile->read(header, 6);
-    width   = readword(header, 0);
-    height  = readword(header, 2);
-    c_tiles = readword(header, 4);
-
-    // Skip some constants
-    if (ratemp) {
-        datafile->seek_cur(10);
-    } else {
-        datafile->seek_cur(6);
-    }
-    vector<unsigned char> tmp(4);
-    // Load the offset to the image
-    datafile->read(tmp, 4);
-    img_offset = *reinterpret_cast<const unsigned int*>(&tmp[0]);
-
-    // Skip some constants
-    if (ratemp) {
-        datafile->seek_cur(16);
-    } else {
-        datafile->seek_cur(12);
-    }
-
-    datafile->read(tmp, 4);
-    int index_start = *reinterpret_cast<const unsigned int*>(&tmp[0]);
-
-    datafile->seek_start(index_start);
-    datafile->read(image_index, (int)c_tiles);
+TemplateImage::~TemplateImage()
+{
+    VFS_Close(tmpfile);
 }
 
 unsigned short TemplateImage::getNumTiles()
 {
-    return c_tiles;
+    unsigned short data;
+    tmpfile->seekSet(4);
+    tmpfile->readWord(&data, 1);
+    return data;
 }
 
 SDL_Surface* TemplateImage::getImage(unsigned short imgnum)
 {
-    if (imgnum >= c_tiles)
+    // Read width, hight and number of tiles in template
+    unsigned short imgwidth;
+    unsigned short imgheight;
+    unsigned short numtil;
+
+    tmpfile->seekSet(0);
+    tmpfile->readWord(&imgwidth, 1);
+    tmpfile->readWord(&imgheight, 1);
+    tmpfile->readWord(&numtil, 1);
+
+    if (imgnum >= numtil)
         return NULL;
 
-    if (image_index[imgnum] == 0xff)
+    // Skip some constants
+    if (ratemp)
+        tmpfile->seekCur(10);
+    else
+        tmpfile->seekCur(6);
+    
+    // Load the offset to the image
+    unsigned int imgStart;
+    tmpfile->readDWord(&imgStart, 1);
+
+    // Skip some constants
+    if (ratemp)
+        tmpfile->seekCur(16);
+    else
+        tmpfile->seekCur(12);
+
+    // Load address of index1
+    unsigned int index1;
+    tmpfile->readDWord(&index1, 1);
+
+    // Read the index1 value of the tile
+    unsigned char index1val;
+    tmpfile->seekSet(index1+imgnum);
+    tmpfile->readByte(&index1val, 1);
+
+    if (index1val == 0xff)
         return NULL;
 
     // Seek the start of the image
-    datafile->seek_start(img_offset + width * height * image_index[imgnum]);
+    tmpfile->seekSet(imgStart+imgwidth*imgheight*index1val);
 
     // allocate space for the imagedata and load it
-    vector<unsigned char> imgdata(width * height);
-    datafile->read(imgdata, static_cast<int>(width * height));
+    unsigned char* imgdata = new unsigned char[imgwidth*imgheight];
+    tmpfile->readByte(imgdata, imgwidth*imgheight);
 
     // The image is made up from the data
-    SDL_Surface* sdlimage = SDL_CreateRGBSurfaceFrom(&imgdata[0], width, height, 8, width, 0, 0, 0, 0);
+    SDL_Surface* sdlimage = SDL_CreateRGBSurfaceFrom(imgdata, imgwidth, imgheight, 8, imgwidth, 0, 0, 0, 0);
+    SDL_Surface* retimage;
 
     // Set the palette to be the map's palette
     SDL_SetColors(sdlimage, palette[0], 0, 256);
     SDL_SetColorKey(sdlimage, SDL_SRCCOLORKEY, 0);
 
-    SDL_Surface* retimage;
     if (scaleq >= 0) {
         retimage = scale(sdlimage, scaleq);
         SDL_SetColorKey(sdlimage, SDL_SRCCOLORKEY, 0);
@@ -564,6 +578,7 @@ SDL_Surface* TemplateImage::getImage(unsigned short imgnum)
     }
 
     SDL_FreeSurface(sdlimage);
+    delete[] imgdata;
 
     return retimage;
 }
