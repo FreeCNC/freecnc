@@ -1,9 +1,8 @@
-#ifndef _LIB_ENDIANUTILS_H
-#define _LIB_ENDIANUTILS_H
+#ifndef _LIB_FCNCENDIAN_H
+#define _LIB_FCNCENDIAN_H
 //
 // Defines various useful constants and inline functions for endianness. 
 //
-// TODO: Get rid of read* macros and fread* functions
 
 #include <cstdio>
 #include "SDL_endian.h"
@@ -13,85 +12,141 @@
 
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
 #define FCNC_BYTEORDER FCNC_LIL_ENDIAN
+#else
+#define FCNC_BYTEORDER FCNC_BIG_ENDIAN
+#endif
+    
+// Swaps `word' endianness.
+inline unsigned short swap_endian(unsigned short word)
+{
+    return (word << 8) | (word >> 8);
+}
+
+// Swaps `dword' endianness.
+inline unsigned int swap_endian(unsigned int dword)
+{
+    return (dword << 24) | ((dword << 8) & 0x00FF0000) | ((dword >> 8) & 0x0000FF00) | (dword >> 24);
+}
+
+// Swaps `word' to litte-endian from system endianness.
+// No swapping is performed on a little-endian system.
+inline unsigned short swap_little_endian(unsigned short word)
+{
+    #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
+    return word;
+    #else 
+    return swap_endian(word);
+    #endif
+}
+
+// Swaps `dword' to litte-endian from system endianness.
+// No swapping is performed on a little-endian system.
+inline unsigned int swap_little_endian(unsigned int dword)
+{
+    #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
+    return dword;
+    #else 
+    return swap_endian(dword);
+    #endif
+}
+
+// Swaps `word' to big-endian from system endianness.
+// No swapping is performed on a big-endian system.
+inline unsigned short swap_big_endian(unsigned short word)
+{
+    #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
+    return word;
+    #else 
+    return swap_endian(word);
+    #endif
+}
+
+// Swaps `dword' to big-endian from system endianness.
+// No swapping is performed on a big-endian system.
+inline unsigned int swap_big_endian(unsigned int dword)
+{
+    #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
+    return dword;
+    #else 
+    return swap_endian(dword);
+    #endif
+}
+
+//-----------------------------------------------------------------------------
+
+// Swaps `word' to system endianess from `endianness'.
+// No swapping is performed on a system with the same endianness as `byteorder', or if byteorder is 0.
+inline unsigned short swap_word(unsigned short word, int byteorder)
+{
+    if (byteorder != 0 && byteorder != FCNC_BYTEORDER) {
+        word = swap_endian(word);
+    }
+    return word;
+}
+
+// Swaps `dword' to system endianess from `endianness'.
+// No swapping is performed on a system with the same endianness as `byteorder', or if byteorder is 0.
+inline unsigned int swap_dword(unsigned int dword, int byteorder)
+{
+    if (byteorder != 0 && byteorder != FCNC_BYTEORDER) {
+        dword = swap_endian(dword);
+    }
+    return dword;
+}
+
+//-----------------------------------------------------------------------------
+
+// Reads a byte from `it' and increases the iterator.
+// The iterator is assumed to dereference contiguous bytes. It will be increased once.
+template<class Iterator>
+inline unsigned char read_byte(Iterator& it)
+{
+    unsigned char byte = *it;
+    ++it;
+    return byte;
+}
+    
+// Reads a word from `it', swapping to system endianness from `byteorder'.
+// The iterator is assumed to dereference contiguous bytes. It will be increased twice.
+// No swapping is performed on a system with the same endianness as `byteorder', or if byteorder is 0.
+template<class Iterator>
+inline unsigned short read_word(Iterator& it, int byteorder=0)
+{
+    unsigned short word = swap_word(*reinterpret_cast<unsigned short*>(&*it), byteorder);
+    ++it;
+    ++it;
+    return word;
+}
+    
+// Reads a dword from `it', swapping to system endianness from `byteorder'.
+// The iterator is assumed to dereference contiguous bytes. It will be increased 4 times.
+// No swapping is performed on a system with the same endianness as `byteorder', or if byteorder is 0.
+template<class Iterator>
+inline unsigned int read_dword(Iterator& it, int byteorder=0)
+{
+    unsigned short dword = swap_dword(*reinterpret_cast<unsigned int*>(&*it), byteorder);
+    ++it;
+    ++it;
+    ++it;
+    ++it;
+    return dword;
+}
+
+//-----------------------------------------------------------------------------
+// Old stuff that needs to go
+//-----------------------------------------------------------------------------
+
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
 #define readbyte(x,y) x[y]
 #define readword(x,y) x[y] + (x[y+1] << 8)
 #define readthree(x,y)  x[y] + (x[y+1] << 8) + (x[y+2] << 16) + (0 << 24)
 #define readlong(x,y) x[y] + (x[y+1] << 8) + (x[y+2] << 16) + (x[y+3] << 24)
 #else
-#define FCNC_BYTEORDER FCNC_BIG_ENDIAN
 #define readbyte(x,y) x[y]
 #define readword(x,y) SDL_Swap16((x[y] << 8) ^ x[y+1])
 #define readthree(x,y) SDL_Swap32((x[y] << 24) ^ (x[y+1] << 16) ^ (x[y+2] << 8))
 #define readlong(x,y) SDL_Swap32((x[y] << 24) ^ (x[y+1] << 16) ^ (x[y+2] << 8) ^ (x[y+3]))
 #endif
-
-// Byteswaps endianness of a short (16 bit integer).
-// x: The short to swap.
-// returns: The swapped short.
-inline unsigned short swap_endian(unsigned short x)
-{
-    return (x << 8) | (x >> 8);
-}
-
-// Byteswaps endianness of an int (32 bit integer).
-// x: The int to swap.
-// returns: The swapped int.
-inline unsigned int swap_endian(unsigned int x)
-{
-    return (x << 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x >> 24);
-}
-
-// Byteswaps a little-endian short (16 bit integer) to system endianness.
-// This has no effect on a little-endian system.
-// x: The short to swap.
-// returns: The swapped short.
-inline unsigned short swap_little_endian(unsigned short x)
-{
-    #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
-    return x;
-    #else 
-    return swap_endian(x);
-    #endif
-}
-
-// Byteswaps a little-endian int (32 bit integer) to system endianness.
-// This has no effect on a little-endian system.
-// x: The int to swap.
-// returns: The swapped int.
-inline unsigned int swap_little_endian(unsigned int x)
-{
-    #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
-    return x;
-    #else 
-    return swap_endian(x);
-    #endif
-}
-
-// Byteswaps a big-endian short (16 bit integer) to system endianness.
-// This has no effect on a big-endian system.
-// x: The short to swap.
-// returns: The swapped short.
-inline unsigned short swap_big_endian(unsigned short x)
-{
-    #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
-    return x;
-    #else 
-    return swap_endian(x);
-    #endif
-}
-
-// Byteswaps a big-endian int (16 bit integer) to system endianness.
-// This has no effect on a big-endian system.
-// x: The int to swap.
-// returns: The swapped int.
-inline unsigned int swap_big_endian(unsigned int x)
-{
-    #if FCNC_BYTEORDER == FCNC_BIG_ENDIAN
-    return x;
-    #else 
-    return swap_endian(x);
-    #endif
-}
 
 inline unsigned char freadbyte(FILE *fptr)
 {
