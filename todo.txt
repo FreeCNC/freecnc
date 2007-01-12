@@ -1,21 +1,21 @@
 0.3 - "FreeCNC Forever"
+prencher:
 * Migrate to the new VFS
-    In progress
 * New config format for specifying required and optional files
-* Remove code relating to various unimplemented features (replays and
-  multiplayer)
-* Fix 64bit issues
-    Most of these should be fixed with the new VFS
+
+zx64:
 * Move the pointers to unit and structure over to shared_ptr and remove the
   refcounting.
-* Rewrite INIFile to use Spirit and not allocate char buffers
-* Rewrite the path finder to not suck as much
 * Fix sidebar graphic glitches
 * Some tiles next to rocks/trees are no longer passable, e.g. blocking the
   top of SCG01EA or right next to the tall rock in SCB01EA.
 
-* Current behaviour for SCons wrt location of binary file isn't optimal for Just
-  Working(TM).
+0.4
+* Remove code relating to various unimplemented features (replays and
+  multiplayer)
+* Fix non VFS related 64bit issues
+* Rewrite INIFile to use Spirit and not allocate char buffers
+* Rewrite the path finder
 
 Unassigned, unsorted, incomplete:
 * Video playback has been reported to deadlock on some systems (no details
