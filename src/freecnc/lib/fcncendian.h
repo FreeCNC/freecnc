@@ -32,7 +32,7 @@ inline unsigned int swap_endian(unsigned int dword)
 
 //-----------------------------------------------------------------------------
 
-// Swaps `dword' to little endian.
+// Swaps `dword' to/from little endian.
 // No swapping is performed on a little endian system.
 inline unsigned short little_endian(unsigned short word)
 {
@@ -43,7 +43,7 @@ inline unsigned short little_endian(unsigned short word)
     #endif
 }
 
-// Swaps `dword' to little endian.
+// Swaps `dword' to/from little endian.
 // No swapping is performed on a little endian system.
 inline unsigned int little_endian(unsigned int dword)
 {
@@ -56,7 +56,7 @@ inline unsigned int little_endian(unsigned int dword)
 
 //-----------------------------------------------------------------------------
 
-// Swaps `word' to big endian.
+// Swaps `word' to/from big endian.
 // No swapping is performed on a big endian system.
 inline unsigned short big_endian(unsigned short word)
 {
@@ -67,7 +67,7 @@ inline unsigned short big_endian(unsigned short word)
     #endif
 }
 
-// Swaps `dword' to big endian.
+// Swaps `dword' to/from big endian.
 // No swapping is performed on a big endian system.
 inline unsigned int big_endian(unsigned int dword)
 {
