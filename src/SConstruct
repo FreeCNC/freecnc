@@ -42,7 +42,7 @@ release["CXXFLAGS"] += ["-Os"]
 release["CCFLAGS"] += ["-Os"]
 release["LINKFLAGS"] += ["-s"]
 debug = env.Copy()
-debug["CXXFLAGS"] += ["-g"]
+debug["CXXFLAGS"] += ["-g3", "-ggdb", "-O0"]
 
 if ARGUMENTS.get("RELEASE", 0):
     env = release
