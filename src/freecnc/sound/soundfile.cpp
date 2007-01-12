@@ -4,7 +4,6 @@
 
 #include "SDL.h"
 
-#include "../legacyvfs/vfs_public.h"
 #include "soundfile.h"
 #include "../lib/fcncendian.h"
 
@@ -217,22 +216,26 @@ bool SoundFile::Open(const std::string& filename)
     Close();
     
     // Open file
-    file = VFS_Open(filename.c_str());
-    if (file == NULL) {
+    file = game.vfs.open(filename);
+    if (!file) {
         game.log << "Sound: Could not open file \"" << filename << "\"." << endl;
         return false;
     }
     
-    if (file->fileSize() < 12) {
+    if (file->size() < 12) {
         game.log << "Sound: Could not open file \"" << filename << "\": Invalid file size." << endl;
     }
 
     // Parse header
-    file->readWord(&frequency,1);
-    file->readDWord(&comp_size,1);
-    file->readDWord(&uncomp_size,1);
-    file->readByte(&flags,1);
-    file->readByte(&type,1);
+    vector<unsigned char> data(12);
+    file->read(data, 12);
+    vector<unsigned char>::iterator it(data.begin());
+
+    frequency   = read_word(it, FCNC_LIL_ENDIAN);
+    comp_size   = read_dword(it, FCNC_LIL_ENDIAN);
+    uncomp_size = read_dword(it, FCNC_LIL_ENDIAN);
+    flags       = read_byte(it);
+    type        = read_byte(it);
 
     // Check for known format
     if (type == 1) {
@@ -259,7 +262,7 @@ bool SoundFile::Open(const std::string& filename)
 void SoundFile::Close()
 {
     if (fileOpened) {
-        VFS_Close(file);
+        file.reset();
         fileOpened = false;
     }
 }
@@ -277,16 +280,16 @@ unsigned int SoundFile::Decode(SampleBuffer& buffer, unsigned int length)
     unsigned short comp_sample_size, uncomp_sample_size;
     unsigned int ID;
 
-    //if (offset < 12)
-    //    offset = 12;
-    //file->seekSet(offset);
-
+    vector<unsigned char> header;
+    vector<unsigned char>::iterator it;
     unsigned int written = 0;
-    while ((file->tell()+8) < file->fileSize()) {
+    while ((file->pos()+8) < file->size()) {
         // Each sample has a header
-        file->readWord(&comp_sample_size, 1);
-        file->readWord(&uncomp_sample_size, 1);
-        file->readDWord(&ID, 1);
+        file->read(header, 8);
+        it = header.begin();
+        comp_sample_size    = read_word(it, FCNC_LIL_ENDIAN);
+        uncomp_sample_size  = read_word(it, FCNC_LIL_ENDIAN);
+        ID                  = read_dword(it, FCNC_LIL_ENDIAN);
 
         if (comp_sample_size > (SOUND_MAX_CHUNK_SIZE)) {
             game.log << "Size data for current sample too large" << endl;
@@ -300,13 +303,13 @@ unsigned int SoundFile::Decode(SampleBuffer& buffer, unsigned int length)
         }
 
         if (written + uncomp_sample_size*conv->len_mult > max_size) {
-            file->seekCur(-8); // rewind stream back to headers
+            file->seek_cur(-8); // rewind stream back to headers
             buffer.resize(written); // Truncate buffer.
             return SOUND_DECODE_STREAMING;
         }
 
         // compressed data follows header
-        file->readByte(&chunk[0], comp_sample_size);
+        file->read(chunk, comp_sample_size);
         Sound::ChunkIterator chit = &chunk[0];
         if (type == 1) {
             Sound::WSADPCM_Decode(tmpbuff, chit, comp_sample_size, uncomp_sample_size);

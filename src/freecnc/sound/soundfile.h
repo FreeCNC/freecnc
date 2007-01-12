@@ -5,7 +5,7 @@
 #include "soundcommon.h"
 
 struct SDL_AudioCVT;
-class VFile;
+class File;
 
 enum {
     SOUND_DECODE_ERROR = 0,
@@ -40,7 +40,7 @@ public:
 private:
     // File data
     std::string filename;
-    VFile* file;
+    shared_ptr<File> file;
     //unsigned int offset;
     bool fileOpened;
     
