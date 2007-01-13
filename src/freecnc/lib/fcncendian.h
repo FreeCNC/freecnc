@@ -4,7 +4,7 @@
 // Defines various useful constants and inline functions for endianness. 
 //
 
-#include <cstdio>
+#include <iterator>
 #include "SDL_endian.h"
 
 #define FCNC_LIL_ENDIAN 1234
@@ -100,8 +100,7 @@ inline unsigned short read_word(Iterator& it, int byteorder=0)
     if (byteorder != 0) {
         word = byteorder == FCNC_LIL_ENDIAN ? little_endian(word) : big_endian(word);
     }
-    ++it;    
-    ++it;
+    std::advance(it, 2);
     return word;
 }
     
@@ -115,12 +114,11 @@ inline unsigned int read_dword(Iterator& it, int byteorder=0)
     if (byteorder != 0) {
         dword = byteorder == FCNC_LIL_ENDIAN ? little_endian(dword) : big_endian(dword);
     }
-    ++it;
-    ++it;
-    ++it;
-    ++it;
+    std::advance(it, 4);
     return dword;
 }
+
+//-----------------------------------------------------------------------------
 
 // Reads a byte from `ptr' and returns it.
 // It is assumed `ptr' points to at least 1 byte of data.
