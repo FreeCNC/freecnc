@@ -85,7 +85,7 @@ inline unsigned int big_endian(unsigned int dword)
 template<class Iterator>
 inline unsigned char read_byte(Iterator& it)
 {
-    unsigned char byte = *it;
+    unsigned char byte = *reinterpret_cast<unsigned char*>(&*it);
     ++it;
     return byte;
 }
@@ -122,59 +122,36 @@ inline unsigned int read_dword(Iterator& it, int byteorder=0)
     return dword;
 }
 
-//-----------------------------------------------------------------------------
-// Old stuff that needs to go
-//-----------------------------------------------------------------------------
-
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN
-#define readbyte(x,y) x[y]
-#define readword(x,y) x[y] + (x[y+1] << 8)
-#define readthree(x,y)  x[y] + (x[y+1] << 8) + (x[y+2] << 16) + (0 << 24)
-#define readlong(x,y) x[y] + (x[y+1] << 8) + (x[y+2] << 16) + (x[y+3] << 24)
-#else
-#define readbyte(x,y) x[y]
-#define readword(x,y) SDL_Swap16((x[y] << 8) ^ x[y+1])
-#define readthree(x,y) SDL_Swap32((x[y] << 24) ^ (x[y+1] << 16) ^ (x[y+2] << 8))
-#define readlong(x,y) SDL_Swap32((x[y] << 24) ^ (x[y+1] << 16) ^ (x[y+2] << 8) ^ (x[y+3]))
-#endif
-
-inline unsigned char freadbyte(FILE *fptr)
+// Reads a byte from `ptr' and returns it.
+// It is assumed `ptr' points to at least 1 byte of data.
+inline unsigned char read_byte(void* ptr)
 {
-    unsigned char x;
-    fread(&x,1,1,fptr);
-    return x;
+    unsigned char byte = *reinterpret_cast<unsigned char*>(ptr);
+    return byte;
 }
 
-inline unsigned short freadword(FILE *fptr)
+// Reads a word from `ptr', converting to system endianness from `byteorder'.
+// It is assumed `ptr' points to at least 2 bytes of data.
+// No swapping is performed on a system with the same endianness as `byteorder', or if byteorder is 0.
+inline unsigned short read_word(void* ptr, int byteorder=0)
 {
-    unsigned short x;
-    fread(&x,2,1,fptr);
-
-    #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
-    return x;
-    #else
-    return SDL_Swap16(x);
-    #endif
+    unsigned short word = *reinterpret_cast<unsigned short*>(ptr);
+    if (byteorder != 0) {
+        word = byteorder == FCNC_LIL_ENDIAN ? little_endian(word) : big_endian(word);
+    }
+    return word;
 }
 
-inline unsigned int freadthree(FILE *fptr)
+// Reads a dword from `ptr', converting to system endianness from `byteorder'.
+// It is assumed `ptr' points to at least 4 bytes of data.
+// No swapping is performed on a system with the same endianness as `byteorder', or if byteorder is 0.
+inline unsigned short read_dword(void* ptr, int byteorder=0)
 {
-    // Can this be made better?
-    unsigned char x[3];
-    fread(x,3,1,fptr);
-    return readthree(x,0);
-}
-
-inline unsigned int freadlong(FILE *fptr)
-{
-    unsigned int x;
-    fread(&x, 4, 1, fptr);
-
-    #if FCNC_BYTEORDER == FCNC_LIL_ENDIAN
-    return x;
-    #else
-    return SDL_Swap32(x);
-    #endif
+    unsigned int dword = *reinterpret_cast<unsigned int*>(ptr);
+    if (byteorder != 0) {
+        dword = byteorder == FCNC_LIL_ENDIAN ? little_endian(dword) : big_endian(dword);
+    }
+    return dword;
 }
 
 #endif
