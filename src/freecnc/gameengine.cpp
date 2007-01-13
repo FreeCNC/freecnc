@@ -185,7 +185,20 @@ void GameEngine::parse_options(int argc, char** argv)
     config.gametype = static_cast<GameType>(config.mod == "td" ? 1 : 2);
 
     // Values that are now no longer configurable
+
+    /* Explanation of buildable ratio and radius from a now removed config file:
+
+      ********  How big a square of cells becomes after placing a new building
+      *------*  at the centre.  e.g. after a 2x2 building is placed (X), the area
+      *------*  marked by "-" becomes buildable, and the area marked by "*" is
+      *--XX--*  buildable as long as "most" of the building is in the "-" part.
+      *--XX--*  Minimum value is two.
+      *------*
+      *------*  The ratio of "*" to "-" must be greater than buildable_ratio/100
+      ********  for the placement to be valid.
+    */
     config.buildable_ratio = 0.7;
     config.buildable_radius = 2;
+
     config.final_delay = 100;
 }
