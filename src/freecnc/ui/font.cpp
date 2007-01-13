@@ -30,15 +30,19 @@ void Font::reload() {
     fontfile->seek_start(8);
     vector<unsigned char> data(12);
     fontfile->read(data, 12);
-    unsigned short wpos  = readword(data, 0);
-    //unsigned short cdata = readword(data, 2);
-    unsigned short hpos  = readword(data, 4);
-    unsigned short nchars = readword(data, 8);
-    // Have to swap on LE for some reason
-    nchars = swap_endian(nchars);
-    unsigned char fnheight = readbyte(data, 10);
-    //unsigned char fnmaxw   = readbyte(data, 11);
+    vector<unsigned char>::iterator it = data.begin();
+    unsigned short wpos    = read_word(it, FCNC_LIL_ENDIAN);
+    unsigned short cdata   = read_word(it, FCNC_LIL_ENDIAN);
+    unsigned short hpos    = read_word(it, FCNC_LIL_ENDIAN);
+    advance(it, 2);
+    unsigned short nchars  = read_word(it, FCNC_BIG_ENDIAN);
+    unsigned char fnheight = read_byte(it);
+    unsigned char fnmaxw   = read_byte(it);
 
+    if (game.config.debug) {
+        // Values currently not used
+        game.log << "cdata: " << cdata << " fnmaxw: " << (unsigned int)fnmaxw << endl;
+    }
     nchars++;
 
     vector<unsigned char> wchar(nchars);
@@ -51,7 +55,7 @@ void Font::reload() {
     vector<unsigned short> dataoffsets(nchars);
     for (unsigned short i = 0; i < nchars; ++i)
     {
-        dataoffsets[i] = readword(tmp_offsets, 2*i);
+        dataoffsets[i] = read_word(&tmp_offsets[2*i], FCNC_LIL_ENDIAN);
     }
 
     fontfile->seek_start(wpos);

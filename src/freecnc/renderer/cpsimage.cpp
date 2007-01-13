@@ -19,10 +19,11 @@ CPSImage::CPSImage(const char* fname, int scaleq) : image(0)
     cpsdata.resize(imgsize);
     imgfile->read(cpsdata, imgfile->size());
 
-    header.size    = readword(cpsdata,0);
-    header.unknown = readword(cpsdata,2);
-    header.imsize  = readword(cpsdata,4);
-    header.palette = readlong(cpsdata,6);
+    vector<unsigned char>::iterator it = cpsdata.begin();
+    header.size    = read_word(it, FCNC_LIL_ENDIAN);
+    header.unknown = read_word(it, FCNC_LIL_ENDIAN);
+    header.imsize  = read_word(it, FCNC_LIL_ENDIAN);
+    header.palette = read_dword(it, FCNC_LIL_ENDIAN);
     if (header.palette == 0x3000000) {
         readPalette();
     } else {
@@ -38,17 +39,13 @@ CPSImage::~CPSImage()
 
 void CPSImage::readPalette()
 {
-    unsigned short i;
-    offset = 10;
-    for (i = 0; i < 256; i++) {
-        palette[i].r = readbyte(cpsdata, offset);
-        palette[i].g = readbyte(cpsdata, offset+1);
-        palette[i].b = readbyte(cpsdata, offset+2);
-        palette[i].r <<= 2;
-        palette[i].g <<= 2;
-        palette[i].b <<= 2;
-        offset += 3;
+    vector<unsigned char>::iterator it = cpsdata.begin(); it += 10;
+    for (int i = 0; i < 256; i++) {
+        palette[i].r = read_byte(it) << 2;
+        palette[i].g = read_byte(it) << 2;
+        palette[i].b = read_byte(it) << 2;
     }
+    offset = 10 + 3*256;
 }
 
 SDL_Surface* CPSImage::getImage()
@@ -64,7 +61,7 @@ void CPSImage::loadImage()
 //    unsigned int len = imgsize - offset;
 
     vector<unsigned char> image_data(header.imsize);
-    Compression::decode80(&cpsdata[0] + offset, &image_data[0]);
+    Compression::decode80(&cpsdata[offset], &image_data[0]);
 
     SDL_Surface* imgtmp = SDL_CreateRGBSurfaceFrom(&image_data[0], 320, 200, 8,
         320, 0, 0, 0, 0);
