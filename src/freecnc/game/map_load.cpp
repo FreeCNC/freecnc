@@ -43,7 +43,7 @@ void CnCMap::loadIni()
         inifile = GetConfig(map_filename);
     } catch (INIFileNotFound&) {
         throw MapLoadingError("Map loader: The map \"" + map_filename +
-            "\" was not found.  Check your installation and files.ini");
+            "\" was not found.  Check your installation.");
     }
 
     p::ppool = new PlayerPool(inifile, 0);

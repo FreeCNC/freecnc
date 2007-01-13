@@ -13,14 +13,10 @@
 using std::runtime_error;
 using std::endl;
 
-Game::Game() {
-    /// @TODO We've already loaded files.ini in the vfs.
-    shared_ptr<INIFile> fileini = GetConfig("files.ini");
-
-    INIKey key = fileini->readIndexedKeyValue("general", game.config.gametype, "PLAY");
-
+Game::Game()
+{
     /// @TODO This should throw on its own accord
-    if (!pc::sfxeng->CreatePlaylist(key->second.c_str())) {
+    if (!pc::sfxeng->CreatePlaylist((game.config.gametype == GAME_TD) ? "TD" : "RA")) {
         throw runtime_error("Could not create playlist");
     }
 
