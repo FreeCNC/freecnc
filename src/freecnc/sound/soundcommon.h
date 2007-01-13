@@ -12,5 +12,6 @@
 #define SOUND_MAX_COMPRESSED_SIZE   SOUND_MAX_CHUNK_SIZE
 
 typedef vector<unsigned char> SampleBuffer;
+typedef vector<unsigned char>::iterator SampleIterator;
 
 #endif /* SOUNDCOMMON_H */

@@ -11,7 +11,6 @@
 #include "sound/sound_public.h"
 #include "screens/mainmenu.h"
 #include "screens/splash.h"
-#include "legacyvfs/vfs_public.h"
 
 using std::exception;
 using std::ostringstream;
@@ -75,14 +74,9 @@ void GameEngine::startup(int argc, char** argv)
     log.open((game.config.basedir + "/freecnc.log").c_str());
     log << "GameEngine: Bootstrapping engine..." << endl;
 
-    try { 
-        // Legacy VFS / logging / conf parsing
-        VFS_PreInit(config.basedir.c_str());
-
+    try {
+        // Legacy logging / conf parsing
         logger = new Logger();
-
-        VFS_Init(config.basedir.c_str());
-        VFS_LoadGame(config.gametype);
 
         reconfigure();
 
@@ -117,7 +111,6 @@ void GameEngine::shutdown()
     delete pc::sfxeng;
     delete logger;
 
-    VFS_Destroy();
     SDL_Quit();
 
     log.flush();   

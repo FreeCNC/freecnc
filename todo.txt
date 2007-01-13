@@ -3,8 +3,6 @@ prencher:
 * New config format for specifying required and optional files
 
 zx64:
-* Migrate to the new VFS
-    Only VQA left, have a version that compiles but is broken.
 * Move the pointers to unit and structure over to shared_ptr and remove the
   refcounting.
 * Fix TD Gold Sidebar graphic glitches

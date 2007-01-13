@@ -50,7 +50,7 @@ namespace Sound
         return Clip<OutputType, InputType>(value, std::numeric_limits<OutputType>::min(), std::numeric_limits<OutputType>::max());
     }
 
-    void IMADecode(unsigned char *output, ChunkIterator input, unsigned short compressed_size, int& sample, int& index)
+    void IMADecode(unsigned char *output, SampleIterator input, unsigned short compressed_size, int& sample, int& index)
     {
         if (compressed_size==0)
             return;
@@ -96,7 +96,7 @@ namespace Sound
 
     // Decode Westwood's ADPCM format.  Original code from ws-aud.txt by Asatur V. Nazarian
 
-    void WSADPCM_Decode(unsigned char *output, ChunkIterator input, unsigned short compressed_size, unsigned short uncompressed_size)
+    void WSADPCM_Decode(unsigned char *output, SampleIterator input, unsigned short compressed_size, unsigned short uncompressed_size)
     {
         short CurSample;
         unsigned char  code;
@@ -186,7 +186,7 @@ namespace
     SDL_AudioCVT eightbitconv;
     bool initconv = false;
 
-    Sound::Chunk chunk(SOUND_MAX_CHUNK_SIZE);
+    SampleBuffer chunk(SOUND_MAX_CHUNK_SIZE);
     unsigned char tmpbuff[SOUND_MAX_UNCOMPRESSED_SIZE * 4];
 }
 
@@ -310,7 +310,7 @@ unsigned int SoundFile::Decode(SampleBuffer& buffer, unsigned int length)
 
         // compressed data follows header
         file->read(chunk, comp_sample_size);
-        Sound::ChunkIterator chit = &chunk[0];
+        SampleIterator chit = chunk.begin();
         if (type == 1) {
             Sound::WSADPCM_Decode(tmpbuff, chit, comp_sample_size, uncomp_sample_size);
         } else {
