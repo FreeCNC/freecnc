@@ -10,7 +10,6 @@
 #include <boost/tokenizer.hpp>
 
 #include "../freecnc.h"
-#include "../legacyvfs/vfs_public.h"
 #include "inifile.h"
 
 using std::runtime_error;
