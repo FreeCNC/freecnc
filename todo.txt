@@ -1,12 +1,13 @@
 0.3 - "FreeCNC Forever"
 prencher:
-* Migrate to the new VFS
 * New config format for specifying required and optional files
 
 zx64:
+* Migrate to the new VFS
+    Only VQA left, have a version that compiles but is broken.
 * Move the pointers to unit and structure over to shared_ptr and remove the
   refcounting.
-* Fix sidebar graphic glitches
+* Fix TD Gold Sidebar graphic glitches
 * Some tiles next to rocks/trees are no longer passable, e.g. blocking the
   top of SCG01EA or right next to the tall rock in SCB01EA.
 
