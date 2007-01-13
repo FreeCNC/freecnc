@@ -143,7 +143,7 @@ inline unsigned short read_word(void* ptr, int byteorder=0)
 // Reads a dword from `ptr', converting to system endianness from `byteorder'.
 // It is assumed `ptr' points to at least 4 bytes of data.
 // No swapping is performed on a system with the same endianness as `byteorder', or if byteorder is 0.
-inline unsigned short read_dword(void* ptr, int byteorder=0)
+inline unsigned int read_dword(void* ptr, int byteorder=0)
 {
     unsigned int dword = *reinterpret_cast<unsigned int*>(ptr);
     if (byteorder != 0) {
