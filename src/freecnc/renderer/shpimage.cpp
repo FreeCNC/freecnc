@@ -11,6 +11,35 @@
 using std::string;
 using std::runtime_error;
 
+namespace
+{
+    // Only code in this file needs to read three bytes, so don't bother with
+    // putting in fcncendian.h
+    template<class Iterator>
+    inline unsigned int read_three(Iterator& it, int byteorder=0)
+    {
+        // Like read_dword, except mask off top byte
+        unsigned int dword = *reinterpret_cast<unsigned int*>(&*it);
+        dword &= 0x00FFFFFF;
+        if (byteorder != 0) {
+            dword = byteorder == FCNC_LIL_ENDIAN ? little_endian(dword) : big_endian(dword);
+        }
+        advance(it, 3);
+        return dword;
+    }
+
+    inline unsigned int read_three(void* ptr, int byteorder=0)
+    {
+        // Like read_dword, except mask off top byte
+        unsigned int dword = *reinterpret_cast<unsigned int*>(ptr);
+        dword &= 0x00FFFFFF;
+        if (byteorder != 0) {
+            dword = byteorder == FCNC_LIL_ENDIAN ? little_endian(dword) : big_endian(dword);
+        }
+        return dword;
+    }
+}
+
 //-----------------------------------------------------------------------------
 // Palettes
 //-----------------------------------------------------------------------------
@@ -178,7 +207,6 @@ SDL_Color SHPImage::alphapal[6] = {{0x00,0x00,0x00,0x00}, {0x33,0x33,0x33,0x33},
  */
 SHPImage::SHPImage(const char *fname, char scaleq) : SHPBase(fname, scaleq)
 {
-    int i, j;
     shared_ptr<File> imgfile = game.vfs.open(fname);
     if (!imgfile) {
         throw ImageNotFound("SHPImage: File '" + string(fname) + "' not found");
@@ -187,25 +215,25 @@ SHPImage::SHPImage(const char *fname, char scaleq) : SHPBase(fname, scaleq)
     imgfile->read(shpdata, imgfile->size());
 
     // Header
-    header.NumImages = readword(shpdata,0);
-    header.Width = readword(shpdata, 6);
+    header.NumImages = read_word(&shpdata[0], FCNC_LIL_ENDIAN);
+    header.Width = read_word(&shpdata[6], FCNC_LIL_ENDIAN);
 
-    header.Height = readword(shpdata, 8);
+    header.Height = read_word(&shpdata[8], FCNC_LIL_ENDIAN);
     header.Offset.resize(header.NumImages + 2);
     header.Format.resize(header.NumImages + 2);
     header.RefOffs.resize(header.NumImages + 2);
     header.RefFormat.resize(header.NumImages + 2);
 
     // "Offsets"
-    j = 14;
-    for (i = 0; i < header.NumImages + 2; i++) {
-        header.Offset[i] = readthree(shpdata, j);
+    int j = 14;
+    for (int i = 0; i < header.NumImages + 2; i++) {
+        header.Offset[i] = read_three(&shpdata[j], FCNC_LIL_ENDIAN);
         j += 3;
-        header.Format[i] = readbyte(shpdata, j);
+        header.Format[i] = read_byte(&shpdata[j]);
         j += 1;
-        header.RefOffs[i] = readthree(shpdata, j);
+        header.RefOffs[i] = read_three(&shpdata[j], FCNC_LIL_ENDIAN);
         j += 3;
-        header.RefFormat[i] = readbyte(shpdata, j);
+        header.RefFormat[i] = read_byte(&shpdata[j]);
         j += 1;
     }
 }
@@ -449,10 +477,9 @@ SDL_Surface *Dune2Image::getImage(unsigned short imgnum)
  */
 unsigned int Dune2Image::getD2Header(unsigned short imgnum)
 {
-    unsigned short imgs;
-    unsigned int curpos;
+    vector<unsigned char>::iterator it = shpdata.begin();
 
-    imgs = readword(shpdata, 0);
+    unsigned short imgs = read_word(it, FCNC_LIL_ENDIAN);
 
     if (imgnum >= imgs) {
         game.log << name << ": getD2Header called with invalid param: " << imgnum
@@ -460,24 +487,25 @@ unsigned int Dune2Image::getD2Header(unsigned short imgnum)
         return 0;
     }
 
-    if (readword(shpdata, 4)) {
-        curpos = readword(shpdata, imgnum * 2 + 2);
+    advance(it, 2);
+    unsigned int curpos;
+    if (read_word(it, FCNC_LIL_ENDIAN)) {
+        curpos = read_word(&shpdata[imgnum * 2 + 2], FCNC_LIL_ENDIAN);
     } else {
-        curpos = readlong(shpdata, imgnum * 4 + 2) + 2;
+        curpos = read_dword(&shpdata[imgnum * 4 + 2], FCNC_LIL_ENDIAN) + 2;
     }
 
-    header.compression = readword(shpdata, curpos);
-    curpos += 2;
-    header.cy = readbyte(shpdata, curpos);
-    ++curpos;
-    header.cx = readword(shpdata, curpos);
-    curpos += 2;
-    header.cy2 = readbyte(shpdata, curpos);
-    ++curpos;
-    header.size_in = readword(shpdata, curpos);
-    curpos += 2;
-    header.size_out = readword(shpdata, curpos);
-    curpos += 2;
+    it = shpdata.begin();
+    advance(it, curpos);
+    vector<unsigned char>::iterator start = it;
+    header.compression = read_word(it, FCNC_LIL_ENDIAN);
+    header.cy = read_byte(it);
+    header.cx = read_word(it, FCNC_LIL_ENDIAN);
+    header.cy2 = read_byte(it);
+    header.size_in = read_word(it, FCNC_LIL_ENDIAN);
+    header.size_out = read_word(it, FCNC_LIL_ENDIAN);
+
+    curpos += distance(start, it);
 
     if (header.compression & 1)
         curpos += 16;
@@ -499,9 +527,9 @@ TemplateImage::TemplateImage(const char *fname, char scaleq, bool ratemp)
 
     vector<unsigned char> header(6);
     datafile->read(header, 6);
-    width   = readword(header, 0);
-    height  = readword(header, 2);
-    c_tiles = readword(header, 4);
+    width   = read_word(&header[0], FCNC_LIL_ENDIAN);
+    height  = read_word(&header[2], FCNC_LIL_ENDIAN);
+    c_tiles = read_word(&header[4], FCNC_LIL_ENDIAN);
 
     // Skip some constants
     if (ratemp) {
