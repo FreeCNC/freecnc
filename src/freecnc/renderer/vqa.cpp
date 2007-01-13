@@ -44,8 +44,7 @@ namespace VQAPriv
     {
         vector<unsigned char> data(4);
         file->read(data, 4);
-        unsigned int dword = *reinterpret_cast<unsigned int*>(&data[0]);
-        return big_endian(dword);
+        return read_dword(&data[0], FCNC_BIG_ENDIAN);
     }
 }
 
@@ -367,7 +366,7 @@ unsigned int VQAMovie::DecodeSNDChunk(unsigned char *outbuf)
     {
         vector<unsigned char> data(4);
         vqafile->read(data, 4);
-        chunkid = readlong(data, 0);
+        chunkid = read_dword(&data[0], FCNC_LIL_ENDIAN);
     }
 
     if ((chunkid & vqa_t_mask) != vqa_snd_id) {
@@ -424,7 +423,7 @@ bool VQAMovie::DecodeVQFRChunk(SDL_Surface *frame)
     unsigned int chunkid;
     vector<unsigned char> id_data(8);
     vqafile->read(id_data, 8);
-    chunkid = readlong(id_data, 0);
+    chunkid = read_dword(&id_data[0], FCNC_LIL_ENDIAN);
     // ignore chunklen in last four bytes
 
     if (chunkid != vqa_vqfr_id) {
@@ -444,7 +443,7 @@ bool VQAMovie::DecodeVQFRChunk(SDL_Surface *frame)
         }
 
         vqafile->read(id_data, 4);
-        chunkid = readlong(id_data, 0);
+        chunkid = read_dword(&id_data[0], FCNC_LIL_ENDIAN);
         compressed = VQA_HI_BYTE(chunkid) == 'Z';
         chunkid = chunkid & vqa_t_mask;
         switch (chunkid) {
