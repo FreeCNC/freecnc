@@ -6,20 +6,37 @@
 
 #include "../game/game_public.h"
 #include "../sound/sound_public.h"
-#include "../legacyvfs/vfs_public.h"
 #include "input.h"
 #include "sidebar.h"
 
-/// @TODO Move this into config file(s)
-static const char* radarnames[] =
+namespace
 {
-//   Gold Edition radars: NOD, GDI and Dinosaur
-    "hradar.nod", "hradar.gdi", "hradar.jp",
-//   Dos Edition radars
-    "radar.nod",  "radar.gdi",  "radar.jp",
-//   Red Alert radars (We only use large sidebar for RA)
-    "ussrradr.shp", "natoradr.shp", "natoradr.shp"
-};
+    /// @TODO Move this into config file(s)
+    const char* radarnames[] =
+    {
+        //   Gold Edition radars: NOD, GDI and Dinosaur
+        "hradar.nod", "hradar.gdi", "hradar.jp",
+        //   Dos Edition radars
+        "radar.nod",  "radar.gdi",  "radar.jp",
+        //   Red Alert radars (We only use large sidebar for RA)
+        "ussrradr.shp", "natoradr.shp", "natoradr.shp"
+    };
+
+    const char* tabnames[] = {"htabs.shp", "tabs.shp"};
+
+    const char* stripnames[] = {"stripna.shp","hstrip.shp","strip.shp"};
+
+    const char* get_first_existing(const char* filenames[], size_t count)
+    {
+        for (size_t i = 0; i < count; ++i) {
+            if (game.vfs.open(filenames[i])) {
+                return filenames[i];
+            }
+        }
+        return NULL;
+    }
+
+}
 
 class ImageCache;
 
@@ -47,7 +64,7 @@ Sidebar::Sidebar(Player *pl, unsigned short height, const char *theatre)
     // If we can't load these files, there's no point in proceeding, thus we let
     // the default handler for runtime_error in main() catch.
     if (game.config.gametype == GAME_TD) {
-        tmpname = VFS_getFirstExisting(2,"htabs.shp","tabs.shp");
+        tmpname = get_first_existing(tabnames, sizeof(tabnames));
         if (tmpname == NULL) {
             throw runtime_error("Unable to find the tab images! (Missing updatec.mix?)");
         } else if (strcasecmp(tmpname,"htabs.shp")==0) {
@@ -259,8 +276,8 @@ void Sidebar::SetupButtons(unsigned short height)
 
     SHPImage *strip;
 
-    tmpname = VFS_getFirstExisting(3,"stripna.shp","hstrip.shp","strip.shp");
-    if (tmpname == 0) {
+    tmpname = get_first_existing(stripnames, sizeof(stripnames));
+    if (tmpname == NULL) {
         game.log << "Unable to find strip images for sidebar, exiting" << endl;
         throw SidebarError();
     }
