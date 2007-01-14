@@ -216,6 +216,10 @@ namespace VFS
         if (archive_type(type_header) == TD_MIXFILE) {
             parse_td_header(mix, base_offset);
         } else {
+            // This is the sort of assumption that westwood key makes :-(
+            if (sizeof(void*) != 4) {
+                throw runtime_error("Red Alert mixfiles not currently supported on this architecture :-(");
+            }
             parse_ra_header(mix, base_offset);
         }  
     }
