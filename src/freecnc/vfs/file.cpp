@@ -66,6 +66,13 @@ namespace VFS
    
     //-------------------------------------------------------------------------
  
+    int File::write(const vector<unsigned char>& buf)
+    {
+        if (!writable_) { throw logic_error("File not writable"); }
+
+        return do_write(buf);
+    }
+
     int File::write(const string& str)
     {
         if (!writable_) { throw logic_error("File not writable"); }
