@@ -53,13 +53,16 @@ env.Program(target = "bin/freecnc", source = source)
 
 # Only build tools if specified
 if ARGUMENTS.get("TOOLS", 0):
-    commonobjects = glob("freecnc/vfs/*.cpp")
-    commonobjects += ["#/freecnc/lib/inifile.o", "#/freecnc/lib/common.o",
-        "#/freecnc/lib/compression.o", "#/freecnc/lib/westwood_key.o",
-        "#/freecnc/lib/blowfish.o"]
-    commonobjects += ["#/freecnc/renderer/shpimage.o", "#/freecnc/ui/font.o", "#/freecnc/renderer/imageproc.o"]
+    vfs_objects = glob("freecnc/vfs/*.cpp")
+    vfs_objects += ["#/freecnc/lib/westwood_key.o", "#/freecnc/lib/blowfish.o"]
 
-    for tool in ["tmpinied"]:
-        tool_source = glob(tool+"/*.cpp") + commonobjects
-        env.Program(target = "bin/" + tool, source = tool_source)
+    tmpinied_objects = ["#/freecnc/lib/inifile.o", "#/freecnc/lib/common.o",
+        "#/freecnc/lib/compression.o", "#/freecnc/renderer/shpimage.o",
+        "#/freecnc/ui/font.o", "#/freecnc/renderer/imageproc.o"]
 
+    tmpinied_objects.extend(vfs_objects)
+
+    tmpinied_src = glob("tmpinied/*.cpp") + tmpinied_objects
+    env.Program(target = "bin/tmpinied", source = tmpinied_src)
+
+    env.Program(target = "bin/mix_extract", source = ["#/mix_extract/mix_extract.cpp"] + vfs_objects)
