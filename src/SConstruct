@@ -51,18 +51,15 @@ else:
 
 env.Program(target = "bin/freecnc", source = source)
 
-# TODO: Update this after VFS and logger migration
 # Only build tools if specified
 if ARGUMENTS.get("TOOLS", 0):
-    commonobjects = glob("src/vfs/*.cpp") + glob("src/vfs/*/*.cpp")
-    commonobjects += ["#/src/misc/inifile.o", "#/src/misc/common.o", "#/src/ui/logger.o", "#/src/misc/compression.o"]
-    commonobjects += ["#/src/video/shpimage.o", "#/src/ui/font.o", "#/src/video/imageproc.o", "#/src/video/message.o"]
+    commonobjects = glob("freecnc/vfs/*.cpp")
+    commonobjects += ["#/freecnc/lib/inifile.o", "#/freecnc/lib/common.o",
+        "#/freecnc/lib/compression.o", "#/freecnc/lib/westwood_key.o",
+        "#/freecnc/lib/blowfish.o"]
+    commonobjects += ["#/freecnc/renderer/shpimage.o", "#/freecnc/ui/font.o", "#/freecnc/renderer/imageproc.o"]
 
-    mixshell_source = glob("tools/mixshell/*.cpp") + ["#/src/vfs/mix/ws-key.o"]
-    mixshell_incs = env["CPPPATH"] + ["#/tools/mixshell", "#/src/vfs/mix"]
-    env.Program(target = "#/tools/mixshell/mixshell", source = mixshell_source, CPPPATH = mixshell_incs)
-
-    for tool in ["shpview", "tmpinied"]:
-        tool_source = glob("tools/"+tool+"/*.cpp") + commonobjects
-        env.Program(target = tool, source = tool_source)
+    for tool in ["tmpinied"]:
+        tool_source = glob(tool+"/*.cpp") + commonobjects
+        env.Program(target = "bin/" + tool, source = tool_source)
 

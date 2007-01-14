@@ -1,19 +1,19 @@
 #ifndef TMPGFX_H
 #define TMPGFX_H
 
-#include "SDL.h"
-#include "templatedata.h"
-#include "font.h"
-#include "shpimage.h"
+class TemplateData;
+class TemplateImage;
+class Font;
+struct SDL_Surface;
 
 class TmpGFX
 {
 public:
     TmpGFX();
     ~TmpGFX();
-    void draw(TemplateData *data, TemplateImage *trans, Font *fnt, unsigned int curpos);
+    void draw(TemplateData* data, TemplateImage* trans, Font* font, unsigned int curpos);
 private:
-    SDL_Surface *screen;
+    SDL_Surface* screen;
 };
 
 #endif
