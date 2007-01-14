@@ -62,13 +62,14 @@ This section will outline how to compile FreeCNC.
   - SDL_mixer 1.2.7.
   - Boost 1.33.1.
 
-  In addition, on other platforms than Windows you will need scons and python
+  In addition, on other platforms than Windows you will need SCons and python
   to build.
 
-4.2. Compiling with scons & GCC
+4.2. Compiling with SCons & GCC
 ===============================
 
-  Simply running "scons" in the source directory should work.
+  Simply running "scons" in the source directory should work.  Move or link the
+  program in src/bin to the directory that contains the data directory.
 
 4.3. Compiling with Visual C++
 ==============================
@@ -124,8 +125,8 @@ located.
   movies-gdi.mix (or movies-nod.mix) and general-gdi.mix (or general-nod.mix),
   FreeCNC will be able to use both files.
 
-5.2. Tiberian Dawn Gold (Windows 95)
-====================================
+5.2. Tiberian Dawn Gold (Windows 95 and The First Decade versions)
+==================================================================
 
   For this version, you need the following additional files.  They are stored in
   InstallShield archives on the CD, which you'll have to extract (either by
