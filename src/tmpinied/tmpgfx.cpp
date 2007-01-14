@@ -37,7 +37,7 @@ void TmpGFX::draw(TemplateData* data, TemplateImage* marker, Font* fnt, unsigned
 {
     SDL_Surface* image;
     SDL_Rect dest;
-    unsigned int i, width;
+    unsigned int width;
     unsigned int typeimg;
     static unsigned int blackpix = SDL_MapRGB(screen->format,0, 0, 0);
 
@@ -89,7 +89,7 @@ void TmpGFX::draw(TemplateData* data, TemplateImage* marker, Font* fnt, unsigned
         fnt->drawText(text_message.c_str(), screen, 0, dest.y);
         dest.y += fnt->getHeight()+1;
 
-        text_message = "Type is: " + lexical_cast<string>(data->type(curpos))
+        text_message = "Type is: " + lexical_cast<string>((int)data->type(curpos))
             + " (" + tername[data->type(curpos)] + ")";
         fnt->drawText(text_message, screen, 0, dest.y);
     }

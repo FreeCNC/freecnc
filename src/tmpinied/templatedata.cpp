@@ -1,4 +1,3 @@
-#include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -74,7 +73,6 @@ void TemplateData::load_image()
     }
 
     string filename = name_ + theatre_names[index];
-    std::cout << "Using: " << filename << "\n";
     image_.reset(new TemplateImage(filename.c_str(), -1));
 
     palnum_ = index;

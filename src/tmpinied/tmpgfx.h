@@ -11,7 +11,7 @@ class TmpGFX
 public:
     TmpGFX();
     ~TmpGFX();
-    void draw(TemplateData* data, TemplateImage* trans, Font* font, unsigned int curpos);
+    void draw(TemplateData* data, TemplateImage* marker, Font* font, unsigned int curpos);
 private:
     SDL_Surface* screen;
 };
