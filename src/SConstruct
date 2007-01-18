@@ -65,4 +65,4 @@ if ARGUMENTS.get("TOOLS", 0):
     tmpinied_src = glob("tmpinied/*.cpp") + tmpinied_objects
     env.Program(target = "bin/tmpinied", source = tmpinied_src)
 
-    env.Program(target = "bin/mix_extract", source = ["#/mix_extract/mix_extract.cpp"] + vfs_objects)
+    env.Program(target = "bin/vfscli", source = ["#/vfscli/vfscli.cpp"] + vfs_objects)

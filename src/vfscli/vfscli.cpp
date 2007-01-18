@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -12,34 +13,39 @@
 namespace po = boost::program_options;
 
 using std::runtime_error;
-using std::cout;
 using std::cerr;
+using std::cin;
+using std::cout;
+using std::flush;
 using std::string;
 using std::vector;
 using boost::shared_ptr;
+using boost::to_upper;
 
 struct UsageMessage : public runtime_error
 {
     UsageMessage(const string& msg) : runtime_error(msg) {}
 };
 
-class MixExtractor
+class VFSCli
 {
 public:
-    MixExtractor();
+    VFSCli();
     void parse(int argc, char** argv);
-    void extract_files();
+    // TODO
+    void input_loop();
 private:
+    void extract_files();
     VFS::VFS vfs;
     po::variables_map vm;
     vector<string> files;
 };
 
-MixExtractor::MixExtractor()
+VFSCli::VFSCli()
 {
 }
 
-void MixExtractor::parse(int argc, char** argv)
+void VFSCli::parse(int argc, char** argv)
 {
     string outdir, basedir;
 
@@ -73,11 +79,14 @@ void MixExtractor::parse(int argc, char** argv)
     }
 
     vfs.add(outdir);
+
+    // This needs to do whatever the main program does for selecting directories
+    // to load
     vfs.add(basedir + "/data");
     vfs.add(basedir + "/data/mix");
 }
 
-void MixExtractor::extract_files()
+void VFSCli::extract_files()
 {
     vector<string>::const_iterator it, end;
     end = files.end();
@@ -105,16 +114,33 @@ void MixExtractor::extract_files()
     }
 }
 
+void VFSCli::input_loop()
+{
+    extract_files();
+/*
+    cout << "> " << flush;
+
+    string input;
+    while (getline(cin, input)) {
+        to_upper(input);
+        if (input == "QUIT") {
+            return;
+        }
+        cout << "> " << flush;
+    }
+*/
+}
+
 int main(int argc, char** argv)
 {
-    MixExtractor me;
+    VFSCli cli;
     try {
-        me.parse(argc, argv);
-        me.extract_files();
+        cli.parse(argc, argv);
+        cli.input_loop();
     } catch (UsageMessage& e) {
         cout << e.what() << "\n";
         return 1;
-    } catch (runtime_error& e) {
+    } catch (std::exception& e) {
         cerr << "Fatal error: " << e.what() << "\n";
         return 1;
     }
