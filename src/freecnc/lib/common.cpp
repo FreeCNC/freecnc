@@ -2,11 +2,13 @@
 #include <string>
 #include <cstdio>
 #include <cctype>
+#include <boost/algorithm/string.hpp>
 
 #include "../freecnc.h"
 #include "inifile.h"
 
 using std::cout;
+using boost::to_lower;
 
 int mapscaleq = -1;
 
@@ -22,10 +24,14 @@ namespace p {
 
 // We pass by value because we could copy anyway
 shared_ptr<INIFile> GetConfig(string name) {
-    transform(name.begin(), name.end(), name.begin(), tolower);
+    to_lower(name);
     map<string, shared_ptr<INIFile> >::const_iterator it = p::settings.find(name);
     if (p::settings.end() == it) {
-        shared_ptr<INIFile> ret(new INIFile(name.c_str()));
+        shared_ptr<File> f = game.vfs.open(name);
+        if (!f) {
+            throw INIFileNotFound("INIFile: Unable to open" + name);
+        }
+        shared_ptr<INIFile> ret(new INIFile(f));
         p::settings[name] = ret;
         return ret;
     }

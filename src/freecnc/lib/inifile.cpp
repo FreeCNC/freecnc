@@ -24,16 +24,11 @@ namespace
     boost::char_separator<char> section_sep("[]");
 }
 
-INIFile::INIFile(const string& filename)
+INIFile::INIFile(shared_ptr<File> inifile)
 {
     string cursection_name;
     INISection cursection;
 
-    shared_ptr<File> inifile = game.vfs.open(filename);
-
-    if (inifile == NULL) {
-        throw INIFileNotFound("INIFile: Unable to open" + filename);
-    }
 
     int linenum = 0;
     // parse the inifile and write data to inidata
@@ -63,7 +58,7 @@ INIFile::INIFile(const string& filename)
                 to_upper(cursection_name);
                 trim(cursection_name);
             } else {
-                game.log << "INIFile: Malformed section in " << filename
+                game.log << "INIFile: Malformed section in " << inifile->name()
                          << " at line " << linenum << " (" << line << ")"
                          << endl;
             }
@@ -71,7 +66,7 @@ INIFile::INIFile(const string& filename)
             LineTokenizer data(line, keyvalue_sep);
 
             if (std::distance(data.begin(), data.end()) != 2) {
-                game.log << "INIFile: Missing key/value error in " << filename
+                game.log << "INIFile: Missing key/value error in " << inifile->name()
                          << " at line " << linenum << " (" << line << ")"
                          << endl;
                 continue;
@@ -87,7 +82,7 @@ INIFile::INIFile(const string& filename)
             trim(value);
 
             if ((key.length() == 0) || (value.length() == 0)) {
-                game.log << "INIFile: Empty key/value error in " << filename
+                game.log << "INIFile: Empty key/value error in " << inifile->name()
                          << " at line " << linenum << " (" << line << ")"
                          << endl;
                 continue;

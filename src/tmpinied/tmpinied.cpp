@@ -56,7 +56,11 @@ private:
 TmpIniEd::TmpIniEd() : gfx_(), font_("6point.fnt"), marker_("trans.icn", -1),
     cur_template(0), curpos(0), done(false), image_updated(true)
 {
-    INIFile templini("templates.ini");
+    shared_ptr<File> f = game.vfs.open("templates.ini");
+    if (!f) {
+        throw INIFileNotFound("Unable to open templates.ini");
+    }
+    INIFile templini(f);
 
     tmps.reserve(max_templates);
     for (unsigned int i = 0; i < max_templates; ++i) {

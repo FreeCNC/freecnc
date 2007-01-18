@@ -7,8 +7,6 @@
 #define MAXSTRINGLENGTH 128
 #define INIERROR 0x7fffffff
 
-#include "../basictypes.h"
-
 typedef map<string, string> INISection;
 typedef INISection::const_iterator INIKey;
 typedef INISection::value_type INISectionItem;
@@ -18,10 +16,15 @@ struct INIFileNotFound : std::runtime_error
     INIFileNotFound(const string& message) : std::runtime_error(message) { }
 };
 
+namespace VFS
+{
+    class File;
+}
+
 class INIFile
 {
 public:
-    INIFile(const string& filename);
+    INIFile(shared_ptr<VFS::File> inifile);
 
     /// @TODO Would be nice if there was a version that returned a non-copy.
     char* readString(const char* section, const char* value);
