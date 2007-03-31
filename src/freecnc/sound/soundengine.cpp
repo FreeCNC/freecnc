@@ -36,6 +36,10 @@ namespace
 
 SoundEngine::SoundEngine(bool disableSound) : nosound(disableSound), musicFinished(true), currentTrack(playlist.begin())
 {
+    // There's some serious weirdness going on with the chunklen parameter:
+    // 1024 causes deadlock for the briefing for SCG12EA on zx64's system
+    // 4096 causes poor framerates in video playback on some sound setups (e.g.
+    //  PulseAudio but not direct to alsa)
     if (Mix_OpenAudio(SOUND_FREQUENCY, SOUND_FORMAT, SOUND_CHANNELS, 2048) < 0) {
         game.log << "Unable to open sound: " << Mix_GetError() << endl;
         nosound = true;
