@@ -36,7 +36,7 @@ namespace
 
 SoundEngine::SoundEngine(bool disableSound) : nosound(disableSound), musicFinished(true), currentTrack(playlist.begin())
 {
-    if (Mix_OpenAudio(SOUND_FREQUENCY, SOUND_FORMAT, SOUND_CHANNELS, 1024) < 0) {
+    if (Mix_OpenAudio(SOUND_FREQUENCY, SOUND_FORMAT, SOUND_CHANNELS, 2048) < 0) {
         game.log << "Unable to open sound: " << Mix_GetError() << endl;
         nosound = true;
     } else {
