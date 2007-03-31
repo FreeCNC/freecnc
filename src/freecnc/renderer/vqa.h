@@ -56,21 +56,22 @@ private:
     unsigned int DecodeSNDChunk(unsigned char* outbuf);
     bool DecodeVQFRChunk(SDL_Surface* frame);
     inline void DecodeCBPChunk();
-    inline void DecodeVPTChunk(unsigned char Compressed);
-    inline void DecodeCBFChunk(unsigned char Compressed);
+    inline void DecodeVPTChunk(bool compressed);
+    inline void DecodeCBFChunk(bool compressed);
     inline void DecodeCPLChunk(SDL_Color* palette);
     inline void DecodeUnknownChunk();
 
     static void AudioHook(void* userdata, unsigned char* stream, int len);
 
+    // VQA Video Related Variables 
+    vector<unsigned char> CBF_LookUp;
+    vector<unsigned char> CBP_LookUp;
+    unsigned int CBPOffset;
+    unsigned short CBPChunks;
+
     shared_ptr<File> vqafile;
     VQAPriv::VQAHeader header;
 
-    // VQA Video Related Variables 
-    unsigned int CBPOffset;
-    unsigned short CBPChunks;
-    vector<unsigned char> CBF_LookUp;
-    vector<unsigned char> CBP_LookUp;
     vector<unsigned char> VPT_Table;
     vector<unsigned int> offsets;
     unsigned char modifier;

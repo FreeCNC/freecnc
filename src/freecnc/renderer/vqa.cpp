@@ -46,6 +46,9 @@ namespace VQAPriv
         file->read(data, 4);
         return read_dword(&data[0], FCNC_BIG_ENDIAN);
     }
+
+    // XCC uses this size value for its buffers
+    const unsigned int lookup_size = 0x1fff << 4;
 }
 
 using namespace VQAPriv;
@@ -53,18 +56,18 @@ using namespace VQAPriv;
 /// @TODO We really need a glossary for all the VQA jargon
 // VQA: Vector Quantised Animation
 // SND: Sound
-// FINF: Offsets (for what?) Info
+// FINF: Offset in file for each frame
 // FORM: Contains header data
-// CBP:
-// CBF:
-// CPL: Colour Palette (?)
+// CBP: Indexed colour data for a subsequent frame(?)
+// CBF: Indexed colour data for a frame
+// CPL: Colour palette
 // VPT: ??? - Last chunk in a frame
-// VQFR: VQ Frame (?)
+// VQFR: VQ Frame
 
 /**
  * @param the name of the vqamovie.
  */
-VQAMovie::VQAMovie(const string& filename)
+VQAMovie::VQAMovie(const string& filename) : CBF_LookUp(lookup_size), CBP_LookUp(lookup_size), CBPOffset(0), CBPChunks(0)
 {
     if (filename.empty()) {
         throw VQAError("VQA: Empty filename");
@@ -79,17 +82,13 @@ VQAMovie::VQAMovie(const string& filename)
         throw VQAError("VQA: (" + filename + ")Corrupt Header: Invalid FORM chunk");
     }
 
-    // DecodeFINFChunk uses offsets
+    // DecodeFINFChunk fills offsets
     offsets.resize(header.NumFrames);
     if (!DecodeFINFChunk()) {
         throw VQAError("VQA: (" + filename + ") Corrupt Header: Invalid FINF chunk");
     }
 
-    CBF_LookUp.resize(0x0ff00 << 3);
-    CBP_LookUp.resize(0x0ff00 << 3);
     VPT_Table.resize(lowoffset<<1);
-    CBPOffset = 0;
-    CBPChunks = 0;
 
     scaleVideo = game.config.scale_movies;
     videoScaleQuality = game.config.scaler_quality;
@@ -179,10 +178,10 @@ void VQAMovie::play()
     SDL_Event esc_event;
     static ImageProc scaler;
 
-    dest.w = header.Width<<1;
-    dest.h = header.Height<<1;
-    dest.x = (pc::gfxeng->getWidth()-(header.Width<<1))>>1;
-    dest.y = (pc::gfxeng->getHeight()-(header.Height<<1))>>1;
+    dest.w = header.Width  << 1;
+    dest.h = header.Height << 1;
+    dest.x = (pc::gfxeng->getWidth() -  (header.Width  << 1)) >> 1;
+    dest.y = (pc::gfxeng->getHeight() - (header.Height << 1)) >> 1;
 
     pc::gfxeng->clearScreen();
 
@@ -411,9 +410,7 @@ unsigned int VQAMovie::DecodeSNDChunk(unsigned char *outbuf)
  */
 bool VQAMovie::DecodeVQFRChunk(SDL_Surface *frame)
 {
-    unsigned char HiVal, LoVal;
-    unsigned char CmpCBP, compressed; // Is CBP Look up table compressed or not
-    int cpixel, bx, by, fpixel;
+    bool compressed_cbp, compressed;
     SDL_Color CPL[256];
 
     if (vqafile->pos() & 1) {
@@ -433,7 +430,7 @@ bool VQAMovie::DecodeVQFRChunk(SDL_Surface *frame)
         return false;
     }
 
-    CmpCBP = 0;
+    compressed_cbp = false;
 
     bool done = false;
     // Read chunks until we get to the VPT chunk
@@ -455,7 +452,7 @@ bool VQAMovie::DecodeVQFRChunk(SDL_Surface *frame)
             DecodeCBFChunk(compressed);
             break;
         case vqa_cbp_id:
-            CmpCBP = compressed;
+            compressed_cbp = compressed;
             DecodeCBPChunk();
             break;
         case vqa_vpt_id:
@@ -469,34 +466,34 @@ bool VQAMovie::DecodeVQFRChunk(SDL_Surface *frame)
     }
 
     // Optimise me harder
-    cpixel = 0;
-    fpixel = 0;
-    for (by = 0; by < header.Height; by += header.BlockH) {
-        for (bx = 0; bx < header.Width; bx += header.BlockW) {
-            LoVal = VPT_Table[fpixel]; // formerly known as TopVal 
-            HiVal = VPT_Table[fpixel + lowoffset]; // formerly known as LowVal 
+    unsigned char* cpixel = static_cast<unsigned char*>(frame->pixels);
+    vector<unsigned char>::const_iterator fpixel = VPT_Table.begin();
+    for (unsigned short by = 0; by < header.Height; by += header.BlockH) {
+        for (unsigned short bx = 0; bx < header.Width; bx += header.BlockW) {
+            unsigned char LoVal = *fpixel;
+            unsigned char HiVal = *(fpixel + lowoffset);
+
             if (HiVal == modifier) {
-                memset((unsigned char *)frame->pixels + cpixel, LoVal, header.BlockW);
-                memset((unsigned char *)frame->pixels + cpixel + header.Width, LoVal, header.BlockW);
+                memset(cpixel, LoVal, header.BlockW);
+                memset(cpixel + header.Width, LoVal, header.BlockW);
             } else {
-                memcpy((unsigned char *)frame->pixels + cpixel, &CBF_LookUp[((HiVal<<8)|LoVal)<<3], header.BlockW);
-                memcpy((unsigned char *)frame->pixels + cpixel + header.Width,
-                       &CBF_LookUp[(((HiVal<<8)|LoVal)<<3)+4], header.BlockW);
+                unsigned int v1 = ((HiVal << 8) | LoVal) << 3;
+                memcpy(cpixel, &CBF_LookUp[v1], header.BlockW);
+                memcpy(cpixel + header.Width, &CBF_LookUp[v1+4], header.BlockW);
             }
             cpixel += header.BlockW;
-            fpixel++;
+            ++fpixel;
         }
         cpixel += header.Width;
     }
 
-    //    if( !((CurFrame + 1) % header.CBParts) ) {
     if (CBPChunks & ~7) {
-        if (CmpCBP == 1) {
-            unsigned char CBPUNZ[0x0ff00 << 3];
+        if (compressed_cbp) {
+            unsigned char CBPUNZ[lookup_size];
             Compression::decode80(&CBP_LookUp[0], CBPUNZ);
-            memcpy(&CBF_LookUp[0], CBPUNZ, 0x0ff00 << 3);
+            memcpy(&CBF_LookUp[0], CBPUNZ, lookup_size);
         } else {
-            memcpy(&CBF_LookUp[0], &CBP_LookUp[0], 0x0ff00 << 3);
+            memcpy(&CBF_LookUp[0], &CBP_LookUp[0], lookup_size);
         }
         CBPOffset = 0;
         CBPChunks = 0;
@@ -515,29 +512,29 @@ inline void VQAMovie::DecodeCBPChunk()
     ++CBPChunks;
 }
 
-inline void VQAMovie::DecodeVPTChunk(unsigned char Compressed)
+inline void VQAMovie::DecodeVPTChunk(bool compressed)
 {
     int chunklen = get_chunklen(vqafile);
 
-    if (Compressed) {
-        vector<unsigned char> VPTZ(chunklen); // Compressed VPT_Table 
+    if (compressed) {
+        vector<unsigned char> VPTZ(chunklen); // Compressed VPT_Table
         vqafile->read(VPTZ, chunklen);
         Compression::decode80(&VPTZ[0], &VPT_Table[0]);
-    } else { // uncompressed VPT chunk. never found any.. but might be some 
+    } else { // uncompressed VPT chunk. never found any.. but might be some
         vqafile->read(VPT_Table, chunklen);
     }
 }
 
-inline void VQAMovie::DecodeCBFChunk(unsigned char Compressed)
+inline void VQAMovie::DecodeCBFChunk(bool compressed)
 {
     int chunklen = get_chunklen(vqafile);
 
-    if (Compressed) {
-        vector<unsigned char> CBFZ(chunklen); // Compressed CBF table
-        vqafile->read(CBFZ, chunklen);
-        Compression::decode80(&CBFZ[0], &CBF_LookUp[0]);
+    vector<unsigned char> temp(chunklen);
+    vqafile->read(temp, chunklen);
+    if (compressed) {
+        Compression::decode80(&temp[0], &CBF_LookUp[0]);
     } else {
-        vqafile->read(CBF_LookUp, chunklen);
+        copy(temp.begin(), temp.end(), CBF_LookUp.begin());
     }
 }
 
