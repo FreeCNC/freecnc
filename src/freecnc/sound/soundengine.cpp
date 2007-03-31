@@ -36,9 +36,7 @@ namespace
 
 SoundEngine::SoundEngine(bool disableSound) : nosound(disableSound), musicFinished(true), currentTrack(playlist.begin())
 {
-    /// @TODO Setting the chunksize parameter to 1024 eliminates choppiness in
-    // music playback on my laptop.  Try this value on other systems.
-    if (Mix_OpenAudio(SOUND_FREQUENCY, SOUND_FORMAT, SOUND_CHANNELS, 4096) < 0) {
+    if (Mix_OpenAudio(SOUND_FREQUENCY, SOUND_FORMAT, SOUND_CHANNELS, 1024) < 0) {
         game.log << "Unable to open sound: " << Mix_GetError() << endl;
         nosound = true;
     } else {
