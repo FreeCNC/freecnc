@@ -12,16 +12,16 @@
 #define luac_c
 #define LUA_CORE
 
-#include "lua.h"
-#include "lauxlib.h"
+#include "../lua.h"
+#include "../lauxlib.h"
 
-#include "ldo.h"
-#include "lfunc.h"
-#include "lmem.h"
-#include "lobject.h"
-#include "lopcodes.h"
-#include "lstring.h"
-#include "lundump.h"
+#include "../ldo.h"
+#include "../lfunc.h"
+#include "../lmem.h"
+#include "../lobject.h"
+#include "../lopcodes.h"
+#include "../lstring.h"
+#include "../lundump.h"
 
 #define PROGNAME	"luac"		/* default program name */
 #define	OUTPUT		PROGNAME ".out"	/* default output file */
