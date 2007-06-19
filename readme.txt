@@ -60,7 +60,7 @@ This section will outline how to compile FreeCNC.
   Libraries:
   - SDL 1.2.10.
   - SDL_mixer 1.2.7.
-  - Boost 1.33.1.
+  - Boost 1.34.
 
   In addition, on other platforms than Windows you will need SCons and python
   to build.
