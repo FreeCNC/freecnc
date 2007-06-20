@@ -54,7 +54,7 @@ int GameConfigScript::vfs_add_path(lua_State* L)
     }
     const char* name = lua_tostring(L, 1);
     fs::path newdir(current_directory.top() / name);
-    bool result = game.vfs.add(newdir.string());
+    bool result = game.vfs.add(newdir);
     //game.log << "Adding: " << newdir << "(result=" << result << ")\n";
     lua_pushboolean(L, result);
     return 1;

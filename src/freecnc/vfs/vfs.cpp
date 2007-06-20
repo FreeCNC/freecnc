@@ -1,7 +1,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
 
 #include "dirarchive.h"
 #include "mixarchive.h"
@@ -59,10 +58,9 @@ namespace VFS
     {
     }
 
-    bool VFS::add(const string& dir)
+    bool VFS::add(const fs::path& pth)
     {
         ArchiveVector vec;
-        fs::path pth(dir, fs::no_check);
 
         // Check that the directory exists
         if (!fs::exists(pth) || !fs::is_directory(pth)) {

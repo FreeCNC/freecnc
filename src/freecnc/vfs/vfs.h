@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <boost/filesystem/path.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
 
@@ -28,7 +29,7 @@ namespace VFS
         // they are added.
         // All archives present in the root of this path will also be added.
         // Files in the filesystem always takes priority over files in archives.
-        bool add(const std::string& dir);
+        bool add(const boost::filesystem::path& pth);
 
         // Removes a directory from the search paths.
         void remove(const std::string& dir);
