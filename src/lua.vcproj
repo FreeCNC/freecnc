@@ -316,15 +316,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\lua\lua.c"
-			>
-		</File>
-		<File
 			RelativePath=".\lua\lua.h"
-			>
-		</File>
-		<File
-			RelativePath=".\lua\luac.c"
 			>
 		</File>
 		<File
