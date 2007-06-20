@@ -21,6 +21,8 @@ public:
 private:
     LuaScript script;
     std::stack<boost::filesystem::path> current_directory;
+
+    void handle_error();
 };
 
 

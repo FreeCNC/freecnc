@@ -2,7 +2,7 @@
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
-#include <fstream>
+#include <cassert>
 #include <string>
 
 #include "gameconfigscript.h"
@@ -11,7 +11,6 @@
 namespace fs = boost::filesystem;
 
 using std::string;
-using std::ifstream;
 
 GameConfigScript::GameConfigScript()
 {
@@ -21,7 +20,7 @@ GameConfigScript::GameConfigScript()
         {NULL, NULL}
     };
     lua_pushstring(script.L, game.config.mod.c_str());
-    lua_setglobal(script.L, "mod");
+    lua_setglobal(script.L, "gamemod");
     script.register_methods(this, methods);
 }
 
@@ -30,19 +29,18 @@ int GameConfigScript::vfs_add(lua_State* L)
     enum {ERROR, NONE, ANY, ALL} required_mode = ERROR;
 
     if (!lua_istable(L, -1)) {
-        game.log << "GameConfigScipt::vfs_add: Not passed a table\n";
-        return 0;
+        lua_pushstring(L, "vfs_add expects to be passed a table");
+        lua_error(L);
     }
     lua_pushstring(L, "required");
     lua_gettable(L, -2);
     const char* required = lua_tostring(L, -1);
     if (required == NULL) {
         required_mode = ALL;
-        game.log << "Missing required section, defaulting to ALL\n";
     } else {
         size_t r_len = strlen(required);
         if ((r_len != 3) && (r_len != 4)) {
-            game.log << "GameConfigSCript::vfs_add: Syntax error (invalid length for \"required\" value)\n";
+            game.log << "GameConfigScript::vfs_add: Syntax error (invalid length for \"required\" value)\n";
             return 0;
         }
         int v = (required[0] | required[1] << 8 | required[2] << 16);
@@ -53,60 +51,69 @@ int GameConfigScript::vfs_add(lua_State* L)
         } else if (v == 0x6E6F6E) {
             required_mode = NONE;
         } else {
-            game.log << "GameConfigSCript::vfs_add: Syntax error (invalid \"required\" value)\n";
+            game.log << "GameConfigScript::vfs_add: Syntax error (invalid \"required\" value)\n";
             return 0;
         }
     }
 
-    bool found = true;
+    bool found = false;
 
     size_t i = 1;
     lua_rawgeti(L, 1, i);
     while (!lua_isnil(L, -1)) {
-        const char* name = lua_tostring(L, -1);
-
-        if (name == NULL) {
-            game.log << "GameConfigScript: Null name in manifest" << endl;
-            return 0;
-        }
+        const char* name = luaL_checkstring(L, -1);
         fs::path filename(current_directory.top() / name);
         bool result = game.vfs.add(filename);
-        //game.log << "Adding: " << filename << endl;
         if (!result) {
             if (required_mode == ALL) {
-                game.log << "Required file " << filename << " was missing!\n";
                 string s("Missing required file: ");
                 s += filename.string();
-                throw GameConfigScriptError(s);
-            } else if (required_mode == ANY) {
-                found = false;
+                lua_pushstring(L, s.c_str());
+                lua_error(L);
             }
+        } else if (required_mode == ANY) {
+            found = true;
         }
         ++i;
         lua_rawgeti(L, 1, i);
     }
     if ((required_mode == ANY) && (found == false)) {
-        // TODO: This is crappy wording
-        game.log << "None of a selection of files were available";
-        throw GameConfigScriptError("None of a selection of files were available");
+        // TODO: Better wording, maybe keep the filenames around to show?
+        lua_pushstring(L, "None of a selection of files were available");
+        lua_error(L);
     }
     return 0;
 }
 
 int GameConfigScript::add_config(lua_State* L)
 {
-    if (!lua_isstring(L, 1)) {
-        game.log << "GameConfigScipt::add_config: Not passed a string\n";
-        return 0;
-    }
-    const char* name = lua_tostring(L, 1);
+    const char* name = luaL_checkstring(L, 1);
     string filename = (current_directory.top() / name).string();
     fs::path newdir(current_directory.top() / name);
     newdir = newdir.branch_path();
     //game.log << "Pushing " << newdir << "\n";
     current_directory.push(newdir);
     //game.log << "Parsing: " << filename << "\n";
-    luaL_dofile(script.L, filename.c_str());
+    int ret = luaL_loadfile(script.L, filename.c_str());
+    if (ret != 0) {
+        string msg;
+        switch(ret) {
+        case LUA_ERRFILE:
+            msg += "Unable to open file ";
+            break;
+        case LUA_ERRMEM:
+            msg += "Memory allocation error whilst loading ";
+            break;
+        case LUA_ERRSYNTAX:
+            msg += "Syntax error whilst loading ";
+            break;
+        }
+        msg += "\"" + filename + "\"";
+        lua_pushstring(script.L, msg.c_str());
+        lua_error(L);
+    }
+    lua_call(script.L, 0, 0);
+
     current_directory.pop();
     return 0;
 }
@@ -115,6 +122,22 @@ void GameConfigScript::parse(const string& path)
 {
     current_directory.push(game.config.basedir + "/data");
     //game.log << "CD: " << current_directory.top() << " Parsing: " << path << "\n";
-    luaL_dofile(script.L, path.c_str());
+    int ret = luaL_loadfile(script.L, path.c_str());
+    if (ret != 0) {
+        handle_error();
+    }
+    ret = lua_pcall(script.L, 0, 0, 0);
+    if (ret != 0) {
+        handle_error();
+    }
 }
 
+void GameConfigScript::handle_error()
+{
+    string msg("GameConfigScript: Lua error: ");
+    const char* lua_msg = lua_tostring(script.L, 1);
+    if (lua_msg != NULL) {
+        msg += lua_msg;
+    }
+    throw GameConfigScriptError(msg);
+}
