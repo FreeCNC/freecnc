@@ -1,3 +1,12 @@
-vfs_add_path "."
-vfs_add {"required", "general.mix"}
--- etc.
+vfs_add {"./", required="all"}
+vfs_add {"local.mix",   "cclocal.mix", required="any"}
+vfs_add {"conquer.mix", "general.mix", required="all"}
+vfs_add {"general-gdi.mix", "general-nod.mix", required="none"}
+vfs_add {"movies.mix",  "movies-gdi.mix", "movies-nod.mix", required="none"}
+vfs_add {"sc-000.mix",  "sc-001.mix", required="none"}
+vfs_add {"scores.mix", required="none"}
+vfs_add {"setup.mix", "aud.mix", "speech.mix", "sounds.mix", required="all"}
+vfs_add {"transit.mix", required="all"}
+vfs_add {"update.mix",   "updatec.mix", required="any"}
+vfs_add {"desert.mix",   "temperat.mix", "winter.mix", required="all"}
+vfs_add {"deseicnh.mix", "tempicnh.mix", "winticnh.mix", required="any"}

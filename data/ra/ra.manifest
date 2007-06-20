@@ -1,1 +1,2 @@
-vfs_add_path "."
+vfs_add {"./"}
+vfs_add {"cclocal.mix", "main.mix", "redalert.mix", "updatec.mix"}

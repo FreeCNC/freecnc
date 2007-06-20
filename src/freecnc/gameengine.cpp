@@ -68,14 +68,14 @@ void GameEngine::startup(int argc, char** argv)
 
     log.open((game.config.basedir + "/freecnc.log").c_str());
 
-    {
-        GameConfigScript gcs;
-        gcs.parse(game.config.basedir + "/data/freecnc.manifest");
-    }
-
-    log << "GameEngine: Bootstrapping engine..." << endl;
-
     try {
+        {
+            GameConfigScript gcs;
+            gcs.parse(game.config.basedir + "/data/freecnc.manifest");
+        }
+
+        log << "GameEngine: Bootstrapping engine..." << endl;
+
         // Legacy logging / conf parsing
         logger = new Logger();
 
@@ -176,7 +176,7 @@ void GameEngine::parse_options(int argc, char** argv)
         throw GameOptionsUsageMessage(s.str());
     }
 
-    const string config_path(config.basedir + "/data/base/freecnc.cfg");
+    const string config_path(config.basedir + "/data/freecnc.cfg");
     std::ifstream cfgfile(config_path.c_str());
 
     po::store(po::parse_config_file(cfgfile, config_file_options), vm);

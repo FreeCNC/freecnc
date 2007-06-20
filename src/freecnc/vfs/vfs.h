@@ -19,20 +19,15 @@ namespace VFS
 
     class VFS : private boost::noncopyable
     {
-        typedef std::vector<boost::shared_ptr<Archive> > ArchiveVector; 
-        typedef std::vector<ArchiveVector> ArchiveVectorVector;
+        typedef std::vector<boost::shared_ptr<Archive> > ArchiveVector;
     public:
         VFS();
         ~VFS();
 
-        // Adds a directory to the VFS. Directories are searched in the order
-        // they are added.
-        // All archives present in the root of this path will also be added.
+        // Adds a directory or mixfile to the VFS. Directories are searched in
+        // the order they are added.
         // Files in the filesystem always takes priority over files in archives.
         bool add(const boost::filesystem::path& pth);
-
-        // Removes a directory from the search paths.
-        void remove(const std::string& dir);
 
         // Removes all directories.
         void remove_all();
@@ -49,7 +44,7 @@ namespace VFS
         // Contains the list of archives; The first archive of each group is the
         // directory that was added, and the remaining members are archives located
         // in that directory.
-        ArchiveVectorVector archives;
+        ArchiveVector archives;
     };
 }
 
