@@ -38,45 +38,36 @@ int GameConfigScript::vfs_add(lua_State* L)
     if (required == NULL) {
         required_mode = ALL;
     } else {
-        size_t r_len = strlen(required);
-        if ((r_len != 3) && (r_len != 4)) {
-            game.log << "GameConfigScript::vfs_add: Syntax error (invalid length for \"required\" value)\n";
-            return 0;
-        }
-        int v = (required[0] | required[1] << 8 | required[2] << 16);
-        if (v == 0x6C6C61) {
+        string req(required);
+        if (req == "all") {
             required_mode = ALL;
-        } else if (v == 0x796E61) {
+        } else if (req == "any") {
             required_mode = ANY;
-        } else if (v == 0x6E6F6E) {
+        } else if (req == "none") {
             required_mode = NONE;
         } else {
-            game.log << "GameConfigScript::vfs_add: Syntax error (invalid \"required\" value)\n";
-            return 0;
+            lua_pushstring(L, "Invalid value provided to \"required\"");
+            lua_error(L);
         }
     }
 
     bool found = false;
 
-    size_t i = 1;
-    lua_rawgeti(L, 1, i);
-    while (!lua_isnil(L, -1)) {
+    lua_rawgeti(L, 1, 1);
+    for (size_t i = 2; !lua_isnil(L, -1); lua_rawgeti(L, 1, i++)) {
         const char* name = luaL_checkstring(L, -1);
         fs::path filename(current_directory.top() / name);
-        bool result = game.vfs.add(filename);
-        if (!result) {
-            if (required_mode == ALL) {
-                string s("Missing required file: ");
-                s += filename.string();
-                lua_pushstring(L, s.c_str());
-                lua_error(L);
-            }
+
+        if (!game.vfs.add(filename) && required_mode == ALL) {
+            string s("Missing required file: ");
+            s += filename.string();
+            lua_pushstring(L, s.c_str());
+            lua_error(L);
         } else if (required_mode == ANY) {
             found = true;
         }
-        ++i;
-        lua_rawgeti(L, 1, i);
     }
+
     if ((required_mode == ANY) && (found == false)) {
         // TODO: Better wording, maybe keep the filenames around to show?
         lua_pushstring(L, "None of a selection of files were available");
@@ -122,12 +113,10 @@ void GameConfigScript::parse(const string& path)
 {
     current_directory.push(game.config.basedir + "/data");
     //game.log << "CD: " << current_directory.top() << " Parsing: " << path << "\n";
-    int ret = luaL_loadfile(script.L, path.c_str());
-    if (ret != 0) {
+    if (luaL_loadfile(script.L, path.c_str()) != 0) {
         handle_error();
     }
-    ret = lua_pcall(script.L, 0, 0, 0);
-    if (ret != 0) {
+    if (lua_pcall(script.L, 0, 0, 0) != 0) {
         handle_error();
     }
 }
