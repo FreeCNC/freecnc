@@ -37,7 +37,7 @@ env.ParseConfig(sdlconfname + " --cflags --libs")
 
 env["CXXFLAGS"] += ["-Wall", "-std=c++98", "-Wconversion", "-Wno-unused-parameter"]
 
-env["LIBS"] += ["SDL_mixer", "boost_program_options-st", "boost_filesystem-st"]
+env["LIBS"] += ["SDL_mixer", "boost_program_options-mt", "boost_filesystem-mt"]
 
 release = env.Copy()
 release["CXXFLAGS"] += ["-Os"]
