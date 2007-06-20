@@ -25,7 +25,6 @@ namespace VFS
 
     bool VFS::add(const fs::path& pth)
     {
-        // Check that the directory exists
         if (!fs::exists(pth)) {
             return false;
         }
@@ -33,16 +32,17 @@ namespace VFS
         if (fs::is_directory(pth)) {
             archives.push_back(shared_ptr<DirArchive>(new DirArchive(pth)));
             return true;
+        } else if (fs::is_regular(pth)) {
+            archives.push_back(shared_ptr<MixArchive>(new MixArchive(pth, vector<string>())));
+            return true;
         }
-
-        archives.push_back(shared_ptr<MixArchive>(new MixArchive(pth, vector<string>())));
-        return true;
+        
+        return false;
     }
 
     void VFS::remove_all()
     {
-        ArchiveVector tmp;
-        tmp.swap(archives);
+        ArchiveVector().swap(archives);
     }
 
     shared_ptr<File> VFS::open(const string& filename)

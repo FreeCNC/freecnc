@@ -683,6 +683,30 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="scripting"
+			>
+			<File
+				RelativePath=".\freecnc\scripting\gameconfigscript.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\scripting\gameconfigscript.h"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\scripting\luascript.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\scripting\luascript.h"
+				>
+			</File>
+			<File
+				RelativePath=".\freecnc\scripting\luascript_impl.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\freecnc\basictypes.h"
 			>
