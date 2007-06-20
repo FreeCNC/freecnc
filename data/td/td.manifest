@@ -1,0 +1,3 @@
+vfs_add_path "."
+vfs_add {"required", "general.mix"}
+-- etc.

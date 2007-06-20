@@ -7,6 +7,7 @@
 #include "SDL.h"
 
 #include "gameengine.h"
+#include "scripting/gameconfigscript.h"
 #include "renderer/renderer_public.h"
 #include "sound/sound_public.h"
 #include "screens/mainmenu.h"
@@ -64,14 +65,14 @@ void GameEngine::reconfigure()
 void GameEngine::startup(int argc, char** argv)
 {
     parse_options(argc, argv);
-    
-    vfs.add(game.config.basedir + "/data");
-    vfs.add(game.config.basedir + "/data/settings");
-    // Temp
-    vfs.add(game.config.basedir + "/data/settings/td");
-    vfs.add(game.config.basedir + "/data/mix");
 
     log.open((game.config.basedir + "/freecnc.log").c_str());
+
+    {
+        GameConfigScript gcs;
+        gcs.parse(game.config.basedir + "/data/freecnc.manifest");
+    }
+
     log << "GameEngine: Bootstrapping engine..." << endl;
 
     try {
@@ -175,7 +176,7 @@ void GameEngine::parse_options(int argc, char** argv)
         throw GameOptionsUsageMessage(s.str());
     }
 
-    const string config_path(config.basedir + "/data/settings/freecnc.cfg");
+    const string config_path(config.basedir + "/data/base/freecnc.cfg");
     std::ifstream cfgfile(config_path.c_str());
 
     po::store(po::parse_config_file(cfgfile, config_file_options), vm);
