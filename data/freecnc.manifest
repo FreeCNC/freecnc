@@ -1,6 +1,0 @@
-if (mod == "td") then
-    add_config "td/td.manifest"
-else
-    add_config "ra/ra.manifest"
-end
-add_config "base/base.manifest"

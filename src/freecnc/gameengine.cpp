@@ -71,7 +71,7 @@ void GameEngine::startup(int argc, char** argv)
     try {
         {
             GameConfigScript gcs;
-            gcs.parse(game.config.basedir + "/data/freecnc.manifest");
+            gcs.parse(game.config.basedir + "/data/manifest.lua");
         }
 
         log << "GameEngine: Bootstrapping engine..." << endl;
