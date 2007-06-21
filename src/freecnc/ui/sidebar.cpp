@@ -227,7 +227,7 @@ SDL_Surface *Sidebar::getSidebarImage(SDL_Rect location)
             unsigned int idx = pc::imgcache->loadImage("btexture.shp", scaleq);
 
             // Get the SDL_Surface for this texture
-            SDL_Surface* texture = pc::imgcache->getImage(idx).image;
+            SDL_Surface* texture = pc::imgcache->getImage(idx, 1).image;
 
             dest.x = 0;
             dest.y = 0;
