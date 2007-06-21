@@ -31,7 +31,9 @@ GraphicsEngine::GraphicsEngine()
         }
     }
 
-    screen = SDL_SetVideoMode(width, height, game.config.bpp, SDL_SWSURFACE);
+    unsigned int screenflags = SDL_SWSURFACE;
+    if (game.config.fullscreen) screenflags |= SDL_FULLSCREEN;
+    screen = SDL_SetVideoMode(width, height, game.config.bpp, screenflags);
 
     if (screen == NULL) {
         game.log << "GraphicsEngine: Unable to set mode " << width << "x" << height << ", "
