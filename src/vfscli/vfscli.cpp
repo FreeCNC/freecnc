@@ -83,7 +83,7 @@ void VFSCli::parse(int argc, char** argv)
     // This needs to do whatever the main program does for selecting directories
     // to load
     vfs.add(basedir + "/data");
-    vfs.add(basedir + "/data/mix");
+    vfs.add(basedir + "/data/td");
 }
 
 void VFSCli::extract_files()
