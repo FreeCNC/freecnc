@@ -11,30 +11,43 @@
 
 namespace
 {
-    /// @TODO Move this into config file(s)
-    const char* radarnames[] =
+    enum {IMG_TABS, IMG_STRIP, IMG_STRIP_UP, IMG_STRIP_DOWN,
+        IMG_RADAR_BADGUY, IMG_RADAR_GOODGUY, IMG_RADAR_SPECIAL,
+        IMG_CLOCK,
+        IMG_REPAIR, IMG_SELL, IMG_MAP,
+        IMG_TOP, IMG_BOTTOM, IMG_POWER_INDICATOR, IMG_POWER_BAR,
+        IMG_INVALID};
+    const char* sidebar_filenames[5][IMG_INVALID] =
     {
-        //   Gold Edition radars: NOD, GDI and Dinosaur
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {"tabs.shp",  "strip.shp",  "stripup.shp", "stripdn.shp",
+        "radar.nod", "radar.gdi",  "radar.jp",
+        "clock.shp",
+        "repair.shp", "sell.shp", "map.shp",
+        "side1.shp", "side2.shp", "power.shp", "pwrbar.shp"},
+
+        {"htabs.shp", "hstrip.shp", "hstripup.shp", "hstripdn.shp",
         "hradar.nod", "hradar.gdi", "hradar.jp",
-        //   Dos Edition radars
-        "radar.nod",  "radar.gdi",  "radar.jp",
-        //   Red Alert radars (We only use large sidebar for RA)
-        "ussrradr.shp", "natoradr.shp", "natoradr.shp"
+        "hclock.shp",
+        "hrepair.shp", "hsell.shp", "hmap.shp", 
+        "hside1.shp", "hside2.shp", "hpower.shp", "hpwrbar.shp"},
+
+        // Unused image: side1na.shp is the Radar frame
+
+        {"tabs.shp",  "stripna.shp", "stripup.shp", "stripdn.shp",
+        "ussrradr.shp", "natoradr.shp", "natoradr.shp",
+        "clock.shp",
+        "repair.shp", "sell.shp","map.shp",
+        "side2na.shp", "side3na.shp", "power.shp", "powerbar.shp"},
+
+        {"tabs.shp",  "stripus.shp", "stripup.shp", "stripdn.shp",
+        "ussrradr.shp", "natoradr.shp", "natoradr.shp",
+        "clock.shp",
+        "repair.shp", "sell.shp","map.shp",
+        "side2us.shp", "side3us.shp", "power.shp", "powerbar.shp"},
     };
 
-    const char* tabnames[] = {"htabs.shp", "tabs.shp"};
-
-    const char* stripnames[] = {"stripna.shp","hstrip.shp","strip.shp"};
-
-    const char* get_first_existing(const char* filenames[], size_t count)
-    {
-        for (size_t i = 0; i < count; ++i) {
-            if (game.vfs.open(filenames[i])) {
-                return filenames[i];
-            }
-        }
-        return NULL;
-    }
+    const char** filenames = sidebar_filenames[0]; // gets set to sidebar_filenames[sidebar_type]
 
 }
 
@@ -52,102 +65,158 @@ using std::replace;
  *      TD: desert, temperate and winter
  *      RA: temperate and snow
  */
-Sidebar::Sidebar(Player *pl, unsigned short height, const char *theatre)
-    : radarlogo(0), tab(0), sbar(0), gamefnt(new Font("scorefnt.fnt")), visible(true),
-    vischanged(true), theatre(theatre), buttondown(0), bd(false),
-    radaranimating(false), unitoff(0), structoff(0), player(pl), scaleq(-1)
+Sidebar::Sidebar(Player* pl, int height, const char* theatre)
+    : height(height), unit_palette(0), structure_palette(0), radarlogo(0),
+    tab(0), sbar(0), gamefnt(new Font("scorefnt.fnt")), visible(true),
+    vischanged(true), invalidated(true), theatre(theatre), buttondown(0),
+    bd(false), radaranimating(false), unitoff(0), structoff(0), player(pl),
+    scaleq(-1)
 {
-    const char* tmpname;
-    unsigned char side;
-    SDL_Surface *tmp;
+    load_images();
 
-    // If we can't load these files, there's no point in proceeding, thus we let
-    // the default handler for runtime_error in main() catch.
+    init_radar();
+
+    init_surface();
+
+    blit_static_images();
+
+    std::fill(grey_fixed, grey_fixed+256, false);
+
+    pc::sidebar = this;
+
+    setup_buttons();
+}
+
+void Sidebar::load_images()
+{
     if (game.config.gametype == GAME_TD) {
-        tmpname = get_first_existing(tabnames, sizeof(tabnames));
-        if (tmpname == NULL) {
-            throw runtime_error("Unable to find the tab images! (Missing updatec.mix?)");
-        } else if (strcasecmp(tmpname,"htabs.shp")==0) {
-            isoriginaltype = false;
+        if (game.vfs.open(sidebar_filenames[GOLD][IMG_TABS])) {
+            sidebar_type = GOLD;
+        } else if (game.vfs.open(sidebar_filenames[DOS][IMG_TABS])) {
+            sidebar_type = DOS;
+            structure_palette = player->getStructpalNum();
+            unit_palette = player->getUnitpalNum();
         } else {
-            isoriginaltype = true;
-        }
-        try {
-            tab = pc::imgcache->loadImage(tmpname, scaleq);
-        } catch (ImageNotFound&) {
-            throw runtime_error("Unable to load the tab images!");
+            throw runtime_error("Unable to find the tab images! (Missing updatec.mix?)");
         }
     } else {
-        isoriginaltype = false;
-        try {
-            tab = pc::imgcache->loadImage("tabs.shp", scaleq);
-        } catch (ImageNotFound&) {
-            throw runtime_error("Unable to load the tab images!");
+        sidebar_type = REDALERT_NATO;
+        // Duplicate check from init_radar for now...
+        if ((player->getSide()&~PS_MULTI) == PS_BAD) {
+            sidebar_type = REDALERT_USSR;
         }
     }
+    filenames = sidebar_filenames[sidebar_type];
+    tab = pc::imgcache->loadImage(filenames[IMG_TABS], scaleq);
 
-    tmp = pc::imgcache->getImage(tab).image;
+    SDL_Surface* tmp = pc::imgcache->getImage(tab).image;
 
     tablocation.x = 0;
     tablocation.y = 0;
     tablocation.w = tmp->w;
     tablocation.h = tmp->h;
+}
 
-    spalnum = pl->getStructpalNum();
-    if (!isoriginaltype) {
-        spalnum = 0;
-    }
+void Sidebar::init_radar()
+{
+    int radar_index;
     // Select a radar image based on sidebar type (DOS/Gold) and player side
     // (Good/Bad/Other)
     if ((player->getSide()&~PS_MULTI) == PS_BAD) {
-        side = isoriginaltype?3:0;
+        radar_index = IMG_RADAR_BADGUY;
     } else if ((player->getSide()&~PS_MULTI) == PS_GOOD) {
-        side = isoriginaltype?4:1;
+        radar_index = IMG_RADAR_GOODGUY;
     } else {
-        side = isoriginaltype?5:2;
+        radar_index = IMG_RADAR_SPECIAL;
     }
 
-    if (game.config.gametype == GAME_RA) {
-        // RA follows (Gold names) * 3 and (DOS names) * 3
-        side += 6;
-    }
+    radarlogo = pc::imgcache->loadImage(filenames[radar_index], scaleq);
 
-    radarname = radarnames[side];
-    try {
-        radarlogo = pc::imgcache->loadImage(radarname, scaleq);
-    } catch (ImageNotFound&) {
-        /// @TODO This problem should ripple up to the "game detection" layer
-        // so it can try again from scratch with a different set of data files.
-        game.log << "Hmm.. managed to misdetect sidebar type" << endl;
-        try {
-            // Switch between Gold and DOS
-            if (side < 3) {
-                side += 3;
-            } else {
-                side -= 3;
-            }
-            radarname = radarnames[side];
-            radarlogo = pc::imgcache->loadImage(radarname, scaleq);
-            isoriginaltype = !isoriginaltype;
-        } catch (ImageNotFound&) {
-            game.log << "Unable to load the radar-image! (Maybe you run c&c gold but have forgoten updatec.mix?)" << endl;
-            throw SidebarError();
+    SDL_Surface* radar = pc::imgcache->getImage(radarlogo).image;
+    radarlocation.x = 0;
+    radarlocation.y = 0;
+    radarlocation.w = radar->w;
+    radarlocation.h = radar->h;
+    steps = ((game.config.gametype == GAME_RA)?54:108);
+}
+
+void Sidebar::init_surface()
+{
+    SDL_Surface* temp = SDL_CreateRGBSurface(SDL_SWSURFACE, tablocation.w, height, 16, 0, 0, 0, 0);
+    sbar = SDL_DisplayFormat(temp);
+    SDL_FreeSurface(temp);
+}
+
+void Sidebar::blit_static_images()
+{
+    if (sidebar_type == DOS) {
+        SDL_FillRect(sbar, NULL, SDL_MapRGB(sbar->format, 0xa0, 0xa0, 0xa0));
+    } else if (sidebar_type == GOLD) {
+        unsigned int idx = pc::imgcache->loadImage("btexture.shp", scaleq);
+        SDL_Surface* texture = pc::imgcache->getImage(idx, 1).image;
+        SDL_Rect dest = {0, 0, tablocation.w, texture->h};
+        for (dest.y = 0; dest.y < height; dest.y += dest.h) {
+            SDL_BlitSurface(texture, NULL, sbar, &dest);
         }
     }
 
-    SDL_Surface *radar = pc::imgcache->getImage(radarlogo).image;
-    radarlocation.x = 0;  radarlocation.y = 0;
-    radarlocation.w = radar->w;  radarlocation.h = radar->h;
+    //// Draw the sidebar frames
+    try { // Temp try/catch
+        unsigned int idx = pc::imgcache->loadImage(filenames[IMG_TOP], scaleq);
+        SDL_Surface* texture = pc::imgcache->getImage(idx, 1).image;
+        SDL_Rect dest = {0, tablocation.h + radarlocation.h, tablocation.w, texture->h};
+        SDL_BlitSurface(texture, NULL, sbar, &dest);
+        dest.y += dest.h;
+        idx = pc::imgcache->loadImage(filenames[IMG_BOTTOM], scaleq);
+        texture = pc::imgcache->getImage(idx, 1).image;
+        dest.h = texture->h;
+        SDL_BlitSurface(texture, NULL, sbar, &dest);
+    } catch (ImageNotFound& e) {
+        // DOS version needs its TOP and BOTTOM images painting
+    }
 
-    /// @TODO Move these values into config
-    steps = ((game.config.gametype == GAME_RA)?54:108);
 
-    sbarlocation.x = sbarlocation.y = sbarlocation.w = sbarlocation.h = 0;
+    //// Draw the repair, sell and map buttons
+    const int yoffsets[5] = {0, 0, 2, 0, 0};
+    const int xoffsets[5][3] = {{0, 0, 0}, {2, 36, 58}, {4, 57, 110}, {0, 0, 0}, {0, 0, 0}};
 
-    std::fill(greyFixed, greyFixed+256, false);
+    const int* xoffset = xoffsets[sidebar_type];
 
-    pc::sidebar = this;
-    SetupButtons(height);
+    unsigned int idx = pc::imgcache->loadImage(filenames[IMG_REPAIR], scaleq);
+    SDL_Surface* texture = pc::imgcache->getImage(idx, 0).image;
+    SDL_Rect dest = {xoffset[0],
+        yoffsets[sidebar_type] + tablocation.h + radarlocation.h,
+        texture->w, texture->h};
+    SDL_BlitSurface(texture, NULL, sbar, &dest);
+
+    idx = pc::imgcache->loadImage(filenames[IMG_SELL], scaleq);
+    texture = pc::imgcache->getImage(idx, 0).image;
+    dest.x = xoffset[1];
+    dest.w = texture->w;
+    dest.h = texture->h;
+    SDL_BlitSurface(texture, NULL, sbar, &dest);
+
+    idx = pc::imgcache->loadImage(filenames[IMG_MAP], scaleq);
+    texture = pc::imgcache->getImage(idx, 0).image;
+    dest.x = xoffset[2];
+    dest.w = texture->w;
+    dest.h = texture->h;
+    SDL_BlitSurface(texture, NULL, sbar, &dest);
+
+
+    //// Draw the power bar
+    if (sidebar_type == DOS) {
+        // No powerbar for DOS version yet...
+        return;
+    }
+    idx = pc::imgcache->loadImage(filenames[IMG_POWER_BAR], scaleq);
+    texture = pc::imgcache->getImage(idx, 3).image;
+    dest.x = 0;
+    dest.y = 274;
+    dest.w = texture->w;
+    dest.h = texture->h;
+    SDL_BlitSurface(texture, NULL, sbar, &dest);
+
 }
 
 Sidebar::~Sidebar()
@@ -155,9 +224,6 @@ Sidebar::~Sidebar()
     unsigned int i;
 
     SDL_FreeSurface(sbar);
-
-    vector<shared_ptr<SidebarButton> > tmpbuttons;
-    tmpbuttons.swap(buttons);
 
     for (i=0; i < uniticons.size(); ++i) {
         delete[] uniticons[i];
@@ -171,7 +237,7 @@ Sidebar::~Sidebar()
 /**
  * @returns whether the sidebar's visibility has changed.
  */
-bool Sidebar::getVisChanged() {
+bool Sidebar::get_vischanged() {
     if (vischanged) {
         vischanged = false;
         return true;
@@ -179,155 +245,110 @@ bool Sidebar::getVisChanged() {
     return false;
 }
 
-void Sidebar::ToggleVisible()
+void Sidebar::toggle_visible()
 {
     visible = !visible;
     vischanged = true;
 }
 
-void Sidebar::ReloadImages()
+void Sidebar::reload_images()
 {
-    // Free the sbar, so that it is redrawn on next update
-    SDL_FreeSurface(sbar);
-    sbar = NULL;
-    sbarlocation.x = sbarlocation.y = sbarlocation.w = sbarlocation.h = 0;
+    invalidated = true;
 
     // Reload the font we use
     gamefnt->reload();
 
     // Reload all the buttons
-    for_each(buttons.begin(), buttons.end(), boost::mem_fn(&Sidebar::SidebarButton::ReloadImage));
+    for_each(buttons.begin(), buttons.end(), boost::mem_fn(&Sidebar::SidebarButton::reload_image));
 
     // Invalidate grey fix table
-    std::fill(greyFixed, greyFixed+256, false);
+    std::fill(grey_fixed, grey_fixed+256, false);
 }
 
-SDL_Surface *Sidebar::getSidebarImage(SDL_Rect location)
+SDL_Surface *Sidebar::get_sidebar_image(SDL_Rect location)
 {
-    SDL_Rect dest, src;
-    SDL_Surface *temp;
-
-    if (location.w == sbarlocation.w && location.h == sbarlocation.h)
+    if (!invalidated) {
         return sbar;
-
-    SDL_FreeSurface(sbar);
-
-    temp = SDL_CreateRGBSurface(SDL_SWSURFACE, location.w, location.h, 16, 0, 0, 0, 0);
-    sbar = SDL_DisplayFormat(temp);
-    SDL_FreeSurface(temp);
-    location.x = 0;
-    location.y = 0;
-
-    /// @TODO HACK
-    if (isoriginaltype || game.config.gametype == GAME_RA) {
-        SDL_FillRect(sbar, &location, SDL_MapRGB(sbar->format, 0xa0, 0xa0, 0xa0));
-    } else {
-        try {
-            // Get the index of the btexture
-            unsigned int idx = pc::imgcache->loadImage("btexture.shp", scaleq);
-
-            // Get the SDL_Surface for this texture
-            SDL_Surface* texture = pc::imgcache->getImage(idx, 1).image;
-
-            dest.x = 0;
-            dest.y = 0;
-            dest.w = location.w;
-            dest.h = texture->h;
-            src.x = 0;
-            src.y = 0;
-            src.w = location.w;
-            src.h = texture->h;
-            for (dest.y = 0; dest.y < location.h; dest.y += dest.h) {
-                SDL_BlitSurface(texture, &src, sbar, &dest);
-            }
-        } catch (ImageNotFound&) {
-            game.log << "Unable to load the background texture" << endl;
-            SDL_FillRect(sbar, &location, SDL_MapRGB(sbar->format, 0xa0, 0xa0, 0xa0));
-        }
     }
-    sbarlocation = location;
 
     if (!Input::isMinimapEnabled()) {
         SDL_Surface* radar = pc::imgcache->getImage(radarlogo).image;
         SDL_BlitSurface(radar, NULL, sbar, &radarlocation);
     }
 
-    for (char x = buttons.size()-1;x>=0;--x) {
-        DrawButton(x);
+    for (int x = buttons.size() - 1 ; x >= 0; --x) {
+        draw_button(x);
     }
+
+    invalidated = false;
 
     return sbar;
 }
 
-void Sidebar::AddButton(unsigned short x, unsigned short y, const char* fname, unsigned char f, unsigned char pal)
+void Sidebar::add_button(unsigned short x, unsigned short y, const char* fname, unsigned char f, unsigned char pal)
 {
-    shared_ptr<SidebarButton> t(new SidebarButton(x, y, fname, f, theatre, pal));
+    shared_ptr<SidebarButton> t(new SidebarButton(x, y, fname, f, theatre, pal, sidebar_type));
     buttons.push_back(t);
     vischanged = true;
 }
 
-void Sidebar::SetupButtons(unsigned short height)
+void Sidebar::setup_buttons()
 {
-    const char* tmpname;
-    unsigned short scrollbase;
-    unsigned char t;
+    {
+        SHPImage strip(filenames[IMG_STRIP], scaleq);
+        geom.bh = strip.getHeight();
+        geom.bw = strip.getWidth();
+    }
+    if (sidebar_type != DOS) {
+        // Non DOS strips appear as a four
+        geom.bh = geom.bh / 4;
+    }
 
     unsigned int startoffs = tablocation.h + radarlocation.h;
 
-    SHPImage *strip;
+    int sx, sy, ux, uy;
 
-    tmpname = get_first_existing(stripnames, sizeof(stripnames));
-    if (tmpname == NULL) {
-        game.log << "Unable to find strip images for sidebar, exiting" << endl;
-        throw SidebarError();
+    if (sidebar_type == DOS) {
+        buildbut = ((height-startoffs)/geom.bh)-2;
+        sx = 10;
+        sy = startoffs + 10;
+        ux = 10 + geom.bw;
+        uy = sy;
+    } else {
+        buildbut = 4;
+        sx = 20;
+        sy = startoffs + 22;
+        ux = 90;
+        uy = sy;
     }
-    try {
-        strip = new SHPImage(tmpname, scaleq);
-    } catch (ImageNotFound&) {
-        game.log << "Unable to load strip images for sidebar, exiting" << endl;
-        throw SidebarError();
-    }
 
-    geom.bh = strip->getHeight();
-    geom.bw = strip->getWidth();
+    int scroll_y = sy + geom.bh * buildbut;
+    add_button(ux, scroll_y, filenames[IMG_STRIP_UP], sbo_scroll|sbo_unit|sbo_up, 0); // 0
+    add_button(sx, scroll_y, filenames[IMG_STRIP_UP], sbo_scroll|sbo_structure|sbo_up, 0); // 1
 
-    delete strip;
+    add_button(ux + (geom.bw / 2), scroll_y, filenames[IMG_STRIP_DOWN], sbo_scroll|sbo_unit|sbo_down, 0); // 2
+    add_button(sx + (geom.bw / 2), scroll_y, filenames[IMG_STRIP_DOWN], sbo_scroll|sbo_structure|sbo_down, 0); // 3
 
-    if (geom.bh > 100)
-        geom.bh = geom.bh>>2;
-
-    buildbut = ((height-startoffs)/geom.bh)-2;
-    startoffs += geom.bh;
-
-    scrollbase = startoffs + geom.bh*buildbut;
-    AddButton(10+geom.bw,scrollbase,"stripup.shp",sbo_scroll|sbo_unit|sbo_up,0); // 0
-    AddButton(10,scrollbase,"stripup.shp",sbo_scroll|sbo_structure|sbo_up,0); // 1
-
-    AddButton(10+geom.bw+(geom.bw>>1),scrollbase,"stripdn.shp",sbo_scroll|sbo_unit|sbo_down,0); // 2
-    AddButton(10+(geom.bw>>1),scrollbase,"stripdn.shp",sbo_scroll|sbo_structure|sbo_down,0); // 3
-
-    // The order in which the AddButton calls are made MUST be preserved
+    // The order in which the add_button calls are made MUST be preserved
     // Two loops are made so that all unit buttons and all structure buttons
     // are grouped contiguously (4,5,6,7,...) compared to (4,6,8,10,...)
 
-    for (t=0;t<buildbut;++t) {
-        if (game.config.gametype == GAME_RA) AddButton(10+geom.bw,startoffs+geom.bh*t,"stripna.shp",sbo_build|sbo_unit,0);
-          else AddButton(10+geom.bw,startoffs+geom.bh*t,"strip.shp",sbo_build|sbo_unit,0);
+    for (int i = 0;i < buildbut; ++i) {
+        add_button(ux, uy + geom.bh * i, filenames[IMG_STRIP], sbo_build|sbo_unit, unit_palette);
     }
-    for (t=0;t<buildbut;++t) {
-        if (game.config.gametype == GAME_RA) AddButton(10,startoffs+geom.bh*t,"stripna.shp",sbo_build|sbo_structure,spalnum);
-          else AddButton(10,startoffs+geom.bh*t,"strip.shp",sbo_build|sbo_structure,spalnum);
+    for (int i = 0; i < buildbut; ++i) {
+        add_button(sx, sy + geom.bh * i, filenames[IMG_STRIP], sbo_build|sbo_structure, structure_palette);
     }
 
-    UpdateAvailableLists();
-    UpdateIcons();
+    update_available_lists();
+    update_icons();
     if (uniticons.empty() && structicons.empty()) {
         visible = false;
         vischanged = true;
     }
 }
 
-unsigned char Sidebar::getButton(unsigned short x,unsigned short y)
+unsigned char Sidebar::get_button(unsigned short x,unsigned short y)
 {
     SDL_Rect tmp;
 
@@ -340,7 +361,7 @@ unsigned char Sidebar::getButton(unsigned short x,unsigned short y)
     return 255;
 }
 
-void Sidebar::DrawButton(unsigned char index)
+void Sidebar::draw_button(unsigned char index)
 {
     if (sbar == 0) {
         /// @TODO Ensure we don't actually get called when this is the case
@@ -390,7 +411,7 @@ void Sidebar::DrawButton(unsigned char index)
         for (unsigned char i = 0; i < 5; ++i) {
             // Here we assume that all sidebar icons are the same size
             // (which is pretty safe)
-            stat_pos[i].x = (dest.w - getFont()->calcTextWidth(stat_mesg[i])) >> 1;
+            stat_pos[i].x = (dest.w - get_font()->calcTextWidth(stat_mesg[i])) >> 1;
             stat_pos[i].y = dest.h - 15;
         }
         posinit = true;
@@ -409,30 +430,30 @@ void Sidebar::DrawButton(unsigned char index)
     }
     status = player->getStatus(type, &quantity, &progress);
     if (BQ_INVALID == status) {
-        getFont()->drawText(stat_mesg[status], sbar, dest.x + stat_pos[status].x, dest.y + stat_pos[status].y);
+        get_font()->drawText(stat_mesg[status], sbar, dest.x + stat_pos[status].x, dest.y + stat_pos[status].y);
         // Grey out invalid items for prettyness
-        DrawClock(index, 0);
+        draw_clock(index, 0);
         return;
     }
     imgnum = (steps*progress)/100;
     if (100 != progress) {
-        DrawClock(index, imgnum);
+        draw_clock(index, imgnum);
     }
     if (quantity > 0) {
         char tmp[4];
         sprintf(tmp, "%i", quantity);
-        getFont()->drawText(tmp, sbar, dest.x+3, dest.y+3);
+        get_font()->drawText(tmp, sbar, dest.x+3, dest.y+3);
     }
     /// @TODO This doesn't work when you immediately pause after starting to
     // build (but never draws the clock for things not being built).
     if (progress > 0) {
-        getFont()->drawText(stat_mesg[status], sbar, dest.x + stat_pos[status].x, dest.y + stat_pos[status].y);
+        get_font()->drawText(stat_mesg[status], sbar, dest.x + stat_pos[status].x, dest.y + stat_pos[status].y);
     }
 }
 
-void Sidebar::FixGrey(SDL_Surface* gr, unsigned char num)
+void Sidebar::fix_grey(SDL_Surface* gr, unsigned char num)
 {
-    if (greyFixed[num]) {
+    if (grey_fixed[num]) {
         return;
     }
 
@@ -447,28 +468,18 @@ void Sidebar::FixGrey(SDL_Surface* gr, unsigned char num)
         replace(pixels, pixels+size, 0x540U, 0x21U);
     }
     SDL_UnlockSurface(gr);
-    greyFixed[num] = true;
+    grey_fixed[num] = true;
 }
 
-void Sidebar::DrawClock(unsigned char index, unsigned char imgnum) {
+void Sidebar::draw_clock(unsigned char index, unsigned char imgnum) {
     unsigned int num = 0;
-    try {
-        // @TODO Move this check to config object
-        if (game.config.gametype == GAME_RA || isoriginaltype) {
-            num = pc::imgcache->loadImage("clock.shp");
-        } else {
-            num = pc::imgcache->loadImage("hclock.shp");
-        }
-    } catch (ImageNotFound&) {
-        game.log << "Unable to load clock image!" << endl;
-        return;
-    }
+    num = pc::imgcache->loadImage(filenames[IMG_CLOCK]);
     num += imgnum;
-    num |= spalnum<<11;
+    num |= structure_palette<<11;
 
     ImageCacheEntry& ice = pc::imgcache->getImage(num);
     SDL_Surface* gr = ice.image;
-    FixGrey(gr, imgnum);
+    fix_grey(gr, imgnum);
     SDL_SetAlpha(gr, SDL_SRCALPHA, 128);
 
     SDL_Rect dest = buttons[index]->getRect();
@@ -481,7 +492,7 @@ void Sidebar::DrawClock(unsigned char index, unsigned char imgnum) {
  * @bug This is an evil hack that should be replaced by something more flexible.
  */
 /// @TODO Bleh, this function needs loving.
-void Sidebar::ClickButton(unsigned char index, char* unitname, createmode_t* createmode) {
+void Sidebar::click_button(unsigned char index, char* unitname, createmode_t* createmode) {
     unsigned char f = buttons[index]->getFunction();
     *createmode = CM_INVALID;
     switch (f&0x3) {
@@ -489,11 +500,11 @@ void Sidebar::ClickButton(unsigned char index, char* unitname, createmode_t* cre
         return;
         break;
     case 1: // build
-        Build(index - 3 - ((f&sbo_unit)?0:buildbut),(f&sbo_unit),unitname, createmode);
+        build(index - 3 - ((f&sbo_unit)?0:buildbut),(f&sbo_unit),unitname, createmode);
         break;
     case 2: // scroll
-        DownButton(index);
-        ScrollBuildList((f&sbo_up), (f&sbo_unit));
+        down_button(index);
+        scroll_build_list((f&sbo_up), (f&sbo_unit));
         break;
     default:
         // unreachable
@@ -502,7 +513,7 @@ void Sidebar::ClickButton(unsigned char index, char* unitname, createmode_t* cre
 }
 
 /// @TODO Bleh, this function needs loving.
-void Sidebar::Build(unsigned char index, unsigned char type, char* unitname, createmode_t* createmode) {
+void Sidebar::build(unsigned char index, unsigned char type, char* unitname, createmode_t* createmode) {
     unsigned char* offptr;
     std::vector<char*>* vecptr;
 
@@ -532,7 +543,7 @@ void Sidebar::Build(unsigned char index, unsigned char type, char* unitname, cre
     }
 }
 
-void Sidebar::ScrollBuildList(unsigned char dir, unsigned char type) {
+void Sidebar::scroll_build_list(unsigned char dir, unsigned char type) {
     unsigned char* offptr;
     std::vector<char*>* vecptr;
 
@@ -554,12 +565,12 @@ void Sidebar::ScrollBuildList(unsigned char dir, unsigned char type) {
         }
     }
 
-    UpdateIcons();
+    update_icons();
 }
 
-void Sidebar::UpdateSidebar() {
-    UpdateAvailableLists();
-    UpdateIcons();
+void Sidebar::update_sidebar() {
+    update_available_lists();
+    update_icons();
 }
 
 /** Rebuild the list of icons that are available.
@@ -567,7 +578,7 @@ void Sidebar::UpdateSidebar() {
  * @bug Newer items should be appended, although with some grouping (i.e. keep
  * infantry at top, vehicles, aircraft, boats, then superweapons).
  */
-void Sidebar::UpdateAvailableLists() {
+void Sidebar::update_available_lists() {
     std::vector<const char*> units_avail, structs_avail;
     char* nametemp;
     bool played_sound;
@@ -622,32 +633,30 @@ void Sidebar::UpdateAvailableLists() {
 /** Sets the images of the visible icons, having scrolled.
  * @TODO Provide a way to only update certain icons
  */
-void Sidebar::UpdateIcons() {
+void Sidebar::update_icons() {
     unsigned char i;
 
     for (i=0;i<buildbut;++i) {
         if ((unsigned)(i+unitoff)>=(unsigned)uniticons.size()) {
-            if (game.config.gametype == GAME_RA) buttons[4+i]->ChangeImage("stripna.shp");
-            else buttons[4+i]->ChangeImage("strip.shp");
+            buttons[4+i]->change_image(filenames[IMG_STRIP]);
         } else {
-            buttons[4+i]->ChangeImage(uniticons[i+unitoff]);
+            buttons[4+i]->change_image(uniticons[i+unitoff]);
         }
     }
     for (i=0;i<buildbut;++i) {
         if ((unsigned)(i+structoff)>=(unsigned)structicons.size()) {
-            if (game.config.gametype == GAME_RA) buttons[buildbut+4+i]->ChangeImage("stripna.shp");
-            else buttons[buildbut+4+i]->ChangeImage("strip.shp");
+            buttons[buildbut+4+i]->change_image(filenames[IMG_STRIP]);
         } else {
-            buttons[buildbut+4+i]->ChangeImage(structicons[i+structoff]);
+            buttons[buildbut+4+i]->change_image(structicons[i+structoff]);
         }
     }
 
-    for (char x=buttons.size()-1;x>=0;--x) {
-        DrawButton(x);
+    for (char x = buttons.size()-1;x>=0;--x) {
+        draw_button(x);
     }
 }
 
-void Sidebar::DownButton(unsigned char index)
+void Sidebar::down_button(unsigned char index)
 {
     if (index>3)
         return; // not a scroll button
@@ -656,28 +665,28 @@ void Sidebar::DownButton(unsigned char index)
 
     bd = true;
     if (index == 0 || index == 1)
-        buttons[index]->ChangeImage("stripup.shp",1);
+        buttons[index]->change_image(filenames[IMG_STRIP_UP],1);
     else
-        buttons[index]->ChangeImage("stripdn.shp",1);
-    UpdateIcons();
+        buttons[index]->change_image(filenames[IMG_STRIP_DOWN],1);
+    update_icons();
 
 }
 
-void Sidebar::ResetButton()
+void Sidebar::reset_button()
 {
     if (!bd)
         return;
     bd = false;
 
     if (buttondown < 2)
-        buttons[buttondown]->ChangeImage("stripup.shp",0);
+        buttons[buttondown]->change_image(filenames[IMG_STRIP_UP],0);
     else
-        buttons[buttondown]->ChangeImage("stripdn.shp",0);
+        buttons[buttondown]->change_image(filenames[IMG_STRIP_DOWN],0);
     buttondown = 0;
-    UpdateIcons();
+    update_icons();
 }
 
-void Sidebar::StartRadarAnim(unsigned char mode, bool* minienable)
+void Sidebar::start_radar_anim(unsigned char mode, bool* minienable)
 {
     if (radaranimating == false && !radaranim && sbar != NULL) {
         radaranimating = true;
@@ -686,27 +695,27 @@ void Sidebar::StartRadarAnim(unsigned char mode, bool* minienable)
     }
 }
 
-void Sidebar::ScrollSidebar(bool scrollup)
+void Sidebar::scroll_sidebar(bool scrollup)
 {
-    ScrollBuildList(scrollup, 0);
-    ScrollBuildList(scrollup, 1);
+    scroll_build_list(scrollup, 0);
+    scroll_build_list(scrollup, 1);
 }
 
 Sidebar::SidebarButton::SidebarButton(short x, short y, const char* picname,
-        unsigned char f, const char* theatre, unsigned char pal)
- : pic(0), function(f), palnum(pal), theatre(theatre), using_fallback(false)
+        unsigned char f, const char* theatre, unsigned char pal, const Sidebar::SidebarType& st)
+ : pic(0), function(f), palnum(pal), theatre(theatre), using_fallback(false), sidebar_type(st)
 {
     picloc.x = x;
     picloc.y = y;
-    ChangeImage(picname);
+    change_image(picname);
 }
 
-void Sidebar::SidebarButton::ChangeImage(const char* fname)
+void Sidebar::SidebarButton::change_image(const char* fname)
 {
-    ChangeImage(fname,0);
+    change_image(fname,0);
 }
 
-SDL_Surface* Sidebar::SidebarButton::Fallback(const char* fname)
+SDL_Surface* Sidebar::SidebarButton::fallback(const char* fname)
 {
     SDL_Surface* ret;
     unsigned int width, height;
@@ -722,42 +731,44 @@ SDL_Surface* Sidebar::SidebarButton::Fallback(const char* fname)
     height = pc::sidebar->getGeom().bh;
     ret = SDL_CreateRGBSurface(SDL_SWSURFACE|SDL_SRCCOLORKEY, width, height, 16, 0, 0, 0, 0);
     SDL_FillRect(ret, NULL, 0);
-    pc::sidebar->getFont()->drawText(iname,ret,0,0);
+    pc::sidebar->get_font()->drawText(iname,ret,0,0);
     delete[] iname;
     return ret;
 }
 
-void Sidebar::SidebarButton::ChangeImage(const char* fname, unsigned char number)
+void Sidebar::SidebarButton::change_image(const char* fname, unsigned char number)
 {
-    const char* name;
-    char goldname[32];
-    unsigned int slen = strlen(fname);
+    bool use_palette = true;
 
     if (using_fallback) {
         SDL_FreeSurface(pic);
         using_fallback = false;
     }
 
-    if (pc::sidebar->isOriginalType() || game.config.gametype == GAME_RA) {
-        name = fname;
-    } else {
-        if (slen>8 && strcasecmp("icon.shp", fname+slen-8)==0) {
-            strcpy(goldname, fname);
-            goldname[slen-6] = 'N';
-            goldname[slen-5] = 'H';
-            goldname[slen-3] = theatre[0];
-            goldname[slen-2] = theatre[1];
-            goldname[slen-1] = theatre[2];
-        } else {
-            sprintf(goldname, "H%s", fname);
+    string name(fname);
+    if (sidebar_type == DOS) {
+        // Do not apply unit palette to infantry icons
+        if ((fname[0] == 'e' || fname[0] == 'E' && (fname[1] - '1' < 9))
+            || strncasecmp("rmbo", fname, 4) == 0) {
+            use_palette = false;
         }
-        name = goldname;
+    } else if (sidebar_type == GOLD) {
+        size_t len = name.length();
+        if (len > 8 && strcasecmp("icon.shp", fname + len - 8) == 0) {
+            name[len - 6] = 'N';
+            name[len - 5] = 'H';
+            name[len - 3] = theatre[0];
+            name[len - 2] = theatre[1];
+            name[len - 1] = theatre[2];
+        }
     }
 
     try {
-        picnum = pc::imgcache->loadImage(name);
+        picnum = pc::imgcache->loadImage(name.c_str());
         picnum += number;
-        picnum |= palnum<<11;
+        if (use_palette) {
+            picnum |= palnum<<11;
+        }
         ImageCacheEntry& ICE = pc::imgcache->getImage(picnum);
         pic = ICE.image;
     } catch(ImageNotFound&) {
@@ -766,27 +777,32 @@ void Sidebar::SidebarButton::ChangeImage(const char* fname, unsigned char number
          * the imagecache would be responsible for deletion.  A nice side effect is
          * that those changes will be acompanied with a way to index created images
          * so we only create the fallback images once. */
-        pic = Fallback(fname);
+        pic = fallback(fname);
     }
 
     picloc.w = pic->w;
     picloc.h = pic->h;
 
-    if (picloc.h > 100) {
-        picloc.h >>=2;
-        pic->h >>= 2;
+    if (pic->h > 100) {
+        // Non-DOS sidebar strips have four blocks
+        picloc.h /= 4;
+        pic->h /= 4;
     }
 }
 
-void Sidebar::SidebarButton::ReloadImage()
+void Sidebar::SidebarButton::reload_image()
 {
     //If we are using fallback we must redraw
     if (using_fallback) {
         SDL_FreeSurface(pic);
-        pic = Fallback(fallbackfname);
+        pic = fallback(fallbackfname);
     } else {
         //else the image cache takes care of it
         pic = pc::imgcache->getImage(picnum).image;
+        if (pic->h > 100) {
+            // Non-DOS sidebar strips have four blocks
+            pic->h /= 4;
+        }
     }
 }
 

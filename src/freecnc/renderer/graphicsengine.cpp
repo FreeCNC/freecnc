@@ -78,9 +78,9 @@ void GraphicsEngine::setupCurrentGame()
 
     // assume sidebar is visible for initial maparea (will be changed at
     // frame 1 if it isn't anyway)
-    maparea.h = height-pc::sidebar->getTabLocation()->h;
-    maparea.y = pc::sidebar->getTabLocation()->h;
-    maparea.w = width-pc::sidebar->getTabLocation()->w;
+    maparea.h = height-pc::sidebar->get_tablocation()->h;
+    maparea.y = pc::sidebar->get_tablocation()->h;
+    maparea.w = width-pc::sidebar->get_tablocation()->w;
     maparea.x = 0;
     if (maparea.w > p::ccmap->getWidth()*tilewidth) {
         maparea.w = p::ccmap->getWidth()*tilewidth;
@@ -97,9 +97,9 @@ void GraphicsEngine::setupCurrentGame()
     }
     /* this is a new game so clear the scren */
     clearScreen();
-    p::ccmap->prepMiniClip(pc::sidebar->getTabLocation()->w,pc::sidebar->getTabLocation()->h);
-    minizoom.normal = (tilewidth*pc::sidebar->getTabLocation()->w)/max(maparea.w, maparea.h);
-    minizoom.max    = max(1,tilewidth*pc::sidebar->getTabLocation()->w / max(
+    p::ccmap->prepMiniClip(pc::sidebar->get_tablocation()->w,pc::sidebar->get_tablocation()->h);
+    minizoom.normal = (tilewidth*pc::sidebar->get_tablocation()->w)/max(maparea.w, maparea.h);
+    minizoom.max    = max(1,tilewidth*pc::sidebar->get_tablocation()->w / max(
                 p::ccmap->getWidth()*tilewidth, p::ccmap->getHeight()*tilewidth));
     mz = &minizoom.normal;
     playercolours.resize(SHPBase::numPalettes());
@@ -661,7 +661,6 @@ void GraphicsEngine::renderScene()
 void GraphicsEngine::drawSidebar()
 {
     SDL_Rect dest;
-    SDL_Rect *tabpos;
 
     static unsigned int firstframe = SDL_GetTicks();
     static unsigned int frames = 0;
@@ -690,15 +689,15 @@ void GraphicsEngine::drawSidebar()
         dest.w = width - dest.x
         SDL_FillRect(screen, &dest, blackpix);
     */
-    tabpos = pc::sidebar->getTabLocation();
+    SDL_Rect* tabpos = pc::sidebar->get_tablocation();
 
     if (clearBack) {
         clearBuffer();
         clearBack = false;
     }
 
-    if (pc::sidebar->getVisible()) {
-        if (pc::sidebar->getVisChanged()) {
+    if (pc::sidebar->get_visible()) {
+        if (pc::sidebar->get_vischanged()) {
             clearBuffer();
             clearBack = true;
 
@@ -727,9 +726,9 @@ void GraphicsEngine::drawSidebar()
         dest.y = tabpos->h;
         dest.h = height-tabpos->h;
 
-        //      SDL_FillRect(screen, &dest, SDL_MapRGB(screen->format, 0xa0, 0xa0, 0xa0));
-        SDL_BlitSurface(pc::sidebar->getSidebarImage(dest), NULL, screen, &dest);
-    } else if (pc::sidebar->getVisChanged()) {
+        //SDL_FillRect(screen, &dest, SDL_MapRGB(screen->format, 0xa0, 0xa0, 0xa0));
+        SDL_BlitSurface(pc::sidebar->get_sidebar_image(dest), NULL, screen, &dest);
+    } else if (pc::sidebar->get_vischanged()) {
         clearBuffer();
         clearBack = true;
 
@@ -757,18 +756,18 @@ void GraphicsEngine::drawSidebar()
     tabpos->y = 0;//maparea.y-tabpos->h;
     tabpos->x = 0;
 
-    SDL_BlitSurface(pc::sidebar->getTabImage(), NULL, screen, tabpos);
+    SDL_BlitSurface(pc::sidebar->get_tab_image(), NULL, screen, tabpos);
 
-    dest.y = tabpos->y+tabpos->h-pc::sidebar->getFont()->getHeight();
-    dest.x = ((tabpos->w-pc::sidebar->getFont()->calcTextWidth("Options"))>>1)+tabpos->x;
-    pc::sidebar->getFont()->drawText("Options", screen, dest.x, dest.y);
+    dest.y = tabpos->y+tabpos->h-pc::sidebar->get_font()->getHeight();
+    dest.x = ((tabpos->w-pc::sidebar->get_font()->calcTextWidth("Options"))>>1)+tabpos->x;
+    pc::sidebar->get_font()->drawText("Options", screen, dest.x, dest.y);
 
     tabpos->x = width - tabpos->w;
 
-    SDL_BlitSurface( pc::sidebar->getTabImage(), NULL, screen, tabpos);
+    SDL_BlitSurface( pc::sidebar->get_tab_image(), NULL, screen, tabpos);
     sprintf(mtext, "%d", lplayer->getMoney());
-    dest.x = ((tabpos->w-pc::sidebar->getFont()->calcTextWidth(mtext))>>1)+tabpos->x;
-    pc::sidebar->getFont()->drawText(mtext, screen, dest.x, dest.y);
+    dest.x = ((tabpos->w-pc::sidebar->get_font()->calcTextWidth(mtext))>>1)+tabpos->x;
+    pc::sidebar->get_font()->drawText(mtext, screen, dest.x, dest.y);
 
 
     tick = SDL_GetTicks();
@@ -781,7 +780,7 @@ void GraphicsEngine::drawSidebar()
     clearCoor.x = tabpos->w;/*width >>1;*/
     clearCoor.y = dest.y;
     SDL_FillRect(screen, &clearCoor, SDL_MapRGB(screen->format, 0, 0, 0));
-    pc::sidebar->getFont()->drawText(mtext, screen, tabpos->w/*width>>1*/, dest.y);
+    pc::sidebar->get_font()->drawText(mtext, screen, tabpos->w/*width>>1*/, dest.y);
     if (frames == 1000) {
         frames = 1;
         firstframe = tick;

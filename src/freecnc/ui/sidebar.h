@@ -16,34 +16,33 @@ enum createmode_t {
 
 class Sidebar {
 public:
-    Sidebar(Player *pl, unsigned short height, const char* theatre);
+    Sidebar(Player* pl, int height, const char* theatre);
     ~Sidebar();
 
-    bool getVisChanged();
-    bool getVisible() {return visible;}
-    void ToggleVisible();
+    bool get_vischanged();
+    bool get_visible() {return visible;}
+    void toggle_visible();
 
-    SDL_Surface* getTabImage() {return pc::imgcache->getImage(tab).image;}
-    SDL_Rect* getTabLocation() {return &tablocation;}
+    SDL_Surface* get_tab_image() {return pc::imgcache->getImage(tab).image;}
+    SDL_Rect* get_tablocation() {return &tablocation;}
 
     // Reloads the SDL_Surfaces
-    void ReloadImages();
+    void reload_images();
 
-    SDL_Surface* getSidebarImage(SDL_Rect location);
-    bool isOriginalType() {return isoriginaltype;}
+    SDL_Surface* get_sidebar_image(SDL_Rect location);
 
-    unsigned char getButton(unsigned short x, unsigned short y);
-    void ClickButton(unsigned char index, char* unitname, createmode_t* createmode);
-    void ResetButton();
-    void ScrollSidebar(bool scrollup);
-    void UpdateSidebar();
+    unsigned char get_button(unsigned short x, unsigned short y);
+    void click_button(unsigned char index, char* unitname, createmode_t* createmode);
+    void reset_button();
+    void scroll_sidebar(bool scrollup);
+    void update_sidebar();
 
-    void StartRadarAnim(unsigned char mode, bool* minienable);
+    void start_radar_anim(unsigned char mode, bool* minienable);
 
     /// @TODO Continue almighty jihad against naked pointers
-    Font* getFont() {return gamefnt.get();}
+    Font* get_font() {return gamefnt.get();}
 
-    unsigned char getSteps() const {return steps;}
+    unsigned char get_steps() const {return steps;}
 
     class SidebarError {};
 
@@ -58,6 +57,8 @@ private:
     Sidebar() {};
     Sidebar(const Sidebar&) {};
     Sidebar& operator=(const Sidebar&) {return *this;}
+
+    enum SidebarType {INVALID, DOS, GOLD, REDALERT_NATO, REDALERT_USSR} sidebar_type;
 
     class RadarAnimEvent : public ActionEvent {
     public:
@@ -74,10 +75,10 @@ private:
     class SidebarButton {
     public:
         SidebarButton(short x, short y, const char* fname, unsigned char f,
-                const char* theatre, unsigned char palnum);
+                const char* theatre, unsigned char palnum, const SidebarType& st);
         ~SidebarButton();
-        void ChangeImage(const char* fname);
-        void ChangeImage(const char* fname, unsigned char number);
+        void change_image(const char* fname);
+        void change_image(const char* fname, unsigned char number);
         SDL_Surface* getSurface() const {
             return pic;
         }
@@ -87,9 +88,9 @@ private:
         unsigned char getFunction() const {
             return function;
         }
-        SDL_Surface* Fallback(const char* fname);
+        SDL_Surface* fallback(const char* fname);
 
-        void ReloadImage();
+        void reload_image();
     private:
         unsigned int picnum;
         SDL_Surface *pic;
@@ -100,22 +101,26 @@ private:
         const char *fallbackfname;
 
         SDL_Rect picloc;
+        const SidebarType& sidebar_type;
     };
 
-    // True: DOS, False: GOLD
-    bool isoriginaltype;
-    // Palette offset for structures (Nod's buildings are red)
-    unsigned char spalnum;
+    void setup_buttons();
+    void scroll_build_list(unsigned char dir, unsigned char type);
+    void build(unsigned char index, unsigned char type, char* unitname, createmode_t* createmode);
+    void update_icons();
+    void update_available_lists();
+    void down_button(unsigned char index);
+    void add_button(unsigned short x, unsigned short y, const char* fname, unsigned char f, unsigned char pal);
+    void draw_button(unsigned char index);
+    void draw_clock(unsigned char index, unsigned char imgnum);
 
-    void SetupButtons(unsigned short height);
-    void ScrollBuildList(unsigned char dir, unsigned char type);
-    void Build(unsigned char index, unsigned char type, char* unitname, createmode_t* createmode);
-    void UpdateIcons();
-    void UpdateAvailableLists();
-    void DownButton(unsigned char index);
-    void AddButton(unsigned short x, unsigned short y, const char* fname, unsigned char f, unsigned char pal);
-    void DrawButton(unsigned char index);
-    void DrawClock(unsigned char index, unsigned char imgnum);
+    void load_images();
+    void init_radar();
+    void init_surface();
+    void blit_static_images();
+
+    int height;
+    int unit_palette, structure_palette;
 
     unsigned int radarlogo;
     SDL_Rect radarlocation;
@@ -129,6 +134,7 @@ private:
     shared_ptr<Font> gamefnt;
 
     bool visible, vischanged;
+    bool invalidated;
 
     const char* theatre;
 
@@ -154,8 +160,8 @@ private:
 
     SidebarGeometry geom;
 
-    bool greyFixed[256];
-    void FixGrey(SDL_Surface* gr, unsigned char num);
+    bool grey_fixed[256];
+    void fix_grey(SDL_Surface* gr, unsigned char num);
 };
 
 #endif

@@ -21,7 +21,7 @@ SDL_Rect Input::markrect;
  */
 Input::Input(unsigned short screenwidth, unsigned short screenheight, SDL_Rect *maparea) :
     width(screenwidth), height(screenheight), done(0), donecount(0),
-    maparea(maparea), tabwidth(pc::sidebar->getTabLocation()->w),
+    maparea(maparea), tabwidth(pc::sidebar->get_tablocation()->w),
     tilewidth(p::ccmap->getMapTile(0)->w), lplayer(p::ppool->getLPlayer()),
     kbdmod(k_none), lmousedown(m_none), rmousedown(m_none),
     currentaction(a_none), rcd_scrolling(false), sx(0), sy(0)
@@ -56,10 +56,10 @@ void Input::handle()
         case SDL_MOUSEBUTTONDOWN:
             // Mousewheel scroll up
             if (event.button.button == SDL_BUTTON_WHEELUP) {
-                pc::sidebar->ScrollSidebar(true);
+                pc::sidebar->scroll_sidebar(true);
                 // Mousewheel scroll down
             } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
-                pc::sidebar->ScrollSidebar(false);
+                pc::sidebar->scroll_sidebar(false);
             } else {
                 mx = event.button.x;
                 my = event.button.y;
@@ -77,7 +77,7 @@ void Input::handle()
                         rcd_scrolling = true;
                     }
                 }
-                if (mx > width-tabwidth && pc::sidebar->getVisible()) {
+                if (mx > width-tabwidth && pc::sidebar->get_visible()) {
                     clickSidebar(mx, my, event.button.button == SDL_BUTTON_RIGHT);
                 }
             }
@@ -86,7 +86,7 @@ void Input::handle()
             //  SDL_GetMouseState(&mx, &my);
             mx = event.button.x;
             my = event.button.y;
-            pc::sidebar->ResetButton();
+            pc::sidebar->reset_button();
             if (event.button.button == SDL_BUTTON_LEFT) {
                 if( drawing ) {
                     selectRegion();
@@ -98,11 +98,11 @@ void Input::handle()
                             }
                         }
                     }
-                } else if( my < pc::sidebar->getTabLocation()->h ) { /* clicked a tab */
+                } else if( my < pc::sidebar->get_tablocation()->h ) { /* clicked a tab */
                     if( mx < tabwidth ) {
                         //printf("Options menu\n");
                     } else if( mx > width-tabwidth ) {
-                        pc::sidebar->ToggleVisible();
+                        pc::sidebar->toggle_visible();
                     }
                 }
                 /* should also check if minimap is clicked, */
@@ -126,7 +126,7 @@ void Input::handle()
             if( event.key.state != SDL_PRESSED )
                 break;
             if (event.key.keysym.sym == SDLK_TAB) {
-                pc::sidebar->ToggleVisible();
+                pc::sidebar->toggle_visible();
             } else if (event.key.keysym.sym == SDLK_s) {
                 selected.stop();
             } else if (event.key.keysym.sym == SDLK_a) {
@@ -237,7 +237,7 @@ void Input::handle()
                         p::uspool->preloadUnitAndStructures(98);
                         p::uspool->generateProductionGroups();
                         lplayer->enableBuildAll();
-                        pc::sidebar->UpdateSidebar();
+                        pc::sidebar->update_sidebar();
                         logger->gameMsg("Prerequisites disabled");
                     }
                     break;
@@ -306,7 +306,7 @@ void Input::handle()
                     p::ccmap->reloadTiles();
 
                     //Reload the sidebar
-                    pc::sidebar->ReloadImages();
+                    pc::sidebar->reload_images();
 
                     //Reload the cursor
                     pc::cursor->reloadImages();
@@ -340,28 +340,28 @@ void Input::handle()
         p::ccmap->accScroll(sdir);
 
     if (keystate[SDLK_PAGEDOWN])
-        pc::sidebar->ScrollSidebar(false);
+        pc::sidebar->scroll_sidebar(false);
     else if (keystate[SDLK_PAGEUP])
-        pc::sidebar->ScrollSidebar(true);
+        pc::sidebar->scroll_sidebar(true);
 
     if (p::uspool->hasDeleted()) {
         selected.checkSelection();
     }
 
     if (p::ppool->pollSidebar()) {
-        pc::sidebar->UpdateSidebar();
+        pc::sidebar->update_sidebar();
     }
     radarstat = p::ppool->statRadar();
     switch (radarstat) {
     case 0: // do nothing
         break;
     case 1: // got radar
-        pc::sidebar->StartRadarAnim(0,&minimapEnabled);
+        pc::sidebar->start_radar_anim(0,&minimapEnabled);
         break;
     case 2: // lost radar
     case 3: // radar powered down
         minimapEnabled = false;
-        pc::sidebar->StartRadarAnim(1,&minimapEnabled);
+        pc::sidebar->start_radar_anim(1,&minimapEnabled);
         break;
     default:
         game.log << "Unexpected value returned from PlayerPool::statRadar: " << radarstat << endl;
@@ -596,7 +596,7 @@ void Input::clickMap(int mx, int my)
             selected.purge(curunit);
             selected.removeUnit(curunit);
             p::dispatcher->unitDeploy(curunit);
-            pc::sidebar->UpdateSidebar();
+            pc::sidebar->update_sidebar();
         }
     } else if( curstructure != NULL ) {
         enemy = curstructure->getOwner() != p::ppool->getLPlayerNum();
@@ -881,8 +881,8 @@ void Input::clickSidebar(int mx, int my, bool rightbutton)
     createmode_t createmode;
 
     mx -= (width-tabwidth);
-    my -= pc::sidebar->getTabLocation()->h;
-    butclick = pc::sidebar->getButton(mx,my);
+    my -= pc::sidebar->get_tablocation()->h;
+    butclick = pc::sidebar->get_button(mx,my);
     if (butclick == 255) {
         currentaction = a_none;
         return;
@@ -891,7 +891,7 @@ void Input::clickSidebar(int mx, int my, bool rightbutton)
      *  current place.
      */
     strncpy(placename,"xxxx",4);
-    pc::sidebar->ClickButton(butclick,placename,&createmode);
+    pc::sidebar->click_button(butclick,placename,&createmode);
 
     if (CM_INVALID == createmode || (strncasecmp("xxxx",placename,4) == 0)) {
         currentaction = a_none;
