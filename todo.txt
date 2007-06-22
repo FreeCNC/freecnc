@@ -1,13 +1,7 @@
 0.3 - "FreeCNC Forever"
-prencher:
-* New config format for specifying required and optional files
-
-zx64:
-* Move the pointers to unit and structure over to shared_ptr and remove the
-  refcounting.
-* Fix TD Gold Sidebar graphic glitches
 * Some tiles next to rocks/trees are no longer passable, e.g. blocking the
   top of SCG01EA or right next to the tall rock in SCB01EA.
+* Start refactoring sidebar, making it look proper
 
 0.4
 * Remove code relating to various unimplemented features (replays and
@@ -15,6 +9,10 @@ zx64:
 * Fix non VFS related 64bit issues
 * Rewrite INIFile to use Spirit and not allocate char buffers
 * Rewrite the path finder
+* Refactor sound engine
+* Refactor input handling 
+
+--- 
 
 Unassigned, unsorted, incomplete:
 * Video playback has been reported to deadlock on some systems (no details
