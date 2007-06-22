@@ -9,54 +9,60 @@
 #include "input.h"
 #include "sidebar.h"
 
-namespace
-{
-    enum {IMG_TABS, IMG_STRIP, IMG_STRIP_UP, IMG_STRIP_DOWN,
-        IMG_RADAR_BADGUY, IMG_RADAR_GOODGUY, IMG_RADAR_SPECIAL,
-        IMG_CLOCK,
-        IMG_REPAIR, IMG_SELL, IMG_MAP,
-        IMG_TOP, IMG_BOTTOM, IMG_POWER_INDICATOR, IMG_POWER_BAR,
-        IMG_INVALID};
-    const char* sidebar_filenames[5][IMG_INVALID] =
-    {
-        {0, 0, 0, 0, 0, 0, 0, 0},
-        {"tabs.shp",  "strip.shp",  "stripup.shp", "stripdn.shp",
-        "radar.nod", "radar.gdi",  "radar.jp",
-        "clock.shp",
-        "repair.shp", "sell.shp", "map.shp",
-        "side1.shp", "side2.shp", "power.shp", "pwrbar.shp"},
-
-        {"htabs.shp", "hstrip.shp", "hstripup.shp", "hstripdn.shp",
-        "hradar.nod", "hradar.gdi", "hradar.jp",
-        "hclock.shp",
-        "hrepair.shp", "hsell.shp", "hmap.shp", 
-        "hside1.shp", "hside2.shp", "hpower.shp", "hpwrbar.shp"},
-
-        // Unused image: side1na.shp is the Radar frame
-
-        {"tabs.shp",  "stripna.shp", "stripup.shp", "stripdn.shp",
-        "ussrradr.shp", "natoradr.shp", "natoradr.shp",
-        "clock.shp",
-        "repair.shp", "sell.shp","map.shp",
-        "side2na.shp", "side3na.shp", "power.shp", "powerbar.shp"},
-
-        {"tabs.shp",  "stripus.shp", "stripup.shp", "stripdn.shp",
-        "ussrradr.shp", "natoradr.shp", "natoradr.shp",
-        "clock.shp",
-        "repair.shp", "sell.shp","map.shp",
-        "side2us.shp", "side3us.shp", "power.shp", "powerbar.shp"},
-    };
-
-    const char** filenames = sidebar_filenames[0]; // gets set to sidebar_filenames[sidebar_type]
-
-}
-
-class ImageCache;
-
 using std::string;
 using std::runtime_error;
 using std::vector;
 using std::replace;
+
+class ImageCache;
+
+namespace
+{
+    enum {
+        IMG_TABS, IMG_STRIP, IMG_STRIP_UP, IMG_STRIP_DOWN,
+        IMG_RADAR_BADGUY, IMG_RADAR_GOODGUY, IMG_RADAR_SPECIAL,
+        IMG_CLOCK,
+        IMG_REPAIR, IMG_SELL, IMG_MAP,
+        IMG_TOP, IMG_BOTTOM, IMG_POWER_INDICATOR, IMG_POWER_BAR,
+        IMG_INVALID
+    };
+        
+    // Unused image: side1na.shp is the Radar frame
+    const char* sidebar_filenames[5][IMG_INVALID] = {
+        {
+            0, 0, 0, 0, 0, 0, 0, 0
+        },
+        {
+            "tabs.shp",  "strip.shp",  "stripup.shp", "stripdn.shp",
+            "radar.nod", "radar.gdi",  "radar.jp",
+            "clock.shp",
+            "repair.shp", "sell.shp", "map.shp",
+            "side1.shp", "side2.shp", "power.shp", "pwrbar.shp"
+        },
+        {
+            "htabs.shp", "hstrip.shp", "hstripup.shp", "hstripdn.shp",
+            "hradar.nod", "hradar.gdi", "hradar.jp",
+            "hclock.shp",
+            "hrepair.shp", "hsell.shp", "hmap.shp", 
+            "hside1.shp", "hside2.shp", "hpower.shp", "hpwrbar.shp"
+        },
+        {
+            "tabs.shp",  "stripna.shp", "stripup.shp", "stripdn.shp",
+            "ussrradr.shp", "natoradr.shp", "natoradr.shp",
+            "clock.shp",
+            "repair.shp", "sell.shp","map.shp",
+            "side2na.shp", "side3na.shp", "power.shp", "powerbar.shp"
+        },
+        {
+            "tabs.shp",  "stripus.shp", "stripup.shp", "stripdn.shp",
+            "ussrradr.shp", "natoradr.shp", "natoradr.shp",
+            "clock.shp",
+            "repair.shp", "sell.shp","map.shp",
+            "side2us.shp", "side3us.shp", "power.shp", "powerbar.shp"
+        }
+    };
+    const char** filenames = sidebar_filenames[0]; // gets set to sidebar_filenames[sidebar_type]
+}
 
 /**
  * @param pl local player object
