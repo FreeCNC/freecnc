@@ -4,6 +4,8 @@
 * Start refactoring sidebar, making it look proper
 
 0.4
+* Move the pointers to unit and structure over to shared_ptr and remove the
+  refcounting.
 * Remove code relating to various unimplemented features (replays and
   multiplayer)
 * Fix non VFS related 64bit issues
