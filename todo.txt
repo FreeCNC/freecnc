@@ -12,13 +12,15 @@
 * Rewrite INIFile to use Spirit and not allocate char buffers
 * Rewrite the path finder
 * Refactor sound engine
-* Refactor input handling 
+* Refactor input handling
 
---- 
+---
 
 Unassigned, unsorted, incomplete:
-* Video playback has been reported to deadlock on some systems (no details
-  given, presumably dual core/proc).
+* Video playback sometimes deadlocks on Linux.  This is a nasty interaction with
+  the buffering/sync code that went away when the buffer size was decreased
+  until something changed in Alsa or PulseAudio.
+
 * Music playlists
 * Money tick looping speed.
 * Moneycounter/buildqueue doesn't stop when mission is completed.
