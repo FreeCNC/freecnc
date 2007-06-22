@@ -1,4 +1,6 @@
+#include "../freecnc.h"
 #include "luascript.h"
+
 namespace {
     struct PushTable
     {
@@ -23,6 +25,10 @@ namespace {
 LuaScript::LuaScript()
 {
     L = lua_open();
+    lua_pushstring(L, game.config.mod.c_str());
+    lua_setglobal(L, "gamemod");
+    lua_pushboolean(L, game.config.debug);
+    lua_setglobal(L, "debug");
 }
 
 LuaScript::~LuaScript()

@@ -12,9 +12,6 @@ class GameConfigScript
 public:
     GameConfigScript();
 
-    int vfs_add(lua_State* L);
-    int add_config(lua_State* L);
-
     void parse(const std::string& path);
 
     static LuaScript::Reg<GameConfigScript> lua_methods[];
@@ -23,6 +20,9 @@ private:
     std::stack<boost::filesystem::path> current_directory;
 
     void handle_error();
+
+    int load_config(lua_State* L);
+    int vfs_add(lua_State* L);
 };
 
 

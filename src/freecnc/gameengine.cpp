@@ -160,7 +160,8 @@ void GameEngine::parse_options(int argc, char** argv)
     debug.add_options()
         ("nosound", po::bool_switch(&config.nosound)->default_value(false),
             "disable sound")
-        ("debug", "turn on various internal debugging features");
+        ("debug", po::bool_switch(&config.debug)->default_value(false),
+            "turn on various internal debugging features");
 
     po::options_description cmdline_options, config_file_options;
 

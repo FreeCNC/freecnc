@@ -15,12 +15,10 @@ using std::string;
 GameConfigScript::GameConfigScript()
 {
     LuaScript::Reg<GameConfigScript> methods[] = {
-        {"vfs_add",      &GameConfigScript::vfs_add},
-        {"add_config",   &GameConfigScript::add_config},
+        {"load_config", &GameConfigScript::load_config},
+        {"vfs_add",     &GameConfigScript::vfs_add},
         {NULL, NULL}
     };
-    lua_pushstring(script.L, game.config.mod.c_str());
-    lua_setglobal(script.L, "gamemod");
     script.register_methods(this, methods);
 }
 
@@ -76,7 +74,7 @@ int GameConfigScript::vfs_add(lua_State* L)
     return 0;
 }
 
-int GameConfigScript::add_config(lua_State* L)
+int GameConfigScript::load_config(lua_State* L)
 {
     const char* name = luaL_checkstring(L, 1);
     string filename = (current_directory.top() / name).string();
