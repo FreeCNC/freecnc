@@ -62,6 +62,13 @@ namespace
         }
     };
     const char** filenames = sidebar_filenames[0]; // gets set to sidebar_filenames[sidebar_type]
+
+    // Y offset of:  0 - the three buttons, 1 - the construction buttons
+    const int yoffsets[5][2] = {{0, 0}, {0, 10}, {2, 22}, {0, 0}, {0, 0}};
+
+    // X offsets of the three buttons
+    const int xoffsets[5][3] = {{0, 0, 0}, {2, 36, 58}, {4, 57, 110}, {0, 0, 0}, {0, 0, 0}};
+
 }
 
 /**
@@ -183,28 +190,24 @@ void Sidebar::blit_static_images()
 
 
     //// Draw the repair, sell and map buttons
-    const int yoffsets[5] = {0, 0, 2, 0, 0};
-    const int xoffsets[5][3] = {{0, 0, 0}, {2, 36, 58}, {4, 57, 110}, {0, 0, 0}, {0, 0, 0}};
-
-    const int* xoffset = xoffsets[sidebar_type];
 
     unsigned int idx = pc::imgcache->loadImage(filenames[IMG_REPAIR], scaleq);
     SDL_Surface* texture = pc::imgcache->getImage(idx, 0).image;
-    SDL_Rect dest = {xoffset[0],
-        yoffsets[sidebar_type] + tablocation.h + radarlocation.h,
+    SDL_Rect dest = {xoffsets[sidebar_type][0],
+        yoffsets[sidebar_type][0] + tablocation.h + radarlocation.h,
         texture->w, texture->h};
     SDL_BlitSurface(texture, NULL, sbar, &dest);
 
     idx = pc::imgcache->loadImage(filenames[IMG_SELL], scaleq);
     texture = pc::imgcache->getImage(idx, 0).image;
-    dest.x = xoffset[1];
+    dest.x = xoffsets[sidebar_type][1];
     dest.w = texture->w;
     dest.h = texture->h;
     SDL_BlitSurface(texture, NULL, sbar, &dest);
 
     idx = pc::imgcache->loadImage(filenames[IMG_MAP], scaleq);
     texture = pc::imgcache->getImage(idx, 0).image;
-    dest.x = xoffset[2];
+    dest.x = xoffsets[sidebar_type][2];
     dest.w = texture->w;
     dest.h = texture->h;
     SDL_BlitSurface(texture, NULL, sbar, &dest);
@@ -317,13 +320,13 @@ void Sidebar::setup_buttons()
     if (sidebar_type == DOS) {
         buildbut = ((height-startoffs)/geom.bh)-2;
         sx = 10;
-        sy = startoffs + 10;
+        sy = startoffs + yoffsets[sidebar_type][1];
         ux = 10 + geom.bw;
         uy = sy;
     } else {
         buildbut = 4;
         sx = 20;
-        sy = startoffs + 22;
+        sy = startoffs + yoffsets[sidebar_type][1];
         ux = 90;
         uy = sy;
     }
