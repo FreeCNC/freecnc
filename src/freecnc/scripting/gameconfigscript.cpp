@@ -24,14 +24,11 @@ GameConfigScript::GameConfigScript()
 
 int GameConfigScript::vfs_add(lua_State* L)
 {
-    enum {ERROR, NONE, ANY, ALL} required_mode = ERROR;
+    enum { ERROR, NONE, ANY, ALL } required_mode = ERROR;
 
-    if (!lua_istable(L, -1)) {
-        lua_pushstring(L, "vfs_add expects to be passed a table");
-        lua_error(L);
-    }
-    lua_pushstring(L, "required");
-    lua_gettable(L, -2);
+    luaL_checktype(L, 1, LUA_TTABLE);
+    lua_getfield(L, 1, "required");
+
     const char* required = lua_tostring(L, -1);
     if (required == NULL) {
         required_mode = ALL;
@@ -44,8 +41,7 @@ int GameConfigScript::vfs_add(lua_State* L)
         } else if (req == "none") {
             required_mode = NONE;
         } else {
-            lua_pushstring(L, "Invalid value provided to \"required\"");
-            lua_error(L);
+            luaL_error(L, "Invalid value for 'required': Must be one of 'all', 'any' or 'none'.");
         }
     }
 
@@ -57,20 +53,17 @@ int GameConfigScript::vfs_add(lua_State* L)
         fs::path filename(current_directory.top() / name);
 
         if (!game.vfs.add(filename) && required_mode == ALL) {
-            string s("Missing required file: ");
-            s += filename.string();
-            lua_pushstring(L, s.c_str());
-            lua_error(L);
+            luaL_error(L, "Missing required file: '%s'", filename.string());
         } else if (required_mode == ANY) {
             found = true;
         }
     }
 
-    if ((required_mode == ANY) && (found == false)) {
+    if (required_mode == ANY && found == false) {
         // TODO: Better wording, maybe keep the filenames around to show?
-        lua_pushstring(L, "None of a selection of files were available");
-        lua_error(L);
+        luaL_error(L, "None of a selection of files were available");
     }
+
     return 0;
 }
 
