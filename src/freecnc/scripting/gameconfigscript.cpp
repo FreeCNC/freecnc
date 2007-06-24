@@ -71,28 +71,23 @@ int GameConfigScript::load_config(lua_State* L)
 {
     const char* name = luaL_checkstring(L, 1);
     string filename = (current_directory.top() / name).string();
-    fs::path newdir(current_directory.top() / name);
-    newdir = newdir.branch_path();
-    //game.log << "Pushing " << newdir << "\n";
-    current_directory.push(newdir);
-    //game.log << "Parsing: " << filename << "\n";
+    current_directory.push((current_directory.top() / name).branch_path());
+
     int ret = luaL_loadfile(script.L, filename.c_str());
     if (ret != 0) {
-        string msg;
-        switch(ret) {
-        case LUA_ERRFILE:
-            msg += "Unable to open file ";
-            break;
-        case LUA_ERRMEM:
-            msg += "Memory allocation error whilst loading ";
-            break;
-        case LUA_ERRSYNTAX:
-            msg += "Syntax error whilst loading ";
-            break;
+        const char* errmsg;
+        switch (ret) {
+            case LUA_ERRFILE:
+                errmsg = "Unable to open file '%s'";
+                break;
+            case LUA_ERRMEM:
+                errmsg = "Memory allocation error whilst loading '%s'";
+                break;
+            case LUA_ERRSYNTAX:
+                errmsg = "Syntax error whilst loading '%s'";
+                break;
         }
-        msg += "\"" + filename + "\"";
-        lua_pushstring(script.L, msg.c_str());
-        lua_error(L);
+        luaL_error(L, errmsg, filename.c_str());
     }
     lua_call(script.L, 0, 0);
 
