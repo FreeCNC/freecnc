@@ -177,7 +177,7 @@ void Sidebar::blit_static_images()
     try { // Temp try/catch
         unsigned int idx = pc::imgcache->loadImage(filenames[IMG_TOP], scaleq);
         SDL_Surface* texture = pc::imgcache->getImage(idx, 1).image;
-        SDL_Rect dest = {0, tablocation.h + radarlocation.h, tablocation.w, texture->h};
+        SDL_Rect dest = {0, radarlocation.h, tablocation.w, texture->h};
         SDL_BlitSurface(texture, NULL, sbar, &dest);
         dest.y += dest.h;
         idx = pc::imgcache->loadImage(filenames[IMG_BOTTOM], scaleq);
@@ -194,7 +194,7 @@ void Sidebar::blit_static_images()
     unsigned int idx = pc::imgcache->loadImage(filenames[IMG_REPAIR], scaleq);
     SDL_Surface* texture = pc::imgcache->getImage(idx, 0).image;
     SDL_Rect dest = {xoffsets[sidebar_type][0],
-        yoffsets[sidebar_type][0] + tablocation.h + radarlocation.h,
+        yoffsets[sidebar_type][0] + radarlocation.h,
         texture->w, texture->h};
     SDL_BlitSurface(texture, NULL, sbar, &dest);
 
@@ -221,7 +221,7 @@ void Sidebar::blit_static_images()
     idx = pc::imgcache->loadImage(filenames[IMG_POWER_BAR], scaleq);
     texture = pc::imgcache->getImage(idx, 3).image;
     dest.x = 0;
-    dest.y = 274;
+    dest.y = 260;
     dest.w = texture->w;
     dest.h = texture->h;
     SDL_BlitSurface(texture, NULL, sbar, &dest);
@@ -313,25 +313,21 @@ void Sidebar::setup_buttons()
         geom.bh = geom.bh / 4;
     }
 
-    unsigned int startoffs = tablocation.h + radarlocation.h;
+    int start_y = yoffsets[sidebar_type][1] + radarlocation.h;
 
-    int sx, sy, ux, uy;
+    int sx, ux;
 
     if (sidebar_type == DOS) {
-        buildbut = ((height-startoffs)/geom.bh)-2;
+        buildbut = ((height - start_y)/geom.bh)-2;
         sx = 10;
-        sy = startoffs + yoffsets[sidebar_type][1];
         ux = 10 + geom.bw;
-        uy = sy;
     } else {
         buildbut = 4;
         sx = 20;
-        sy = startoffs + yoffsets[sidebar_type][1];
         ux = 90;
-        uy = sy;
     }
 
-    int scroll_y = sy + geom.bh * buildbut;
+    int scroll_y = start_y + geom.bh * buildbut;
     add_button(ux, scroll_y, filenames[IMG_STRIP_UP], sbo_scroll|sbo_unit|sbo_up, 0); // 0
     add_button(sx, scroll_y, filenames[IMG_STRIP_UP], sbo_scroll|sbo_structure|sbo_up, 0); // 1
 
@@ -343,10 +339,10 @@ void Sidebar::setup_buttons()
     // are grouped contiguously (4,5,6,7,...) compared to (4,6,8,10,...)
 
     for (int i = 0;i < buildbut; ++i) {
-        add_button(ux, uy + geom.bh * i, filenames[IMG_STRIP], sbo_build|sbo_unit, unit_palette);
+        add_button(ux, start_y + geom.bh * i, filenames[IMG_STRIP], sbo_build|sbo_unit, unit_palette);
     }
     for (int i = 0; i < buildbut; ++i) {
-        add_button(sx, sy + geom.bh * i, filenames[IMG_STRIP], sbo_build|sbo_structure, structure_palette);
+        add_button(sx, start_y + geom.bh * i, filenames[IMG_STRIP], sbo_build|sbo_structure, structure_palette);
     }
 
     update_available_lists();
