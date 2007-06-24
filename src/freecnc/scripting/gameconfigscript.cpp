@@ -53,7 +53,7 @@ int GameConfigScript::vfs_add(lua_State* L)
         fs::path filename(current_directory.top() / name);
 
         if (!game.vfs.add(filename) && required_mode == ALL) {
-            luaL_error(L, "Missing required file: '%s'", filename.string());
+            luaL_error(L, "Missing required file: '%s'", filename.string().c_str());
         } else if (required_mode == ANY) {
             found = true;
         }
