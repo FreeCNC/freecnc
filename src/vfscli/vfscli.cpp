@@ -8,7 +8,8 @@
 #include <boost/program_options.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include "../freecnc/vfs/vfs.h"
+#include "../freecnc/gameengine.h"
+#include "../freecnc/scripting/gameconfigscript.h"
 
 namespace po = boost::program_options;
 
@@ -21,6 +22,8 @@ using std::string;
 using std::vector;
 using boost::shared_ptr;
 using boost::to_upper;
+
+GameEngine game;
 
 struct UsageMessage : public runtime_error
 {
@@ -36,7 +39,6 @@ public:
     void input_loop();
 private:
     void extract_files();
-    VFS::VFS vfs;
     po::variables_map vm;
     vector<string> files;
 };
@@ -47,13 +49,15 @@ VFSCli::VFSCli()
 
 void VFSCli::parse(int argc, char** argv)
 {
-    string outdir, basedir;
+    string outdir;
 
     po::options_description general("General options");
     general.add_options()
         ("help,h", "show this message")
-        ("basedir", po::value<string>(&basedir)->default_value("."),
+        ("basedir", po::value<string>(&game.config.basedir)->default_value("."),
             "use this location to find the data files")
+        ("mod", po::value<string>(&game.config.mod)->default_value("td"),
+            "specify which mod to use (td or ra)")
         ("output-dir,O", po::value<string>(&outdir)->default_value("."),
             "use this location to store the extracted files");
 
@@ -78,12 +82,16 @@ void VFSCli::parse(int argc, char** argv)
         throw UsageMessage(s.str());
     }
 
-    vfs.add(outdir);
+    game.log.open((game.config.basedir + "/vfscli.log").c_str());
 
-    // This needs to do whatever the main program does for selecting directories
-    // to load
-    vfs.add(basedir + "/data");
-    vfs.add(basedir + "/data/td");
+    game.log << "Basedir: \"" << game.config.basedir << "\" Mod: \"" << game.config.mod << "\"\n";
+    game.log << "Outputting to: " << outdir << "\n";
+    game.vfs.add(outdir);
+
+    {
+        GameConfigScript gcs;
+        gcs.parse(game.config.basedir + "/data/manifest.lua");
+    }
 }
 
 void VFSCli::extract_files()
@@ -92,12 +100,12 @@ void VFSCli::extract_files()
     end = files.end();
     for (it = files.begin(); it != end; ++it) {
         cout << "Extracting " << *it << ": ";
-        shared_ptr<VFS::File> f = vfs.open(*it);
+        shared_ptr<VFS::File> f = game.vfs.open(*it);
         if (!f) {
             cout << "not found\n";
             continue;
         }
-        shared_ptr<VFS::File> output = vfs.open_write(*it);
+        shared_ptr<VFS::File> output = game.vfs.open_write(*it);
         if (!output) {
             cout << "unable to open output file\n";
             continue;
@@ -145,4 +153,9 @@ int main(int argc, char** argv)
         return 1;
     }
     return 0;
+}
+
+// Make linking against GameEngine work
+void GameEngine::shutdown()
+{
 }

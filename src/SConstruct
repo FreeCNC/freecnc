@@ -1,5 +1,4 @@
 #!/usr/bin/scons
-# This might not even work
 from glob import glob
 from sys import platform
 
@@ -55,19 +54,21 @@ env.Program(target = "bin/freecnc", source = source)
 
 # Only build tools if specified
 if ARGUMENTS.get("TOOLS", 0):
-    vfs_objects = glob("freecnc/vfs/*.cpp")
-    vfs_objects += ["#/freecnc/lib/westwood_key.o", "#/freecnc/lib/blowfish.o"]
+    vfs = glob("freecnc/vfs/*.cpp")
+    vfs += ["#/freecnc/lib/westwood_key.o", "#/freecnc/lib/blowfish.o"]
+    vfs += ["#/freecnc/scripting/gameconfigscript.o", "#/freecnc/scripting/luascript.o"]
+    vfs.extend(luasource)
 
     tmpinied_objects = ["#/freecnc/lib/inifile.o", "#/freecnc/lib/common.o",
         "#/freecnc/lib/compression.o", "#/freecnc/renderer/shpimage.o",
         "#/freecnc/ui/font.o", "#/freecnc/renderer/imageproc.o"]
 
-    tmpinied_objects.extend(vfs_objects)
+    tmpinied_objects.extend(vfs)
 
     tmpinied_src = glob("tmpinied/*.cpp") + tmpinied_objects
     env.Program(target = "bin/tmpinied", source = tmpinied_src)
 
-    env.Program(target = "bin/vfscli", source = ["#/vfscli/vfscli.cpp"] + vfs_objects)
+    env.Program(target = "bin/vfscli", source = ["#/vfscli/vfscli.cpp"] + vfs)
 
     env.Program(target = "bin/lua", source = ["#/lua/tools/lua.c"] + luasource)
     env.Program(target = "bin/luac", source = ["#/lua/tools/luac.c"] + luasource)
