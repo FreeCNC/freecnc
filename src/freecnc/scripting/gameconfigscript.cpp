@@ -110,7 +110,7 @@ void GameConfigScript::parse(const string& path)
 void GameConfigScript::handle_error()
 {
     string msg("GameConfigScript: Lua error: ");
-    const char* lua_msg = lua_tostring(script.L, 1);
+    const char* lua_msg = lua_tostring(script.L, -1);
     if (lua_msg != NULL) {
         msg += lua_msg;
     }
