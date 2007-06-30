@@ -54,12 +54,12 @@ This section will outline how to compile FreeCNC.
 ==============================
 
   Compilers:
-  - GCC G++ version 3.3 or newer.
+  - GCC G++ version 4.1 or newer.
   - Visual C++ 2005 (express will work).
 
   Libraries:
-  - SDL 1.2.10.
-  - SDL_mixer 1.2.7.
+  - SDL 1.2.11.
+  - SDL_mixer 1.2.6.
   - Boost 1.34.
 
   In addition, on other platforms than Windows you will need SCons and python
