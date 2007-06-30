@@ -2,41 +2,25 @@
 from glob import glob
 from sys import platform
 
-# Source files
-source = glob("freecnc/*.cpp")
+source  = glob("freecnc/*.cpp")
 source += glob("freecnc/*/*.cpp")
 source += glob("freecnc/*/*/*.cpp")
 luasource = glob("lua/*.c")
 source += luasource
-source = [f for f in source if "win32" not in f]
-
-#luasource += glob("#/lua/*.c")
+source  = [f for f in source if "win32" not in f]
 
 env = Environment()
 
 # Don't clutter the source tree with multiple .sconsign files
 env.SConsignFile()
 
-if platform == "win32":
-    print "ERROR: Use the project files instead."
-    Exit(1)
+if platform != "linux2":
+    print "Warning: Building for \"%s\" is not tested or supported at this time." % platform
 
-#if platform not in ["linux2", "darwin", "freebsd"]:
-if platform not in ["linux2"]:
-    print "%s is not supported at this time." % platform
-    Exit(1)
-
-if platform == "freebsd":
-    print "NOTE: FreeBSD isn't frequently tested"
-    sdlconfname = "sdl11-config"
-else:
-    sdlconfname = "sdl-config"
-
-env.ParseConfig(sdlconfname + " --cflags --libs")
+env.ParseConfig("pkg-config sdl --cflags --libs")
 
 env["CXXFLAGS"] += ["-Wall", "-std=c++98", "-Wconversion", "-Wno-unused-parameter"]
-
-env["LIBS"] += ["SDL_mixer", "boost_program_options-mt", "boost_filesystem-mt"]
+env["LIBS"]     += ["SDL_mixer", "boost_program_options-mt", "boost_filesystem-mt"]
 
 release = env.Copy()
 release["CXXFLAGS"] += ["-Os"]
