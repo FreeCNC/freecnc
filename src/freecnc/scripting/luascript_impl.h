@@ -3,6 +3,7 @@
 #endif
 
 namespace LuaScriptPriv {
+    // Find the length of the array of registrations
     template<class T>
     size_t length(LuaScript::Reg<T>* methods)
     {
@@ -14,6 +15,9 @@ namespace LuaScriptPriv {
         return ret;
     }
 
+    // All of the bound member functions go through this function.
+    // Retrieves the this pointer and the pointer to member function from the
+    // closure and completes the call to the member function.
     template<class T, class Tfunc>
     int luabinder(lua_State* L)
     {
@@ -48,6 +52,8 @@ void LuaScript::register_methods(T* obj, Reg<T>* methods)
     }
 }
 
+// Store the this pointer and the pointer to member function inside a closure
+// associated with a call to specialisation of luabinder.
 template<class T>
 void LuaScript::push_member_function(T* obj, int (T::*func)(lua_State*))
 {
@@ -55,6 +61,8 @@ void LuaScript::push_member_function(T* obj, int (T::*func)(lua_State*))
 
     lua_pushlightuserdata(L, obj);
     void* buf = lua_newuserdata(L, sizeof(Tfunc));
+    // This approach means we aren't affected by the size of the pointer
+    // to member function being variable depending on various factors.
     union { Tfunc func; char data[sizeof(Tfunc)]; } s;
     s.func = func;
     memcpy(buf, s.data, sizeof(Tfunc));

@@ -2,6 +2,9 @@
 #include "luascript.h"
 
 namespace {
+    // Helper routine to handle reusing an existing table or falling back on
+    // creating a new table.  This is needed because a new table needs to be
+    // assigned to a name once we no longer need it on the lua stack.
     struct PushTable
     {
         PushTable(lua_State* L, const char* table) : L(L), table(table), new_table(true)
