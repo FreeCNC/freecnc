@@ -336,6 +336,6 @@ namespace VFS
 
     string MixArchive::path()
     {
-        return mixfile.native_file_string();
+        return mixfile.c_str();
     }
 }

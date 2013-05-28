@@ -121,7 +121,7 @@ namespace VFS
     
     string DirArchive::path()
     {
-        return dir.native_directory_string();
+        return dir.c_str();
     }
     
     shared_ptr<File> DirArchive::open(const std::string& filename, bool writable)
@@ -133,6 +133,6 @@ namespace VFS
             return shared_ptr<File>();
         }
 
-        return shared_ptr<File>(new DirFile(filepath.native_directory_string(), path(), filename, writable));
+        return shared_ptr<File>(new DirFile(filepath.c_str(), path(), filename, writable));
     }
 }
