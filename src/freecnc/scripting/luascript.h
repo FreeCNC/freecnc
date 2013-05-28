@@ -2,8 +2,8 @@
 #define _LUASCRIPT_H
 
 extern "C" {
-#include "../../lua/lua.h"
-#include "../../lua/lauxlib.h"
+#include "lualib.h"
+#include "lauxlib.h"
 }
 
 class LuaScript
