@@ -942,7 +942,6 @@ void Input::clickSidebar(int mx, int my, bool rightbutton)
         }
     } else {
         lplayer->startBuilding(type);
-        /// @TODO Check if we're building a unit and use "training" instead
         /// @TODO Get these strings from a global config thiny for interop with RA
         pc::sfxeng->PlaySound("BLDGING1.AUD");
     }

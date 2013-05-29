@@ -8,6 +8,7 @@
 #include "playerpool.h"
 #include "unitorstructure.h"
 #include "unitandstructurepool.h"
+#include "../sound/sound_public.h"
 
 namespace BuildQueue
 {
@@ -177,9 +178,7 @@ namespace BuildQueue
             return false;
         }
         last += delta*buildspeed;
-        /// @TODO Play "tink" sound
         if (!player->changeMoney(-delta)) {
-            /// @TODO Play "insufficient funds" sound
             // Note: C&C didn't put build on hold when you initially run out, so you
             // could leave something partially built whilst waiting for the
             // harvester to return
@@ -200,7 +199,7 @@ namespace BuildQueue
         if (!type->isStructure()) {
             UnitType* utype = (UnitType*)type;
             if (p::dispatcher->unitSpawn(utype, player->getPlayerNum())) {
-                /// @TODO Play "unit ready" sound
+                pc::sfxeng->PlaySound("UNITREDY.AUD");
                 // If we were able to spawn the unit, move onto the next
                 // item
                 status = BQ_RUNNING;
@@ -209,7 +208,7 @@ namespace BuildQueue
                 return done;
             }
         } else {
-            /// @TODO Play "construction complete" sound
+            pc::sfxeng->PlaySound("CONSTRU1.AUD");
         }
         p::ppool->updateSidebar();
         return false;
