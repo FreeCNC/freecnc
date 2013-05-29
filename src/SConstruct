@@ -5,8 +5,6 @@ from sys import platform
 source  = glob("freecnc/*.cpp")
 source += glob("freecnc/*/*.cpp")
 source += glob("freecnc/*/*/*.cpp")
-luasource = glob("lua/*.c")
-source += luasource
 source  = [f for f in source if "win32" not in f]
 
 env = Environment()
