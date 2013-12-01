@@ -62,15 +62,17 @@ This section will outline how to compile FreeCNC.
   - SDL_mixer 1.2.6.
   - Boost 1.34.
 
-  In addition, on other platforms than Windows you will need SCons and python
-  to build.
+4.2. Compiling with Cmake and GNU-C++
+=====================================
+  
+  You will need cmake and make. In the archive directory run
 
-4.2. Compiling with SCons & GCC
-===============================
-
-  Simply running "scons" in the source directory should work.  Move or link the
-  program in src/bin to the directory that contains the data directory.
-
+  $ cmake src
+  
+  and then
+  
+  $ make
+  
 4.3. Compiling with Visual C++
 ==============================
 
